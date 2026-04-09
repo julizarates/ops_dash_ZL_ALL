@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zone Lead — TurboOps CL</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'Figtree',sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden}
+
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}.logo b{color:#378ADD}
+.ztag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#E3F2FD;color:#0D47A1;border:1px solid #BBDEFB;padding:2px 8px;border-radius:10px;margin-left:8px}
+.ctag{font-size:11px;font-weight:700;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;padding:2px 8px;border-radius:10px;margin-left:6px}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#999}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s}
+.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid #DDD;border-radius:6px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}
+.btn:hover{background:#F5F4F0}
+
+/* STORE SELECTOR */
+.sel-bar{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.fl{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px;margin-top:6px}
+.multi-wrap{display:flex;flex-direction:column;gap:3px}
+
+.hint{font-size:10px;color:#bbb}
+.sel-info{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.sel-tag{font-size:11px;background:#E3F2FD;color:#0D47A1;padding:2px 8px;border-radius:10px;font-weight:600}
+.btn-clear{font-size:11px;color:#aaa;background:none;border:none;cursor:pointer;text-decoration:underline;font-family:'Figtree',sans-serif}
+.store-btn{padding:7px 14px;border:1.5px solid #E0DFD9;border-radius:20px;font-size:12px;font-weight:500;color:#555;cursor:pointer;background:#fff;font-family:'Figtree',sans-serif;transition:all .15s;user-select:none;-webkit-tap-highlight-color:transparent}
+.store-btn:active{transform:scale(.97)}
+.store-btn.on{background:#111;color:#fff;border-color:#111}
+
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;text-align:center;gap:12px}
+.empty-icon{font-size:36px;opacity:.25}
+.empty h2{font-size:16px;font-weight:600;color:#666}
+.empty p{font-size:12px;color:#aaa}
+
+/* LOADING */
+.ld{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:#aaa}
+.sp{width:16px;height:16px;border:2px solid #E0DFD9;border-top-color:#378ADD;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DASH */
+.dash{padding:20px 24px;display:none}
+.dash.on{display:block}
+
+.zone-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.zone-title{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.zone-sub{font-size:12px;color:#888;margin-top:3px}
+.zone-week{font-size:12px;font-weight:600;background:#F5F4F0;border:1px solid #E0DFD9;padding:4px 12px;border-radius:20px;color:#555;white-space:nowrap}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:14px 16px;border-top:3px solid var(--c,#378ADD)}
+.kpi-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:6px}
+.kpi-v{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1;margin-bottom:6px}
+.compare-box{background:#F5F4F0;border-radius:6px;padding:6px 8px;display:flex;flex-direction:column;gap:3px}
+.cmp{display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.cmp-lbl{color:#888}
+.up{color:#E24B4A;font-weight:600}.dn{color:#4CAF50;font-weight:600}.eq{color:#aaa;font-weight:600}
+
+/* SECTION */
+.sec{margin-bottom:18px}
+.sec-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-badge{font-size:10px;font-weight:600;background:#F5F4F0;color:#888;padding:1px 6px;border-radius:8px}
+
+/* CHARTS */
+.charts-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;min-width:0}
+.card{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:16px}
+.card-title{font-size:12px;font-weight:700;margin-bottom:12px;color:#111}
+.card-sub{font-size:10px;font-weight:400;color:#aaa;margin-left:4px}
+
+/* DONUT */
+.donut-wrap{display:flex;align-items:center;gap:12px}
+.legend{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.li{display:flex;align-items:center;gap:5px;font-size:11px}
+.li-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.li-lbl{flex:1;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-n{font-weight:600;color:#111;min-width:20px;text-align:right}
+.li-p{color:#aaa;min-width:28px;text-align:right;font-size:10px}
+
+/* HOUR HEATMAP */
+.hour-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.hour-cell{border-radius:4px;height:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;font-weight:600;cursor:default;transition:transform .1s;position:relative}
+.hour-cell:hover{transform:scale(1.1);z-index:2}
+.hour-label{font-size:8px;color:#888;margin-top:2px}
+
+/* RANKING */
+.rank-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+.rank-card{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:14px 16px}
+.rank-title{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rank-color{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rank-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #F5F4F0}
+.rank-item:last-child{border-bottom:none}
+.rank-pos{font-size:11px;font-weight:700;color:#bbb;min-width:16px}
+.rank-name{flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-val{font-size:12px;font-weight:700}
+.rank-bar-bg{width:60px;height:4px;background:#F0EFEB;border-radius:2px}
+.rank-bar-f{height:4px;border-radius:2px}
+
+/* ALERTS */
+.alerts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.pk{background:#fff;border:1px solid #E5E4DF;border-left:3px solid var(--pc,#FF9800);border-radius:8px;padding:10px 13px}
+.pk-store{font-size:10px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.pk-name{font-size:12px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-stats{display:flex;gap:5px;flex-wrap:wrap}
+.pk-stat{font-size:11px;background:#F5F4F0;padding:2px 6px;border-radius:4px;color:#555}
+.pk-stat b{color:#111}
+
+/* BARS */
+.bars{display:flex;flex-direction:column;gap:7px}
+.bar-item{display:flex;flex-direction:column;gap:3px}
+.bar-head{display:flex;justify-content:space-between;font-size:11px}
+.bar-lbl{color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
+.bar-val{font-weight:600;color:#111}
+.bar-bg{height:5px;background:#F0EFEB;border-radius:3px}
+.bar-fill{height:5px;border-radius:3px;transition:width .5s}
+
+
+@media(max-width:600px){
+  .hdr{padding:10px 14px}
+  .sel-bar{padding:10px 14px}
+  .dash{padding:14px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .charts-row{grid-template-columns:1fr !important;overflow:hidden}
+  .rank-grid{grid-template-columns:1fr !important}
+  .zone-title{font-size:16px}
+  .kpi-v{font-size:22px}
+  .store-btn{font-size:13px;padding:8px 14px}
+}
+
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-row{grid-template-columns:1fr}.rank-grid{grid-template-columns:1fr}.hour-grid{grid-template-columns:repeat(6,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="ztag">Zone Lead</span>
+    <span class="ctag">CL</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="sel-bar" id="sel-bar">
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px">
+    <span class="fl">Tiendas a cargo</span>
+    <button class="btn-clear" id="btn-clear" onclick="clearSel()" style="display:none">Limpiar todo</button>
+  </div>
+  <div id="store-btns" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+</div>
+
+<div class="ld" id="gld"><div class="sp"></div>Cargando datos...</div>
+
+<div class="empty" id="empty-msg" style="display:none">
+  <div class="empty-icon">🗺</div>
+  <h2>Selecciona tus tiendas</h2>
+  <p>Elige una o varias tiendas a tu cargo para ver el resumen de zona</p>
+</div>
+
+<div class="dash" id="dash">
+
+  <div class="zone-hdr">
+    <div>
+      <div class="zone-title" id="zone-title">—</div>
+      <div class="zone-sub" id="zone-sub">—</div>
+    </div>
+    <div class="zone-week" id="zone-week">—</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi" style="--c:#E24B4A">
+      <div class="kpi-l">Defectos</div>
+      <div class="kpi-v" id="kv-def">—</div>
+      <div class="compare-box">
+        <div class="cmp"><span class="cmp-lbl">vs sem anterior</span><span class="cmp-val" id="cd1">—</span></div>
+        <div class="cmp"><span class="cmp-lbl">vs prom 4 sem</span><span class="cmp-val" id="cd4">—</span></div>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#FF9800">
+      <div class="kpi-l">Stockouts Ops</div>
+      <div class="kpi-v" id="kv-so">—</div>
+      <div class="compare-box">
+        <div class="cmp"><span class="cmp-lbl">vs sem anterior</span><span class="cmp-val" id="cs1">—</span></div>
+        <div class="cmp"><span class="cmp-lbl">vs prom 4 sem</span><span class="cmp-val" id="cs4">—</span></div>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#2196F3">
+      <div class="kpi-l">Cancelaciones</div>
+      <div class="kpi-v" id="kv-can">—</div>
+      <div class="compare-box">
+        <div class="cmp"><span class="cmp-lbl">vs sem anterior</span><span class="cmp-val" id="cc1">—</span></div>
+        <div class="cmp"><span class="cmp-lbl">vs prom 4 sem</span><span class="cmp-val" id="cc4">—</span></div>
+      </div>
+    </div>
+    <div class="kpi" style="--c:#4CAF50">
+      <div class="kpi-l">Avg Pick+Pack</div>
+      <div class="kpi-v" id="kv-pp">—</div>
+      <div class="compare-box">
+        <div class="cmp"><span class="cmp-lbl">vs sem anterior</span><span class="cmp-val" id="cp1">—</span></div>
+        <div class="cmp"><span class="cmp-lbl">vs prom 4 sem</span><span class="cmp-val" id="cp4">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DONUTS -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Tipos de defecto <span class="card-sub">semana actual</span></div>
+      <div class="donut-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88" id="d-def" style="flex-shrink:0"></svg>
+        <div class="legend" id="l-def"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Stockouts <span class="card-sub">parcial vs total</span></div>
+      <div class="donut-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88" id="d-so" style="flex-shrink:0"></svg>
+        <div class="legend" id="l-so"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Cancelaciones <span class="card-sub">por subcategoría</span></div>
+      <div class="donut-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88" id="d-can" style="flex-shrink:0"></svg>
+        <div class="legend" id="l-can"></div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- RANKING POR TIENDA -->
+  <div class="sec-title" style="margin-bottom:10px">Ranking de tiendas seleccionadas</div>
+  <div class="rank-grid">
+    <div class="rank-card">
+      <div class="rank-title"><div class="rank-color" style="background:#E24B4A"></div>Defectos (tickets)</div>
+      <div id="rank-def"></div>
+    </div>
+    <div class="rank-card">
+      <div class="rank-title"><div class="rank-color" style="background:#FF9800"></div>Stockouts Ops (órdenes)</div>
+      <div id="rank-so"></div>
+    </div>
+    <div class="rank-card">
+      <div class="rank-title"><div class="rank-color" style="background:#2196F3"></div>Cancelaciones Partner</div>
+      <div id="rank-can"></div>
+    </div>
+    <div class="rank-card">
+      <div class="rank-title"><div class="rank-color" style="background:#4CAF50"></div>Avg Pick+Pack (min)</div>
+      <div id="rank-pp"></div>
+    </div>
+  </div>
+
+  <!-- ALERTAS PICKERS POR TIENDA -->
+  <div class="sec">
+    <div class="sec-title">Alertas pickers por tienda <span class="sec-badge" id="pk-cnt"></span></div>
+    <div class="alerts-grid" id="pickers-grid"></div>
+  </div>
+
+  <!-- TOP PRODUCTOS -->
+  <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:18px">
+    <div class="card">
+      <div class="card-title">Top productos con defectos</div>
+      <div id="tp-def" style="display:flex;flex-direction:column;gap:5px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top productos con stockout</div>
+      <div id="tp-so" style="display:flex;flex-direction:column;gap:5px"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const COUNTRY='CL';
+const SID='1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U';
+const API_KEY='AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEETS={def:'Defectos',so:'Stockouts',can:'Cancelaciones',tiem:'Tiempos'};
+const COLORS=['#E24B4A','#FF9800','#2196F3','#4CAF50','#9C27B0','#00BCD4','#FF5722'];
+let D={def:[],so:[],can:[],tiem:[]};
+
+async function fetchSheet(g){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(SHEETS[g])}?key=${API_KEY}`;
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const json=await r.json();
+  const rows=json.values||[];
+  const known=['SEMANA','FECHA','COUNTRY','COUNTRY_CODE','TICKETS','ORDENES','AVG_PICK_PACK'];
+  let hi=rows.findIndex(row=>row.some(c=>known.includes((c||'').toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;
+  const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};hdrs.forEach((h,i)=>o[h.trim()]=(row[i]||'').toString().trim());
+    if(o.SEMANA)o.SEMANA=o.SEMANA.split(' ')[0].split('T')[0];
+    if(o.FECHA)o.FECHA=o.FECHA.split(' ')[0].split('T')[0];
+    return o;
+  });
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('empty-msg').style.display='none';
+  document.getElementById('dash').classList.remove('on');
+  try{
+    const[def,so,can,tiem]=await Promise.all([fetchSheet('def'),fetchSheet('so'),fetchSheet('can'),fetchSheet('tiem')]);
+    D={
+      def:def.filter(r=>(r.COUNTRY_CODE||r.COUNTRY)===COUNTRY),
+      so:so.filter(r=>r.COUNTRY===COUNTRY),
+      can:can.filter(r=>r.COUNTRY===COUNTRY),
+      tiem:tiem.filter(r=>r.COUNTRY===COUNTRY)
+    };
+    buildStoreList();
+    document.getElementById('gld').style.display='none';
+    document.getElementById('empty-msg').style.display='flex';
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('gld').innerHTML=`<span style="color:#E24B4A">Error: ${e.message}</span>`;
+  }
+}
+
+let selStores=new Set();
+
+function buildStoreList(){
+  const stores=[...new Set([
+    ...D.def.map(r=>r.WAREHOUSENAME),
+    ...D.so.map(r=>r.WAREHOUSENAME),
+    ...D.can.map(r=>r.WAREHOUSENAME),
+    ...D.tiem.map(r=>r.WAREHOUSENAME)
+  ].filter(Boolean))].sort();
+  const container=document.getElementById('store-btns');
+  container.innerHTML='';
+  stores.forEach(s=>{
+    const btn=document.createElement('button');
+    btn.className='store-btn'+(selStores.has(s)?' on':'');
+    btn.textContent=s;
+    btn.onclick=()=>toggleStore(s,btn);
+    container.appendChild(btn);
+  });
+  if(selStores.size>0)onStores();
+}
+
+function toggleStore(s,btn){
+  if(selStores.has(s)){selStores.delete(s);btn.classList.remove('on');}
+  else{selStores.add(s);btn.classList.add('on');}
+  onStores();
+}
+
+function getSelStores(){return[...selStores];}
+
+function onStores(){
+  const stores=getSelStores();
+  document.getElementById('btn-clear').style.display=stores.length?'block':'none';
+  if(!stores.length){
+    document.getElementById('empty-msg').style.display='flex';
+    document.getElementById('dash').classList.remove('on');
+    return;
+  }
+  document.getElementById('empty-msg').style.display='none';
+  renderDash(stores);
+}
+
+function clearSel(){
+  selStores.clear();
+  document.querySelectorAll('.store-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('btn-clear').style.display='none';
+  document.getElementById('empty-msg').style.display='flex';
+  document.getElementById('dash').classList.remove('on');
+}
+
+function getWeeks(){
+  return[...new Set([...D.def,...D.so,...D.can,...D.tiem].map(r=>r.SEMANA).filter(Boolean))].sort().reverse();
+}
+
+function fmtWeek(w){
+  if(!w)return'—';
+  const d=new Date((w||'').toString().split(' ')[0]);
+  if(isNaN(d))return w;
+  return d.toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'});
+}
+
+function sum(arr,col){return arr.reduce((s,r)=>s+(parseFloat(r[col])||0),0);}
+function wavg(arr,col){return arr.length?arr.reduce((s,r)=>s+(parseFloat(r[col])||0),0)/arr.length:0;}
+
+function renderDash(stores){
+  document.getElementById('dash').classList.add('on');
+  const weeks=getWeeks();
+  const curW=weeks[0]||'';
+  const prevW=weeks[1]||'';
+  const hist=weeks.slice(1,5);
+  const n=stores.length;
+
+  document.getElementById('zone-title').textContent=n===1?stores[0]:`${n} tiendas seleccionadas`;
+  document.getElementById('zone-sub').textContent=stores.join(' · ').substring(0,80)+(stores.join(' · ').length>80?'...':'');
+  document.getElementById('zone-week').textContent='Semana del '+fmtWeek(curW);
+
+  // Filter by stores
+  const df=D.def.filter(r=>stores.includes(r.WAREHOUSENAME));
+  const sf=D.so.filter(r=>stores.includes(r.WAREHOUSENAME));
+  const cf=D.can.filter(r=>stores.includes(r.WAREHOUSENAME));
+  const tf=D.tiem.filter(r=>stores.includes(r.WAREHOUSENAME));
+
+  const dCur=df.filter(r=>r.SEMANA===curW),sCur=sf.filter(r=>r.SEMANA===curW),cCur=cf.filter(r=>r.SEMANA===curW),tCur=tf.filter(r=>r.SEMANA===curW);
+  const dPrev=df.filter(r=>r.SEMANA===prevW),sPrev=sf.filter(r=>r.SEMANA===prevW),cPrev=cf.filter(r=>r.SEMANA===prevW),tPrev=tf.filter(r=>r.SEMANA===prevW);
+  const dHist=hist.flatMap(w=>df.filter(r=>r.SEMANA===w)),sHist=hist.flatMap(w=>sf.filter(r=>r.SEMANA===w)),cHist=hist.flatMap(w=>cf.filter(r=>r.SEMANA===w)),tHist=hist.flatMap(w=>tf.filter(r=>r.SEMANA===w));
+
+  const vDef=sum(dCur,'TICKETS'),pDef=sum(dPrev,'TICKETS'),a4Def=hist.length?sum(dHist,'TICKETS')/hist.length:0;
+  const vSO=sum(sCur,'ORDENES'),pSO=sum(sPrev,'ORDENES'),a4SO=hist.length?sum(sHist,'ORDENES')/hist.length:0;
+  const vCan=sum(cCur,'ORDENES'),pCan=sum(cPrev,'ORDENES'),a4Can=hist.length?sum(cHist,'ORDENES')/hist.length:0;
+  const vPP=tCur.length?wavg(tCur,'AVG_PICK_PACK'):0,pPP=tPrev.length?wavg(tPrev,'AVG_PICK_PACK'):0,a4PP=tHist.length?wavg(tHist,'AVG_PICK_PACK'):0;
+
+  document.getElementById('kv-def').textContent=Math.round(vDef);
+  document.getElementById('kv-so').textContent=Math.round(vSO);
+  document.getElementById('kv-can').textContent=Math.round(vCan);
+  document.getElementById('kv-pp').textContent=vPP.toFixed(2)+' min';
+
+  setDelta('cd1',vDef,pDef,true);setDelta('cd4',vDef,a4Def,true);
+  setDelta('cs1',vSO,pSO,true);setDelta('cs4',vSO,a4SO,true);
+  setDelta('cc1',vCan,pCan,true);setDelta('cc4',vCan,a4Can,true);
+  setDelta('cp1',vPP,pPP,true);setDelta('cp4',vPP,a4PP,true);
+
+  // DONUTS
+  donut('d-def','l-def',groupBy(dCur,'LEVEL_2'));
+  donut('d-so','l-so',groupBy(sCur,'STOCKOUT_TYPE'));
+  donut('d-can','l-can',groupBy(cCur,'SUBCATEGORY'));
+
+  // HORA DE IMPACTO
+  
+
+  // RANKING POR TIENDA
+  renderRanking(stores,dCur,sCur,cCur,tCur);
+
+  // PICKERS
+  renderPickers(dCur,sCur,cCur);
+
+  // TOP PRODUCTS
+  topProds('tp-def',groupBy(dCur,'PRODUCT_NAME'),'#E24B4A','tickets');
+  topProds('tp-so',groupBy(sCur,'PRODUCT_NAME'),'#FF9800','órdenes');
+}
+
+
+
+
+
+function renderRanking(stores,def,so,can,tiem){
+  const defByStore={},soByStore={},canByStore={},ppByStore={};
+  stores.forEach(s=>{
+    defByStore[s]=sum(def.filter(r=>r.WAREHOUSENAME===s),'TICKETS');
+    soByStore[s]=sum(so.filter(r=>r.WAREHOUSENAME===s),'ORDENES');
+    canByStore[s]=sum(can.filter(r=>r.WAREHOUSENAME===s),'ORDENES');
+    const t=tiem.filter(r=>r.WAREHOUSENAME===s);
+    ppByStore[s]=t.length?wavg(t,'AVG_PICK_PACK'):0;
+  });
+
+  renderRankList('rank-def',defByStore,'#E24B4A',false);
+  renderRankList('rank-so',soByStore,'#FF9800',false);
+  renderRankList('rank-can',canByStore,'#2196F3',false);
+  renderRankList('rank-pp',ppByStore,'#4CAF50',true,true);
+}
+
+function renderRankList(id,map,color,asc,isFloat){
+  const sorted=Object.entries(map).sort((a,b)=>asc?a[1]-b[1]:b[1]-a[1]);
+  const maxV=Math.max(...sorted.map(([,v])=>v),0.01);
+  document.getElementById(id).innerHTML=sorted.map(([s,v],i)=>`
+    <div class="rank-item">
+      <span class="rank-pos">${i+1}</span>
+      <span class="rank-name" title="${s}">${s}</span>
+      <div class="rank-bar-bg"><div class="rank-bar-f" style="width:${Math.round(v/maxV*100)}%;background:${color}"></div></div>
+      <span class="rank-val" style="color:${color}">${isFloat?parseFloat(v).toFixed(2):Math.round(v)}</span>
+    </div>`).join('');
+}
+
+function renderPickers(def,so,can){
+  const pMap={};
+  def.forEach(r=>{const p=r.TOP_PICKER,st=r.WAREHOUSENAME;if(p&&p!=='—'){const k=`${st}||${p}`;if(!pMap[k])pMap[k]={name:p,store:st,def:0,so:0,can:0};pMap[k].def+=+r.TICKETS||0;}});
+  so.forEach(r=>{const p=r.TOP_PICKER,st=r.WAREHOUSENAME;if(p&&p!=='—'){const k=`${st}||${p}`;if(!pMap[k])pMap[k]={name:p,store:st,def:0,so:0,can:0};pMap[k].so+=+r.ORDENES||0;}});
+  can.forEach(r=>{const p=r.TOP_PICKER,st=r.WAREHOUSENAME;if(p&&p!=='—'){const k=`${st}||${p}`;if(!pMap[k])pMap[k]={name:p,store:st,def:0,so:0,can:0};pMap[k].can+=+r.ORDENES||0;}});
+
+  const sorted=Object.values(pMap).sort((a,b)=>(b.def+b.so+b.can)-(a.def+a.so+a.can));
+  document.getElementById('pk-cnt').textContent=sorted.length;
+  document.getElementById('pickers-grid').innerHTML=sorted.length?sorted.slice(0,8).map(p=>`
+    <div class="pk" style="--pc:${p.def>5?'#E24B4A':p.so>5?'#FF9800':'#2196F3'}">
+      <div class="pk-store">${p.store}</div>
+      <div class="pk-name" title="${p.name}">${p.name}</div>
+      <div class="pk-stats">
+        ${p.def?`<span class="pk-stat"><b>${p.def}</b> def</span>`:''}
+        ${p.so?`<span class="pk-stat"><b>${p.so}</b> SO</span>`:''}
+        ${p.can?`<span class="pk-stat"><b>${p.can}</b> cancel</span>`:''}
+      </div>
+    </div>`).join('')
+    :'<div style="color:#aaa;font-size:12px;padding:8px 0">Sin alertas de pickers</div>';
+}
+
+function setDelta(id,cur,ref,lessIsBetter){
+  const el=document.getElementById(id);
+  if(!ref){el.innerHTML='<span class="eq">—</span>';return;}
+  const diff=cur-ref;const pct=Math.abs(Math.round(diff/ref*100));
+  const better=(lessIsBetter&&diff<0)||(!lessIsBetter&&diff>0);
+  const cls=diff===0?'eq':better?'dn':'up';
+  const arrow=diff===0?'→':diff>0?'↑':'↓';
+  el.innerHTML=`<span class="${cls}">${arrow} ${pct>0?pct+'%':Math.abs(Math.round(diff))}</span>`;
+}
+
+function groupBy(arr,col){
+  const m={};arr.forEach(r=>{const k=r[col]||'Otro';m[k]=(m[k]||0)+1;});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+
+function donut(svgId,legId,data){
+  const total=data.reduce((s,[,v])=>s+v,0);
+  if(!total){document.getElementById(svgId).innerHTML='<text x="44" y="48" text-anchor="middle" fill="#ccc" font-size="11">Sin datos</text>';document.getElementById(legId).innerHTML='';return;}
+  const cx=44,cy=44,r=30,sw=16;let ang=-Math.PI/2;let paths='';
+  const items=[...data.slice(0,5),...(data.length>5?[['Otros',data.slice(5).reduce((s,[,v])=>s+v,0)]]:[])]
+    .filter(([,v])=>v>0);
+  items.forEach(([k,v],i)=>{
+    const a=(v/total)*2*Math.PI;if(a<0.01)return;
+    const xo1=cx+r*Math.cos(ang),yo1=cy+r*Math.sin(ang);
+    const xo2=cx+r*Math.cos(ang+a),yo2=cy+r*Math.sin(ang+a);
+    const xi2=cx+(r-sw)*Math.cos(ang+a),yi2=cy+(r-sw)*Math.sin(ang+a);
+    const xi1=cx+(r-sw)*Math.cos(ang),yi1=cy+(r-sw)*Math.sin(ang);
+    const lg=a>Math.PI?1:0;
+    paths+=`<path d="M${xo1},${yo1} A${r},${r} 0 ${lg},1 ${xo2},${yo2} L${xi2},${yi2} A${r-sw},${r-sw} 0 ${lg},0 ${xi1},${yi1} Z" fill="${COLORS[i%COLORS.length]}" stroke="#fff" stroke-width="2"/>`;
+    ang+=a;
+  });
+  paths+=`<text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="13" font-weight="700" fill="#111">${total}</text>`;
+  document.getElementById(svgId).innerHTML=paths;
+  document.getElementById(legId).innerHTML=items.map(([k,v],i)=>`
+    <div class="li"><div class="li-dot" style="background:${COLORS[i%COLORS.length]}"></div>
+    <span class="li-lbl" title="${k}">${k||'Sin tipo'}</span>
+    <span class="li-n">${v}</span><span class="li-p">${Math.round(v/total*100)}%</span></div>`).join('');
+}
+
+function topProds(id,data,color,unit){
+  const el=document.getElementById(id);
+  if(!data.length){el.innerHTML='<div style="color:#aaa;font-size:11px">Sin datos</div>';return;}
+  el.innerHTML=data.slice(0,5).map(([name,v],i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;background:#F9F8F5">
+      <span style="font-size:10px;font-weight:700;color:#bbb;min-width:14px">${i+1}</span>
+      <span style="flex:1;font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px" title="${name}">${name||'Sin nombre'}</span>
+      <span style="font-size:12px;font-weight:700;color:${color}">${v} ${unit}</span>
+    </div>`).join('');
+}
+
+loadAll();
+</script>
+</body>
+</html>
