@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboOps — Tienda AR</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'DM Sans',sans-serif;font-size:13px}
+:root{
+  --red:#E24B4A;--red-bg:#FEF2F2;--red-border:#FECACA;
+  --green:#2E7D32;--green-bg:#F0FDF4;--green-border:#BBF7D0;
+  --yellow:#92400E;--yellow-bg:#FFFBEB;--yellow-border:#FDE68A;
+  --orange:#FF6B35;--blue:#1565C0;
+  --border:#E5E4DF;--muted:#888;
+}
+
+/* HEADER */
+.hdr{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:18px;font-weight:700;letter-spacing:-.4px}.logo span{color:var(--orange)}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.clock{font-family:'DM Mono',monospace;font-size:17px;font-weight:500}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc}
+.dot.ok{background:#4CAF50;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn:hover{background:#F5F4F0}
+
+/* STORE SELECTOR */
+.sel-bar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sel-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-right:4px;white-space:nowrap}
+.sbtn{padding:5px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:500;color:#555;cursor:pointer;background:#fff;font-family:'DM Sans',sans-serif;transition:all .15s}
+.sbtn.on{background:#111;color:#fff;border-color:#111}
+
+/* MAIN */
+.main{padding:16px 24px;display:flex;flex-direction:column;gap:12px}
+
+/* COUNTERS ROW */
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.counter{background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;border-top:3px solid var(--ac)}
+.c-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px}
+.c-val{font-family:'DM Mono',monospace;font-size:52px;font-weight:500;line-height:1;color:var(--ac);margin-bottom:8px}
+.c-status{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
+.st-ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.st-warn{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-border)}
+.st-bad{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.c-deltas{display:flex;gap:14px}
+.c-d{font-size:11px;color:var(--muted)}
+.c-d b{font-family:'DM Mono',monospace;font-size:12px}
+.mini{display:flex;align-items:flex-end;gap:3px;height:24px;margin-top:8px}
+.mbar{border-radius:2px 2px 0 0;flex:1;min-width:5px}
+
+/* CONTENT ROW: metrics + charts side by side */
+.content-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 20px}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:12px}
+
+/* DONUT */
+.donut-wrap{display:flex;align-items:center;gap:14px}
+.leg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.li{display:flex;align-items:center;gap:6px;font-size:12px}
+.li-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.li-lbl{flex:1;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li-n{font-family:'DM Mono',monospace;font-weight:600;color:#111;min-width:20px;text-align:right}
+.li-p{font-size:10px;color:var(--muted);min-width:28px;text-align:right}
+
+/* TOP PRODS */
+.prod{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #F5F4F0}
+.prod:last-child{border-bottom:none}
+.p-r{font-size:11px;font-weight:700;color:#bbb;min-width:14px}
+.p-n{flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-bg{flex:0 0 44px;height:4px;background:#F0EFEB;border-radius:2px}
+.p-f{height:4px;border-radius:2px}
+.p-v{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;min-width:22px;text-align:right}
+
+/* PP BARS inline */
+.pp-row{display:flex;gap:8px;align-items:flex-end;height:64px;margin-top:4px}
+.pb-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pb{border-radius:3px 3px 0 0;width:100%;min-height:4px}
+.pb-lbl{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace}
+.pb-val{font-size:10px;font-family:'DM Mono',monospace;font-weight:500}
+
+/* DIVIDER label */
+.sec-sep{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 0 2px;margin-top:6px;border-top:1px solid var(--border)}
+
+.no-data{color:var(--muted);font-size:12px;padding:10px 0;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">Turbo<span>Ops</span></div>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <span id="store-display" style="font-size:14px;font-weight:600;color:var(--orange)">—</span>
+    <span id="week-display" style="font-size:12px;color:var(--muted)"></span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+    <div class="clock" id="clock">—</div>
+  </div>
+</div>
+
+<div class="sel-bar">
+  <span class="sel-lbl">Tienda</span>
+  <div id="store-btns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+</div>
+
+<div class="main">
+
+  <!-- COUNTERS -->
+  <div class="counters" id="counters">
+    <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">Cargando datos...</div>
+  </div>
+
+  <!-- FILA: tipos defecto | top prods def | top prods SO + tiempos -->
+  <div class="content-row">
+
+    <div class="card">
+      <div class="card-title">Tipos de defecto</div>
+      <div class="donut-wrap">
+        <svg width="96" height="96" viewBox="0 0 96 96" id="d-def" style="flex-shrink:0"></svg>
+        <div class="leg" id="l-def"></div>
+      </div>
+      <div class="sec-sep" style="margin-top:14px;margin-bottom:10px">Cancelaciones por tipo</div>
+      <div class="donut-wrap">
+        <svg width="96" height="96" viewBox="0 0 96 96" id="d-can" style="flex-shrink:0"></svg>
+        <div class="leg" id="l-can"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Top productos con defecto</div>
+      <div id="tp-def"></div>
+      <div class="sec-sep" style="margin-top:14px;margin-bottom:10px">Top productos con stockout</div>
+      <div id="tp-so"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Avg Pick+Pack — últimas 4 semanas</div>
+      <div class="pp-row" id="pp-bars"></div>
+      <div class="sec-sep" style="margin-top:14px;margin-bottom:10px">Stockouts por tipo</div>
+      <div class="donut-wrap">
+        <svg width="96" height="96" viewBox="0 0 96 96" id="d-so" style="flex-shrink:0"></svg>
+        <div class="leg" id="l-so"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const COUNTRY='AR';
+const SID='1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U';
+const API_KEY='AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEETS={def:'Defectos',so:'Stockouts',can:'Cancelaciones',tiem:'Tiempos'};
+const COLORS=['#E24B4A','#FF9800','#2196F3','#4CAF50','#9C27B0','#00BCD4','#FF5722'];
+let D={def:[],so:[],can:[],tiem:[]};
+let selStore=null;
+
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+}
+tick();setInterval(tick,1000);
+
+async function fetchSheet(g){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(SHEETS[g])}?key=${API_KEY}`;
+  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+  const json=await r.json();const rows=json.values||[];
+  const known=['SEMANA','FECHA','COUNTRY','COUNTRY_CODE','TICKETS','ORDENES','AVG_PICK_PACK'];
+  let hi=rows.findIndex(row=>row.some(c=>known.includes((c||'').toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};hdrs.forEach((h,i)=>o[h.trim()]=(row[i]||'').toString().trim());
+    if(o.SEMANA)o.SEMANA=o.SEMANA.split(' ')[0].split('T')[0];
+    if(o.FECHA)o.FECHA=o.FECHA.split(' ')[0].split('T')[0];
+    return o;
+  });
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  try{
+    const[def,so,can,tiem]=await Promise.all([fetchSheet('def'),fetchSheet('so'),fetchSheet('can'),fetchSheet('tiem')]);
+    D={
+      def:def.filter(r=>(r.COUNTRY_CODE||r.COUNTRY)===COUNTRY),
+      so:so.filter(r=>r.COUNTRY===COUNTRY),
+      can:can.filter(r=>r.COUNTRY===COUNTRY),
+      tiem:tiem.filter(r=>r.COUNTRY===COUNTRY)
+    };
+    buildStores();
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('counters').innerHTML=`<div style="grid-column:1/-1;color:#E24B4A;padding:30px;text-align:center">Error: ${e.message}</div>`;
+  }
+}
+
+function buildStores(){
+  const stores=[...new Set([...D.def,...D.so,...D.can,...D.tiem].map(r=>r.WAREHOUSENAME).filter(Boolean))].sort();
+  const c=document.getElementById('store-btns');c.innerHTML='';
+  stores.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='sbtn'+(selStore===s?' on':'');
+    b.textContent=s;
+    b.onclick=()=>{selStore=s;document.querySelectorAll('.sbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(s);};
+    c.appendChild(b);
+  });
+  if(stores.length&&!selStore){selStore=stores[0];c.children[0].classList.add('on');render(stores[0]);}
+  else if(selStore)render(selStore);
+}
+
+function getWeeks(arr){return[...new Set(arr.map(r=>r.SEMANA).filter(Boolean))].sort().reverse();}
+function sum(arr,col){return arr.reduce((s,r)=>s+(parseFloat(r[col])||0),0);}
+function wavg(arr,col){return arr.length?sum(arr,col)/arr.length:0;}
+function groupBy(arr,col){const m={};arr.forEach(r=>{const k=r[col]||'Otro';m[k]=(m[k]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+function fmtWeek(w){const d=new Date(w);return isNaN(d)?w:d.toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'});}
+
+function render(store){
+  document.getElementById('store-display').textContent=store;
+  const df=D.def.filter(r=>r.WAREHOUSENAME===store);
+  const sf=D.so.filter(r=>r.WAREHOUSENAME===store);
+  const cf=D.can.filter(r=>r.WAREHOUSENAME===store);
+  const tf=D.tiem.filter(r=>r.WAREHOUSENAME===store);
+  const weeks=getWeeks([...df,...sf,...cf,...tf]);
+  const curW=weeks[0]||'',prevW=weeks[1]||'';
+  const hist=weeks.slice(1,5);
+
+  document.getElementById('week-display').textContent=curW?'Semana del '+fmtWeek(curW):'';
+
+  const dCur=df.filter(r=>r.SEMANA===curW),sCur=sf.filter(r=>r.SEMANA===curW),cCur=cf.filter(r=>r.SEMANA===curW),tCur=tf.filter(r=>r.SEMANA===curW);
+  const dPrev=df.filter(r=>r.SEMANA===prevW),sPrev=sf.filter(r=>r.SEMANA===prevW),cPrev=cf.filter(r=>r.SEMANA===prevW);
+  const dHist=hist.flatMap(w=>df.filter(r=>r.SEMANA===w));
+  const sHist=hist.flatMap(w=>sf.filter(r=>r.SEMANA===w));
+  const cHist=hist.flatMap(w=>cf.filter(r=>r.SEMANA===w));
+
+  const vDef=sum(dCur,'TICKETS'),pDef=sum(dPrev,'TICKETS'),a4Def=hist.length?sum(dHist,'TICKETS')/hist.length:0;
+  const vSO=sum(sCur,'ORDENES'),pSO=sum(sPrev,'ORDENES'),a4SO=hist.length?sum(sHist,'ORDENES')/hist.length:0;
+  const vCan=sum(cCur,'ORDENES'),pCan=sum(cPrev,'ORDENES'),a4Can=hist.length?sum(cHist,'ORDENES')/hist.length:0;
+
+  // COUNTERS
+  document.getElementById('counters').innerHTML=
+    counterHTML('Defect Rate',vDef,pDef,a4Def,'#E24B4A',df,weeks,'TICKETS')+
+    counterHTML('Stockouts Ops',vSO,pSO,a4SO,'#FF6B35',sf,weeks,'ORDENES')+
+    counterHTML('Cancelaciones',vCan,pCan,a4Can,'#2196F3',cf,weeks,'ORDENES');
+
+  // DONUTS
+  donut('d-def','l-def',groupBy(dCur,'LEVEL_2'));
+  donut('d-can','l-can',groupBy(cCur,'SUBCATEGORY'));
+  donut('d-so','l-so',groupBy(sCur,'STOCKOUT_TYPE'));
+
+  // TOP PRODS
+  topProds('tp-def',groupBy(dCur,'PRODUCT_NAME'),'#E24B4A');
+  topProds('tp-so',groupBy(sCur,'PRODUCT_NAME'),'#FF6B35');
+
+  // TIEMPOS
+  renderPP(tf,weeks);
+}
+
+function counterHTML(label,cur,prev,avg4,color,allData,weeks,col){
+  const pct1=prev?Math.round((cur-prev)/prev*100):0;
+  let stClass,stText;
+  if(cur===0){stClass='st-ok';stText='Sin incidencias';}
+  else if(pct1>15){stClass='st-bad';stText='↑ Subiendo';}
+  else if(pct1<-15){stClass='st-ok';stText='↓ Mejorando';}
+  else{stClass='st-warn';stText='→ Estable';}
+  const d1=deltaStr(cur,prev),d4=deltaStr(cur,avg4);
+  const miniData=weeks.slice(0,6).reverse().map(w=>sum(allData.filter(r=>r.SEMANA===w),col));
+  const maxV=Math.max(...miniData,1);
+  const bars=miniData.map((v,i)=>`<div class="mbar" style="height:${Math.round(v/maxV*22)+2}px;background:${i===miniData.length-1?color:'#E5E4DF'}"></div>`).join('');
+  return`<div class="counter" style="--ac:${color}">
+    <div class="c-lbl">${label}</div>
+    <div class="c-val">${Math.round(cur)}</div>
+    <div class="c-status ${stClass}">${stText}</div>
+    <div class="c-deltas">
+      <div class="c-d">vs sem ant <b style="color:${d1.c}">${d1.t}</b></div>
+      <div class="c-d">vs prom 4s <b style="color:${d4.c}">${d4.t}</b></div>
+    </div>
+    <div class="mini">${bars}</div>
+  </div>`;
+}
+
+function deltaStr(cur,ref){
+  if(!ref||ref===0)return{t:'—',c:'#888'};
+  const diff=cur-ref;const pct=Math.round(Math.abs(diff)/ref*100);
+  if(diff<0)return{t:`↓ ${pct}%`,c:'#2E7D32'};
+  if(diff>0)return{t:`↑ ${pct}%`,c:'#E24B4A'};
+  return{t:'→ 0%',c:'#888'};
+}
+
+function donut(svgId,legId,data){
+  const total=data.reduce((s,[,v])=>s+v,0);
+  if(!total){
+    document.getElementById(svgId).innerHTML='<text x="48" y="52" text-anchor="middle" fill="#ccc" font-size="11">Sin datos</text>';
+    document.getElementById(legId).innerHTML='';return;
+  }
+  const cx=48,cy=48,r=34,sw=13;let ang=-Math.PI/2;let paths='';
+  const items=[...data.slice(0,5),...(data.length>5?[['Otros',data.slice(5).reduce((s,[,v])=>s+v,0)]]:[])]
+    .filter(([,v])=>v>0);
+  items.forEach(([k,v],i)=>{
+    const a=(v/total)*2*Math.PI;if(a<0.01)return;
+    const xo1=cx+r*Math.cos(ang),yo1=cy+r*Math.sin(ang);
+    const xo2=cx+r*Math.cos(ang+a),yo2=cy+r*Math.sin(ang+a);
+    const xi2=cx+(r-sw)*Math.cos(ang+a),yi2=cy+(r-sw)*Math.sin(ang+a);
+    const xi1=cx+(r-sw)*Math.cos(ang),yi1=cy+(r-sw)*Math.sin(ang);
+    const lg=a>Math.PI?1:0;
+    paths+=`<path d="M${xo1},${yo1} A${r},${r} 0 ${lg},1 ${xo2},${yo2} L${xi2},${yi2} A${r-sw},${r-sw} 0 ${lg},0 ${xi1},${yi1} Z" fill="${COLORS[i%COLORS.length]}" stroke="#fff" stroke-width="2"/>`;
+    ang+=a;
+  });
+  paths+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#111">${total}</text>`;
+  document.getElementById(svgId).innerHTML=paths;
+  document.getElementById(legId).innerHTML=items.map(([k,v],i)=>`
+    <div class="li"><div class="li-dot" style="background:${COLORS[i%COLORS.length]}"></div>
+    <span class="li-lbl" title="${k}">${k||'Sin tipo'}</span>
+    <span class="li-n">${v}</span><span class="li-p">${Math.round(v/total*100)}%</span></div>`).join('');
+}
+
+function topProds(id,data,color){
+  const el=document.getElementById(id);
+  if(!data.length){el.innerHTML='<div class="no-data">Sin datos</div>';return;}
+  const maxV=data[0][1];
+  el.innerHTML=data.slice(0,5).map(([name,v],i)=>`
+    <div class="prod">
+      <span class="p-r">${i+1}</span>
+      <span class="p-n" title="${name}">${name||'Sin nombre'}</span>
+      <div class="p-bg"><div class="p-f" style="width:${Math.round(v/maxV*44)}px;background:${color}"></div></div>
+      <span class="p-v" style="color:${color}">${v}</span>
+    </div>`).join('');
+}
+
+function renderPP(tf,weeks){
+  const el=document.getElementById('pp-bars');
+  const last4=weeks.slice(0,4).reverse();
+  if(!last4.length){el.innerHTML='<div class="no-data">Sin datos</div>';return;}
+  const vals=last4.map(w=>wavg(tf.filter(r=>r.SEMANA===w),'AVG_PICK_PACK'));
+  const maxV=Math.max(...vals,0.1);
+  el.innerHTML=last4.map((w,i)=>{
+    const d=new Date(w);
+    const label=isNaN(d)?w:d.toLocaleDateString('es',{day:'numeric',month:'short'});
+    const h=Math.round(vals[i]/maxV*52)+8;
+    const isCur=i===last4.length-1;
+    return`<div class="pb-wrap">
+      <span class="pb-val" style="color:${isCur?'#111':'#aaa'}">${vals[i].toFixed(1)}m</span>
+      <div class="pb" style="height:${h}px;background:${isCur?'#2196F3':'#DBEAFE'}"></div>
+      <span class="pb-lbl">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+loadAll();
+setInterval(loadAll,600000);
+</script>
+</body>
+</html>
