@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporte Semanal — TurboOps</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'DM Sans',sans-serif;font-size:13px}
+:root{
+  --red:#E24B4A;--red-bg:#FEF2F2;--red-b:#FECACA;
+  --green:#166534;--green-bg:#F0FDF4;--green-b:#BBF7D0;
+  --yellow:#92400E;--yellow-bg:#FFFBEB;--yellow-b:#FDE68A;
+  --orange:#FF6B35;--blue:#1565C0;
+  --border:#E5E4DF;--muted:#888;
+}
+
+.hdr{background:#fff;border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:18px;font-weight:700;letter-spacing:-.4px}.logo span{color:var(--orange)}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc}
+.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn:hover{background:#F5F4F0}
+.btn.active{background:#111;color:#fff;border-color:#111}
+
+/* FILTERS */
+.filters{background:#fff;border-bottom:1px solid var(--border);padding:10px 28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.fl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-right:2px}
+.fbtn{padding:4px 12px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;font-weight:500;color:#555;cursor:pointer;background:#fff;font-family:'DM Sans',sans-serif;transition:all .15s}
+.fbtn.on{background:#111;color:#fff;border-color:#111}
+.week-info{font-size:12px;color:var(--muted);margin-left:auto}
+.week-info b{color:#111}
+
+/* MAIN */
+.main{padding:20px 28px;display:flex;flex-direction:column;gap:20px}
+
+/* SUMMARY CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sum-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:3px solid var(--ac)}
+.sum-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
+.sum-val{font-family:'DM Mono',monospace;font-size:36px;font-weight:500;line-height:1;color:var(--ac);margin-bottom:6px}
+.sum-rate{font-size:13px;font-weight:600;color:#555;margin-bottom:8px}
+.sum-delta{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.d-up{background:var(--red-bg);color:var(--red);border:1px solid var(--red-b)}
+.d-dn{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b)}
+.d-eq{background:#F5F4F0;color:var(--muted);border:1px solid var(--border)}
+.sum-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* SECTION */
+.section{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.sec-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sec-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sec-dot{width:10px;height:10px;border-radius:50%}
+.sec-weeks{display:flex;gap:8px;font-size:11px;color:var(--muted)}
+.sec-weeks b{color:#111}
+
+/* TOP 3 TABLA */
+.top3-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-bottom:1px solid var(--border)}
+.top3-col{padding:14px 20px;border-right:1px solid var(--border)}
+.top3-col:last-child{border-right:none}
+.top3-rank-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:10px}
+.top3-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F5F4F0}
+.top3-item:last-child{border-bottom:none}
+.top3-pos{font-size:12px;font-weight:700;color:#bbb;min-width:16px}
+.top3-name{flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top3-vals{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.top3-abs{font-family:'DM Mono',monospace;font-size:12px;font-weight:600}
+.top3-delta{font-size:10px;font-weight:600}
+
+/* DETAIL TABLE */
+.dtable{width:100%;border-collapse:collapse;font-size:12px}
+.dtable th{padding:8px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);background:#FAFAF8;border-bottom:1px solid var(--border)}
+.dtable th.r{text-align:right}
+.dtable td{padding:8px 16px;border-bottom:1px solid #F5F4F0;vertical-align:middle}
+.dtable td.r{text-align:right;font-family:'DM Mono',monospace}
+.dtable tr:last-child td{border-bottom:none}
+.dtable tr:hover td{background:#FAFAF8}
+.country-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#E3F2FD;color:#0D47A1}
+.delta-pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.dp-up{background:var(--red-bg);color:var(--red)}
+.dp-dn{background:var(--green-bg);color:var(--green)}
+.dp-eq{background:#F5F4F0;color:var(--muted)}
+
+/* EXPAND */
+.show-all-btn{display:block;width:100%;padding:10px;text-align:center;font-size:11px;font-weight:600;color:var(--muted);background:#FAFAF8;border-top:1px solid var(--border);cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+.show-all-btn:hover{background:#F0EFEB;color:#111}
+
+.no-data{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid #E0DFD9;border-top-color:#378ADD;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">Turbo<span>Ops</span></div>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <span style="font-size:13px;font-weight:600;color:#555">Reporte Semanal</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="init()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="filters">
+  <span class="fl">País</span>
+  <div id="country-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  <div class="week-info" id="week-info">Cargando semanas...</div>
+</div>
+
+<div class="main" id="main">
+  <div class="loading"><span class="sp"></span>Cargando datos...</div>
+</div>
+
+<script>
+const SID='1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U';
+const API_KEY='AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEETS={def:'Defectos',so:'Stockouts',can:'Cancelaciones',tiem:'Tiempos'};
+let D={def:[],so:[],can:[],tiem:[]};
+let selCountries=new Set();
+let expandedSections={};
+
+async function fetchSheet(g){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(SHEETS[g])}?key=${API_KEY}`;
+  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+  const json=await r.json();const rows=json.values||[];
+  const known=['SEMANA','FECHA','COUNTRY','COUNTRY_CODE','TICKETS','ORDENES','AVG_PICK_PACK'];
+  let hi=rows.findIndex(row=>row.some(c=>known.includes((c||'').toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};hdrs.forEach((h,i)=>o[h.trim()]=(row[i]||'').toString().trim());
+    if(o.SEMANA)o.SEMANA=o.SEMANA.split(' ')[0].split('T')[0];
+    if(o.FECHA)o.FECHA=o.FECHA.split(' ')[0].split('T')[0];
+    o._country=(o.COUNTRY_CODE||o.COUNTRY||'').toUpperCase();
+    return o;
+  });
+}
+
+function getCountry(r){return(r.COUNTRY_CODE||r.COUNTRY||'').toUpperCase();}
+
+async function init(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('main').innerHTML='<div class="loading"><span class="sp"></span>Cargando datos...</div>';
+  try{
+    const[def,so,can,tiem]=await Promise.all([fetchSheet('def'),fetchSheet('so'),fetchSheet('can'),fetchSheet('tiem')]);
+    D={def,so,can,tiem};
+    buildCountryFilters();
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+    render();
+  }catch(e){
+    document.getElementById('main').innerHTML=`<div class="loading" style="color:#E24B4A">Error: ${e.message}</div>`;
+  }
+}
+
+function buildCountryFilters(){
+  const countries=[...new Set([...D.def,...D.so,...D.can,...D.tiem].map(r=>getCountry(r)).filter(Boolean))].sort();
+  const c=document.getElementById('country-filters');c.innerHTML='';
+  // All button
+  const all=document.createElement('button');
+  all.className='fbtn'+(selCountries.size===0?' on':'');
+  all.textContent='Todos';
+  all.onclick=()=>{selCountries.clear();document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));all.classList.add('on');render();};
+  c.appendChild(all);
+  countries.forEach(co=>{
+    const b=document.createElement('button');
+    b.className='fbtn'+(selCountries.has(co)?' on':'');
+    b.textContent=co;
+    b.onclick=()=>{
+      if(selCountries.has(co))selCountries.delete(co);else selCountries.add(co);
+      if(selCountries.size===0)all.classList.add('on');else all.classList.remove('on');
+      b.classList.toggle('on',selCountries.has(co));
+      render();
+    };
+    c.appendChild(b);
+  });
+}
+
+function getWeeks(arr){return[...new Set(arr.map(r=>r.SEMANA).filter(Boolean))].sort().reverse();}
+function sum(arr,col){return arr.reduce((s,r)=>s+(parseFloat(r[col])||0),0);}
+function wavg(arr,col){return arr.length?sum(arr,col)/arr.length:0;}
+function fmtWeek(w){const d=new Date(w);return isNaN(d)?w:d.toLocaleDateString('es',{day:'numeric',month:'short'});}
+
+function filterByCountry(arr){
+  if(selCountries.size===0)return arr;
+  return arr.filter(r=>selCountries.has(getCountry(r)));
+}
+
+function delta(cur,prev,lessIsBetter=true){
+  if(!prev||prev===0)return{pct:null,abs:null};
+  const diff=cur-prev;
+  const pct=Math.round(diff/prev*100);
+  const better=(lessIsBetter&&diff<0)||(!lessIsBetter&&diff>0);
+  return{pct,abs:diff,better,cls:diff===0?'eq':better?'dn':'up'};
+}
+
+function deltaHTML(d,suffix=''){
+  if(!d||d.pct===null)return'<span class="delta-pill dp-eq">—</span>';
+  const arrow=d.pct===0?'→':d.pct>0?'↑':'↓';
+  return`<span class="delta-pill dp-${d.cls}">${arrow} ${Math.abs(d.pct)}%${suffix}</span>`;
+}
+
+function render(){
+  const df=filterByCountry(D.def);
+  const sf=filterByCountry(D.so);
+  const cf=filterByCountry(D.can);
+  const tf=filterByCountry(D.tiem);
+  const allRows=[...df,...sf,...cf,...tf];
+  const weeks=getWeeks(allRows);
+  const curW=weeks[0]||'',prevW=weeks[1]||'';
+  if(!curW){document.getElementById('main').innerHTML='<div class="no-data">Sin datos disponibles</div>';return;}
+
+  document.getElementById('week-info').innerHTML=
+    `Semana actual: <b>${fmtWeek(curW)}</b> &nbsp;·&nbsp; Semana anterior: <b>${fmtWeek(prevW)}</b>`;
+
+  const dCur=df.filter(r=>r.SEMANA===curW),dPrev=df.filter(r=>r.SEMANA===prevW);
+  const sCur=sf.filter(r=>r.SEMANA===curW),sPrev=sf.filter(r=>r.SEMANA===prevW);
+  const cCur=cf.filter(r=>r.SEMANA===curW),cPrev=cf.filter(r=>r.SEMANA===prevW);
+  const tCur=tf.filter(r=>r.SEMANA===curW),tPrev=tf.filter(r=>r.SEMANA===prevW);
+
+  const vDef=sum(dCur,'TICKETS'),pDef=sum(dPrev,'TICKETS');
+  const vSO=sum(sCur,'ORDENES'),pSO=sum(sPrev,'ORDENES');
+  const vCan=sum(cCur,'ORDENES'),pCan=sum(cPrev,'ORDENES');
+  const vPP=wavg(tCur,'AVG_PICK_PACK'),pPP=wavg(tPrev,'AVG_PICK_PACK');
+
+  // Total ordenes para tasas
+  const totalOrdDef=sum(dCur,'ORDENES')||1;
+  const totalOrdSO=sum(sCur,'ORDENES')||1;
+  const totalOrdCan=sum(cCur,'ORDENES')||1;
+  const totalOrdDefP=sum(dPrev,'ORDENES')||1;
+  const totalOrdSOP=sum(sPrev,'ORDENES')||1;
+  const totalOrdCanP=sum(cPrev,'ORDENES')||1;
+
+  const html=`
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+      ${sumCard('Defect Rate','#E24B4A',vDef,pDef,totalOrdDef,totalOrdDefP,'TICKETS')}
+      ${sumCard('Stockouts Ops','#FF6B35',vSO,pSO,totalOrdSO,totalOrdSOP,'ORDENES')}
+      ${sumCard('Cancelaciones','#2196F3',vCan,pCan,totalOrdCan,totalOrdCanP,'ORDENES')}
+      ${sumCardPP(vPP,pPP)}
+    </div>
+
+    <!-- DEFECTOS -->
+    ${sectionHTML('defectos','Defect Rate','#E24B4A',dCur,dPrev,'TICKETS','WAREHOUSENAME','PRODUCT_NAME',curW,prevW,df)}
+
+    <!-- STOCKOUTS -->
+    ${sectionHTML('stockouts','Stockouts Ops','#FF6B35',sCur,sPrev,'ORDENES','WAREHOUSENAME','PRODUCT_NAME',curW,prevW,sf)}
+
+    <!-- CANCELACIONES -->
+    ${sectionHTML('cancelaciones','Cancelaciones Partner','#2196F3',cCur,cPrev,'ORDENES','WAREHOUSENAME','SUBCATEGORY',curW,prevW,cf)}
+
+    <!-- TIEMPOS -->
+    ${tiemposSection(tCur,tPrev,tf,curW,prevW)}
+  `;
+
+  document.getElementById('main').innerHTML=html;
+
+  // bind expand buttons
+  document.querySelectorAll('[data-sec]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const sec=btn.dataset.sec;
+      expandedSections[sec]=!expandedSections[sec];
+      render();
+    });
+  });
+}
+
+function sumCard(label,color,cur,prev,totalCur,totalPrev,col){
+  const d=delta(cur,prev);
+  const rateCur=totalCur?(cur/totalCur*100).toFixed(2)+'%':'—';
+  const ratePrev=totalPrev?(prev/totalPrev*100).toFixed(2)+'%':'—';
+  const dRate=totalCur&&totalPrev?delta(cur/totalCur*100,prev/totalPrev*100):null;
+  return`<div class="sum-card" style="--ac:${color}">
+    <div class="sum-label">${label}</div>
+    <div class="sum-val">${Math.round(cur)}</div>
+    <div class="sum-rate">${rateCur} <span style="color:var(--muted);font-weight:400;font-size:11px">vs ${ratePrev}</span></div>
+    ${deltaHTML(dRate)}
+    <div class="sum-sub">sem ant: ${Math.round(prev)} · ${d.pct!==null?Math.abs(d.pct)+'% abs':'—'}</div>
+  </div>`;
+}
+
+function sumCardPP(cur,prev){
+  const d=delta(cur,prev);
+  return`<div class="sum-card" style="--ac:#4CAF50">
+    <div class="sum-label">Avg Pick+Pack</div>
+    <div class="sum-val">${cur.toFixed(1)}<span style="font-size:18px;font-weight:400">m</span></div>
+    <div class="sum-rate">${cur.toFixed(2)} min <span style="color:var(--muted);font-weight:400;font-size:11px">vs ${prev.toFixed(2)} min</span></div>
+    ${deltaHTML(d)}
+    <div class="sum-sub">sem ant: ${prev.toFixed(2)} min</div>
+  </div>`;
+}
+
+function sectionHTML(id,title,color,cur,prev,valCol,storeCol,detailCol,curW,prevW,allData){
+  // Top 3 por store
+  const storeMap={};
+  cur.forEach(r=>{const s=r[storeCol]||'—';const co=getCountry(r);if(!storeMap[s])storeMap[s]={name:s,country:co,cur:0,prev:0};storeMap[s].cur+=parseFloat(r[valCol])||0;});
+  prev.forEach(r=>{const s=r[storeCol]||'—';if(!storeMap[s])storeMap[s]={name:s,country:getCountry(r),cur:0,prev:0};storeMap[s].prev+=parseFloat(r[valCol])||0;});
+  const sorted=Object.values(storeMap).sort((a,b)=>b.cur-a.cur);
+  const top3=sorted.slice(0,3);
+  const rest=sorted.slice(3);
+  const isExpanded=expandedSections[id];
+  const showRows=isExpanded?sorted:sorted.slice(0,8);
+
+  const top3HTML=top3.map((s,i)=>{
+    const d=delta(s.cur,s.prev);
+    return`<div class="top3-item">
+      <span class="top3-pos">${i+1}</span>
+      <span class="top3-name" title="${s.name}">${s.name}</span>
+      <div class="top3-vals">
+        <span class="top3-abs" style="color:${color}">${Math.round(s.cur)}</span>
+        <span class="top3-delta ${d.cls==='up'?'dp-up':d.cls==='dn'?'dp-dn':'dp-eq'} delta-pill">${d.pct!==null?(d.pct>0?'↑':'↓')+Math.abs(d.pct)+'%':'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Detail by store+detail col
+  const detMap={};
+  cur.forEach(r=>{
+    const key=`${r[storeCol]}|||${r[detailCol]}|||${getCountry(r)}`;
+    if(!detMap[key])detMap[key]={store:r[storeCol]||'—',detail:r[detailCol]||'—',country:getCountry(r),cur:0,prev:0};
+    detMap[key].cur+=parseFloat(r[valCol])||0;
+  });
+  prev.forEach(r=>{
+    const key=`${r[storeCol]}|||${r[detailCol]}|||${getCountry(r)}`;
+    if(!detMap[key])detMap[key]={store:r[storeCol]||'—',detail:r[detailCol]||'—',country:getCountry(r),cur:0,prev:0};
+    detMap[key].prev+=parseFloat(r[valCol])||0;
+  });
+  const detSorted=Object.values(detMap).sort((a,b)=>b.cur-a.cur);
+  const detShow=isExpanded?detSorted:detSorted.slice(0,12);
+
+  const detailColLabel=detailCol==='PRODUCT_NAME'?'Producto':detailCol==='SUBCATEGORY'?'Subcategoría':'Detalle';
+
+  return`<div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title"><div class="sec-dot" style="background:${color}"></div>${title}</div>
+      <div class="sec-weeks">Semana actual: <b>${fmtWeek(curW)}</b>&nbsp;·&nbsp;Semana anterior: <b>${fmtWeek(prevW)}</b></div>
+    </div>
+    <div class="top3-grid">
+      <div class="top3-col">
+        <div class="top3-rank-label">Top 3 tiendas peor desempeño</div>
+        ${top3HTML}
+      </div>
+      <div class="top3-col" style="grid-column:span 2">
+        <div class="top3-rank-label">Detalle por tienda — ${valCol.toLowerCase()} esta semana vs anterior</div>
+        <table class="dtable">
+          <thead><tr>
+            <th>País</th><th>Tienda</th><th>${detailColLabel}</th>
+            <th class="r">Sem actual</th><th class="r">Sem anterior</th><th class="r">Δ %</th>
+          </tr></thead>
+          <tbody>
+            ${detShow.map(r=>{const d=delta(r.cur,r.prev);return`<tr>
+              <td><span class="country-pill">${r.country}</span></td>
+              <td style="font-weight:500">${r.store}</td>
+              <td style="color:#555">${r.detail}</td>
+              <td class="r" style="color:${color};font-weight:600">${Math.round(r.cur)}</td>
+              <td class="r" style="color:var(--muted)">${Math.round(r.prev)}</td>
+              <td class="r">${deltaHTML(d)}</td>
+            </tr>`;}).join('')}
+          </tbody>
+        </table>
+        ${detSorted.length>12?`<button class="show-all-btn" data-sec="${id}">${isExpanded?'▲ Ver menos':'▼ Ver todas las '+(detSorted.length)+' filas'}</button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function tiemposSection(tCur,tPrev,allTiem,curW,prevW){
+  const storeMap={};
+  tCur.forEach(r=>{
+    const s=r.WAREHOUSENAME||'—';const co=getCountry(r);
+    if(!storeMap[s])storeMap[s]={name:s,country:co,pp_cur:[],pp_prev:[],pick_cur:[],pick_prev:[]};
+    storeMap[s].pp_cur.push(parseFloat(r.AVG_PICK_PACK)||0);
+    storeMap[s].pick_cur.push(parseFloat(r.AVG_PICKING)||0);
+  });
+  tPrev.forEach(r=>{
+    const s=r.WAREHOUSENAME||'—';
+    if(!storeMap[s])storeMap[s]={name:s,country:getCountry(r),pp_cur:[],pp_prev:[],pick_cur:[],pick_prev:[]};
+    storeMap[s].pp_prev.push(parseFloat(r.AVG_PICK_PACK)||0);
+    storeMap[s].pick_prev.push(parseFloat(r.AVG_PICKING)||0);
+  });
+
+  const avg=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;
+  const rows=Object.values(storeMap).map(s=>({
+    name:s.name,country:s.country,
+    pp_cur:avg(s.pp_cur),pp_prev:avg(s.pp_prev),
+    pick_cur:avg(s.pick_cur),pick_prev:avg(s.pick_prev)
+  })).sort((a,b)=>b.pp_cur-a.pp_cur);
+
+  const top3=rows.slice(0,3);
+  const isExpanded=expandedSections['tiempos'];
+  const showRows=isExpanded?rows:rows.slice(0,12);
+
+  const top3HTML=top3.map((s,i)=>{
+    const d=delta(s.pp_cur,s.pp_prev);
+    return`<div class="top3-item">
+      <span class="top3-pos">${i+1}</span>
+      <span class="top3-name" title="${s.name}">${s.name}</span>
+      <div class="top3-vals">
+        <span class="top3-abs" style="color:#4CAF50">${s.pp_cur.toFixed(2)}m</span>
+        <span class="top3-delta ${d.cls==='up'?'dp-up':d.cls==='dn'?'dp-dn':'dp-eq'} delta-pill">${d.pct!==null?(d.pct>0?'↑':'↓')+Math.abs(d.pct)+'%':'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title"><div class="sec-dot" style="background:#4CAF50"></div>Tiempos Operacionales</div>
+      <div class="sec-weeks">Semana actual: <b>${fmtWeek(curW)}</b>&nbsp;·&nbsp;Semana anterior: <b>${fmtWeek(prevW)}</b></div>
+    </div>
+    <div class="top3-grid">
+      <div class="top3-col">
+        <div class="top3-rank-label">Top 3 tiendas más lentas (Pick+Pack)</div>
+        ${top3HTML}
+      </div>
+      <div class="top3-col" style="grid-column:span 2">
+        <div class="top3-rank-label">Detalle tiempos por tienda</div>
+        <table class="dtable">
+          <thead><tr>
+            <th>País</th><th>Tienda</th>
+            <th class="r">Pick+Pack cur</th><th class="r">Pick+Pack ant</th><th class="r">Δ PP</th>
+            <th class="r">Picking cur</th><th class="r">Picking ant</th><th class="r">Δ Pick</th>
+          </tr></thead>
+          <tbody>
+            ${showRows.map(r=>{
+              const dpp=delta(r.pp_cur,r.pp_prev);
+              const dpick=delta(r.pick_cur,r.pick_prev);
+              return`<tr>
+                <td><span class="country-pill">${r.country}</span></td>
+                <td style="font-weight:500">${r.name}</td>
+                <td class="r" style="color:#4CAF50;font-weight:600">${r.pp_cur.toFixed(2)}m</td>
+                <td class="r" style="color:var(--muted)">${r.pp_prev.toFixed(2)}m</td>
+                <td class="r">${deltaHTML(dpp)}</td>
+                <td class="r" style="color:#4CAF50;font-weight:600">${r.pick_cur.toFixed(2)}m</td>
+                <td class="r" style="color:var(--muted)">${r.pick_prev.toFixed(2)}m</td>
+                <td class="r">${deltaHTML(dpick)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        ${rows.length>12?`<button class="show-all-btn" data-sec="tiempos">${isExpanded?'▲ Ver menos':'▼ Ver todas las '+rows.length+' tiendas'}</button>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+init();
+</script>
+</body>
+</html>
