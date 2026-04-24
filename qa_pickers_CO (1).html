@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Pickers — TurboOps CO</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'Figtree',sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden}
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}.logo b{color:#9C27B0}
+.rtag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#F3E5F5;color:#6A1B9A;border:1px solid #CE93D8;padding:2px 8px;border-radius:10px;margin-left:8px}
+.ctag{font-size:11px;font-weight:700;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;padding:2px 8px;border-radius:10px;margin-left:6px}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#999}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s}
+.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid #DDD;border-radius:6px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}
+.btn:hover{background:#F5F4F0}
+.controls{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fl{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px}
+select.ctrl,input.search-box{font-family:'Figtree',sans-serif;font-size:12px;background:#F5F4F0;border:1px solid #E0DFD9;color:#111;padding:6px 12px;border-radius:6px;outline:none}
+select.ctrl{min-width:200px;cursor:pointer}
+input.search-box{min-width:200px}
+select.ctrl:focus,input.search-box:focus{border-color:#999}
+.sep{width:1px;height:20px;background:#E5E4DF}
+.filter-btns{display:flex;gap:6px}
+.fb{padding:5px 12px;border:1.5px solid #E0DFD9;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:#888;font-family:'Figtree',sans-serif;transition:all .15s}
+.fb:hover{border-color:#999;color:#111}
+.fb.on{background:#111;color:#fff;border-color:#111}
+.fb.g.on{background:#C9860A;border-color:#C9860A}
+.fb.s.on{background:#546E7A;border-color:#546E7A}
+.fb.b.on{background:#795548;border-color:#795548}
+.summary{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.sum-item{display:flex;align-items:center;gap:8px}
+.sum-n{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.sum-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#aaa}
+.sum-sep{width:1px;height:24px;background:#E5E4DF}
+.ld{display:flex;align-items:center;justify-content:center;gap:10px;padding:80px;color:#aaa}
+.sp{width:16px;height:16px;border:2px solid #E0DFD9;border-top-color:#9C27B0;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-st{text-align:center;padding:80px;color:#aaa}
+.empty-st h2{font-size:16px;font-weight:600;color:#555;margin-bottom:6px}
+.main{padding:20px 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.pk-card{background:#fff;border:1px solid #E5E4DF;border-radius:12px;overflow:hidden;transition:box-shadow .2s,transform .15s;cursor:pointer;position:relative}
+.pk-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px)}
+.pk-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.pk-card.gold::before{background:linear-gradient(90deg,#C9860A,#F0CF80,#C9860A)}
+.pk-card.silver::before{background:linear-gradient(90deg,#546E7A,#B0BEC5,#546E7A)}
+.pk-card.bronze::before{background:linear-gradient(90deg,#795548,#BCAAA4,#795548)}
+.pk-top{padding:14px 15px 10px;display:flex;align-items:flex-start;gap:10px}
+.pk-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.pk-avatar.gold{background:#FDF3DC;color:#C9860A}
+.pk-avatar.silver{background:#ECEFF1;color:#546E7A}
+.pk-avatar.bronze{background:#EFEBE9;color:#795548}
+.pk-info{flex:1;min-width:0}
+.pk-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-store{font-size:11px;color:#aaa;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.pk-badge.gold{background:#FDF3DC;color:#C9860A;border:1px solid #F0CF80}
+.pk-badge.silver{background:#ECEFF1;color:#546E7A;border:1px solid #B0BEC5}
+.pk-badge.bronze{background:#EFEBE9;color:#795548;border:1px solid #BCAAA4}
+.pk-score-row{padding:4px 15px 12px;display:flex;align-items:center;gap:10px}
+.pk-score-n{font-size:28px;font-weight:700;letter-spacing:-.8px;line-height:1;min-width:44px}
+.pk-score-n.gold{color:#C9860A}
+.pk-score-n.silver{color:#546E7A}
+.pk-score-n.bronze{color:#795548}
+.pk-score-track{flex:1}
+.pk-score-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:#bbb;margin-bottom:4px}
+.pk-score-bg{height:6px;background:#F0EFEB;border-radius:3px;overflow:hidden}
+.pk-score-fill{height:6px;border-radius:3px;transition:width .5s}
+.pk-metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #F0EFEB}
+.pm{padding:9px 6px;text-align:center;border-right:1px solid #F0EFEB}
+.pm:last-child{border-right:none}
+.pm-val{font-size:15px;font-weight:700;line-height:1;margin-bottom:2px}
+.pm-val.red{color:#D13C2B}
+.pm-val.amber{color:#C07000}
+.pm-val.green{color:#2A7A4A}
+.pm-val.grey{color:#bbb}
+.pm-lbl{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
+.pk-flags{padding:8px 12px;border-top:1px solid #F0EFEB;display:flex;gap:5px;flex-wrap:wrap;background:#FAFAF8}
+.flag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
+.flag.red{background:#FCEAE8;color:#D13C2B}
+.flag.green{background:#E6F4EC;color:#2A7A4A}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto}
+.modal-hdr{padding:18px 20px 12px;border-bottom:1px solid #F0EFEB;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-close{font-size:22px;cursor:pointer;color:#bbb;background:none;border:none;line-height:1;font-family:'Figtree',sans-serif}
+.modal-body{padding:18px 20px}
+.m-sec{margin-bottom:16px}
+.m-sec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#bbb;margin-bottom:10px}
+.m-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #FAFAF8}
+.m-row:last-child{border-bottom:none}
+.m-label{font-size:12px;font-weight:500;color:#555}
+.m-right{display:flex;align-items:center;gap:8px}
+.m-bar-bg{width:60px;height:4px;background:#F0EFEB;border-radius:2px}
+.m-bar-f{height:4px;border-radius:2px}
+.m-val{font-size:12px;font-weight:700;min-width:32px;text-align:right}
+@media(max-width:600px){.hdr,.controls,.summary,.main{padding-left:14px;padding-right:14px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="rtag">QA Pickers</span>
+    <span class="ctag">CO</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+<div class="controls">
+  <span class="fl">Tienda</span>
+  <select class="ctrl" id="f-store" onchange="render()"><option value="">Todas las tiendas</option></select>
+  <div class="sep"></div>
+  <input class="search-box" id="f-search" type="text" placeholder="🔍 Buscar picker..." oninput="render()">
+  <div class="sep"></div>
+  <div class="filter-btns">
+    <button class="fb on" onclick="setFilter('all',this)">Todos</button>
+    <button class="fb g" onclick="setFilter('Oro',this)">🥇 Oro</button>
+    <button class="fb s" onclick="setFilter('Plata',this)">🥈 Plata</button>
+    <button class="fb b" onclick="setFilter('Bronce',this)">🥉 Bronce</button>
+  </div>
+</div>
+<div class="summary" id="summary" style="display:none">
+  <div class="sum-item"><div class="sum-n" id="s-total">—</div><div class="sum-l">Pickers</div></div>
+  <div class="sum-sep"></div>
+  <div class="sum-item"><div class="sum-n" style="color:#C9860A" id="s-gold">—</div><div class="sum-l">🥇 Oro</div></div>
+  <div class="sum-item"><div class="sum-n" style="color:#546E7A" id="s-silver">—</div><div class="sum-l">🥈 Plata</div></div>
+  <div class="sum-item"><div class="sum-n" style="color:#795548" id="s-bronze">—</div><div class="sum-l">🥉 Bronce</div></div>
+  <div class="sum-sep"></div>
+  <div class="sum-item"><div class="sum-n" id="s-week" style="font-size:13px;color:#888">—</div><div class="sum-l">Semana</div></div>
+</div>
+<div class="ld" id="gld"><div class="sp"></div>Cargando pickers...</div>
+<div class="empty-st" id="empty-st" style="display:none"><h2>Sin resultados</h2><p>Prueba con otro filtro</p></div>
+<div class="main" id="main" style="display:none"><div class="grid" id="grid"></div></div>
+<div class="modal-bg" id="modal" onclick="onModalBg(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div style="font-size:15px;font-weight:700" id="m-name">—</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px" id="m-store">—</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal').classList.remove('on')">×</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+<script>
+const COUNTRY='CO';
+const SID='1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U';
+const API_KEY='AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEETS={def:'Defectos',so:'Stockouts',can:'Cancelaciones',tiem:'Tiempos'};
+let D={def:[],so:[],can:[],tiem:[]};
+let pickers=[];
+let filterCluster='all';
+
+async function fetchSheet(g){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(SHEETS[g])}?key=${API_KEY}`;
+  const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+  const json=await r.json();const rows=json.values||[];
+  const known=['SEMANA','FECHA','COUNTRY','COUNTRY_CODE','TICKETS','ORDENES','AVG_PICK_PACK'];
+  let hi=rows.findIndex(row=>row.some(c=>known.includes((c||'').toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};hdrs.forEach((h,i)=>o[h.trim()]=(row[i]||'').toString().trim());
+    if(o.SEMANA)o.SEMANA=o.SEMANA.split(' ')[0].split('T')[0];
+    if(o.FECHA)o.FECHA=o.FECHA.split(' ')[0].split('T')[0];return o;
+  });
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('main').style.display='none';
+  document.getElementById('summary').style.display='none';
+  try{
+    const[def,so,can,tiem]=await Promise.all([fetchSheet('def'),fetchSheet('so'),fetchSheet('can'),fetchSheet('tiem')]);
+    D={def:def.filter(r=>(r.COUNTRY_CODE||r.COUNTRY)===COUNTRY),so:so.filter(r=>r.COUNTRY===COUNTRY),can:can.filter(r=>r.COUNTRY===COUNTRY),tiem:tiem.filter(r=>r.COUNTRY===COUNTRY)};
+    buildPickers();buildStoreFilter();
+    document.getElementById('gld').style.display='none';
+    document.getElementById('summary').style.display='flex';
+    document.getElementById('main').style.display='block';
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){document.getElementById('gld').innerHTML=`<span style="color:#D13C2B">Error: ${e.message}</span>`;}
+}
+
+function getWeeks(){return[...new Set([...D.def,...D.so,...D.can,...D.tiem].map(r=>r.SEMANA).filter(Boolean))].sort().reverse();}
+function fmtWeek(w){if(!w)return'—';const d=new Date(w.split(' ')[0]);if(isNaN(d))return w;return d.toLocaleDateString('es',{day:'numeric',month:'short'});}
+
+function buildPickers(){
+  const weeks=getWeeks();const curW=weeks[0]||'';
+  document.getElementById('s-week').textContent='Sem. '+fmtWeek(curW);
+  const defCur=D.def.filter(r=>r.SEMANA===curW);
+  const soCur=D.so.filter(r=>r.SEMANA===curW);
+  const canCur=D.can.filter(r=>r.SEMANA===curW);
+  const tiemCur=D.tiem.filter(r=>r.SEMANA===curW);
+  const map={};
+  const add=(k,name,store,cb)=>{if(!name||name==='—')return;if(!map[k])map[k]={name,store,def:0,so:0,can:0,pp:[],orders:0};cb(map[k]);};
+  defCur.forEach(r=>{const k=`${r.WAREHOUSENAME}||${r.TOP_PICKER}`;add(k,r.TOP_PICKER,r.WAREHOUSENAME,p=>{p.def+=+r.TICKETS||0;p.orders+=+r.ORDENES||0;});});
+  soCur.forEach(r=>{const k=`${r.WAREHOUSENAME}||${r.TOP_PICKER}`;add(k,r.TOP_PICKER,r.WAREHOUSENAME,p=>{p.so+=+r.ORDENES||0;});});
+  canCur.forEach(r=>{const k=`${r.WAREHOUSENAME}||${r.TOP_PICKER}`;add(k,r.TOP_PICKER,r.WAREHOUSENAME,p=>{p.can+=+r.ORDENES||0;});});
+  tiemCur.forEach(r=>{const k=`${r.WAREHOUSENAME}||${r.TOP_PICKER_LENTO}`;add(k,r.TOP_PICKER_LENTO,r.WAREHOUSENAME,p=>{if(r.AVG_PICK_PACK)p.pp.push(parseFloat(r.AVG_PICK_PACK));});});
+  const all=Object.values(map).filter(p=>p.name&&p.store);
+  const maxDef=Math.max(...all.map(p=>p.def),1);
+  const maxSO=Math.max(...all.map(p=>p.so),1);
+  const maxCan=Math.max(...all.map(p=>p.can),1);
+  const maxPP=Math.max(...all.map(p=>p.pp.length?p.pp.reduce((s,v)=>s+v,0)/p.pp.length:0),1);
+  const maxOrd=Math.max(...all.map(p=>p.orders),1);
+  pickers=all.map(p=>{
+    const avgPP=p.pp.length?p.pp.reduce((s,v)=>s+v,0)/p.pp.length:0;
+    const sDef=Math.round((1-p.def/maxDef)*25);
+    const sSO=Math.round((1-p.so/maxSO)*25);
+    const sCan=Math.round((1-p.can/maxCan)*20);
+    const sPP=avgPP>0?Math.round((1-avgPP/maxPP)*20):20;
+    const sOrd=Math.round((p.orders/maxOrd)*10);
+    const score=sDef+sSO+sCan+sPP+sOrd;
+    const cluster=score>=80?'Oro':score>=55?'Plata':'Bronce';
+    const initials=p.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    return{...p,avgPP,score,cluster,sDef,sSO,sCan,sPP,sOrd,initials};
+  }).sort((a,b)=>b.score-a.score);
+  document.getElementById('s-total').textContent=pickers.length;
+  document.getElementById('s-gold').textContent=pickers.filter(p=>p.cluster==='Oro').length;
+  document.getElementById('s-silver').textContent=pickers.filter(p=>p.cluster==='Plata').length;
+  document.getElementById('s-bronze').textContent=pickers.filter(p=>p.cluster==='Bronce').length;
+  render();
+}
+
+function buildStoreFilter(){
+  const stores=[...new Set(pickers.map(p=>p.store))].sort();
+  const sel=document.getElementById('f-store');
+  sel.innerHTML='<option value="">Todas las tiendas</option>';
+  stores.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+}
+
+function getFiltered(){
+  const store=document.getElementById('f-store').value;
+  const search=document.getElementById('f-search').value.toLowerCase().trim();
+  return pickers.filter(p=>{
+    if(store&&p.store!==store)return false;
+    if(search&&!p.name.toLowerCase().includes(search)&&!p.store.toLowerCase().includes(search))return false;
+    if(filterCluster!=='all'&&p.cluster!==filterCluster)return false;
+    return true;
+  });
+}
+
+function render(){
+  const filtered=getFiltered();
+  const grid=document.getElementById('grid');
+  const empty=document.getElementById('empty-st');
+  if(!filtered.length){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=filtered.map((p,i)=>{
+    const cls=p.cluster==='Oro'?'gold':p.cluster==='Plata'?'silver':'bronze';
+    const scoreColor=p.cluster==='Oro'?'#C9860A':p.cluster==='Plata'?'#546E7A':'#795548';
+    const emoji=p.cluster==='Oro'?'🥇':p.cluster==='Plata'?'🥈':'🥉';
+    const defCls=p.def>10?'red':p.def>5?'amber':'green';
+    const soCls=p.so>10?'red':p.so>5?'amber':'green';
+    const canCls=p.can>5?'red':p.can>2?'amber':'green';
+    const ppCls=p.avgPP>3?'red':p.avgPP>2?'amber':p.avgPP>0?'green':'grey';
+    const flags=[];
+    if(p.def>10)flags.push('<span class="flag red">↑ Defectos</span>');
+    if(p.so>10)flags.push('<span class="flag red">↑ Stockouts</span>');
+    if(p.can>5)flags.push('<span class="flag red">↑ Cancelaciones</span>');
+    if(p.avgPP>3)flags.push('<span class="flag red">↑ Pick+Pack</span>');
+    if(!flags.length)flags.push('<span class="flag green">✓ Sin alertas</span>');
+    return`<div class="pk-card ${cls}" onclick="openModal(${i})">
+      <div class="pk-top">
+        <div class="pk-avatar ${cls}">${p.initials}</div>
+        <div class="pk-info"><div class="pk-name" title="${p.name}">${p.name}</div><div class="pk-store">${p.store}</div></div>
+        <div class="pk-badge ${cls}">${emoji} ${p.cluster}</div>
+      </div>
+      <div class="pk-score-row">
+        <div class="pk-score-n ${cls}">${p.score}</div>
+        <div class="pk-score-track">
+          <div class="pk-score-lbl">QA Score / 100</div>
+          <div class="pk-score-bg"><div class="pk-score-fill" style="width:${p.score}%;background:${scoreColor}"></div></div>
+        </div>
+      </div>
+      <div class="pk-metrics">
+        <div class="pm"><div class="pm-val ${defCls}">${p.def}</div><div class="pm-lbl">Defectos</div></div>
+        <div class="pm"><div class="pm-val ${soCls}">${p.so}</div><div class="pm-lbl">SO</div></div>
+        <div class="pm"><div class="pm-val ${canCls}">${p.can}</div><div class="pm-lbl">Cancel</div></div>
+        <div class="pm"><div class="pm-val ${ppCls}">${p.avgPP>0?p.avgPP.toFixed(1)+'m':'—'}</div><div class="pm-lbl">P+P</div></div>
+      </div>
+      <div class="pk-flags">${flags.join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function openModal(i){
+  const filtered=getFiltered();const p=filtered[i];if(!p)return;
+  const cls=p.cluster==='Oro'?'gold':p.cluster==='Plata'?'silver':'bronze';
+  const scoreColor=p.cluster==='Oro'?'#C9860A':p.cluster==='Plata'?'#546E7A':'#795548';
+  const emoji=p.cluster==='Oro'?'🥇':p.cluster==='Plata'?'🥈':'🥉';
+  document.getElementById('m-name').textContent=`${emoji} ${p.name}`;
+  document.getElementById('m-store').textContent=`${p.store} · CO · Score: ${p.score}/100`;
+  const metrics=[
+    {l:'Tickets defectos',v:p.def,ref:10,color:'#D13C2B',inv:true},
+    {l:'Órdenes stockout',v:p.so,ref:10,color:'#C07000',inv:true},
+    {l:'Cancelaciones',v:p.can,ref:5,color:'#1A5FA8',inv:true},
+    {l:'Avg Pick+Pack',v:p.avgPP>0?p.avgPP.toFixed(2)+' min':'—',raw:p.avgPP,ref:3,color:'#2A7A4A',inv:true},
+    {l:'Órdenes afectadas',v:p.orders,ref:50,color:'#888',inv:false},
+  ];
+  const scoreRows=[
+    {l:'Defectos (25 pts)',v:p.sDef,max:25},
+    {l:'Stockouts (25 pts)',v:p.sSO,max:25},
+    {l:'Cancelaciones (20 pts)',v:p.sCan,max:20},
+    {l:'Pick+Pack (20 pts)',v:p.sPP,max:20},
+    {l:'Flujo órdenes (10 pts)',v:p.sOrd,max:10},
+  ];
+  document.getElementById('m-body').innerHTML=`
+    <div class="m-sec">
+      <div class="m-sec-title">Métricas semana actual</div>
+      ${metrics.map(m=>{const raw=m.raw!==undefined?m.raw:+m.v||0;const pct=m.inv?Math.max(0,Math.round((1-raw/m.ref)*100)):Math.min(100,Math.round(raw/m.ref*100));return`<div class="m-row"><span class="m-label">${m.l}</span><div class="m-right"><div class="m-bar-bg"><div class="m-bar-f" style="width:${Math.max(pct,2)}%;background:${m.color}"></div></div><span class="m-val">${m.v}</span></div></div>`;}).join('')}
+    </div>
+    <div class="m-sec">
+      <div class="m-sec-title">Desglose QA Score</div>
+      ${scoreRows.map(m=>`<div class="m-row"><span class="m-label">${m.l}</span><div class="m-right"><div class="m-bar-bg"><div class="m-bar-f" style="width:${Math.round(m.v/m.max*100)}%;background:${scoreColor}"></div></div><span class="m-val">${m.v}/${m.max}</span></div></div>`).join('')}
+    </div>`;
+  document.getElementById('modal').classList.add('on');
+}
+function onModalBg(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('on');}
+function setFilter(f,btn){filterCluster=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');render();}
+loadAll();
+</script>
+</body>
+</html>
