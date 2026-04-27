@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piloto Cíclicos — PE</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'Figtree',sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden}
+
+/* HEADER */
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}.logo b{color:#1976D2}
+.rtag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#E3F2FD;color:#0D47A1;border:1px solid #BBDEFB;padding:2px 8px;border-radius:10px;margin-left:8px}
+.ctag{font-size:11px;font-weight:700;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;padding:2px 8px;border-radius:10px;margin-left:6px}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#999}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s}
+.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid #DDD;border-radius:6px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}
+.btn:hover{background:#F5F4F0}
+
+/* FILTER BAR */
+.fbar{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fl{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+.sbtns{display:flex;gap:6px;flex-wrap:wrap}
+.sb{padding:5px 14px;border:1.5px solid #E0DFD9;border-radius:20px;font-size:12px;font-weight:500;color:#666;cursor:pointer;background:#fff;font-family:'Figtree',sans-serif;transition:all .15s}
+.sb:hover{border-color:#888;color:#111}
+.sb.on{background:#111;color:#fff;border-color:#111}
+
+/* WEEK STRIP */
+.wstrip{background:#111;color:#fff;padding:8px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.wi{display:flex;flex-direction:column}
+.wi-l{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#666}
+.wi-v{font-size:13px;font-weight:600;margin-top:1px}
+.wsep{width:1px;height:22px;background:#333}
+
+/* MAIN */
+.main{padding:20px 24px}
+.stitle{font-size:13px;font-weight:700;margin-bottom:12px;color:#111}
+.stitle-sub{font-size:11px;font-weight:400;color:#999;margin-left:6px}
+
+/* KPI ROW — clean, no bars */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.kpi{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:16px 18px;border-left:3px solid var(--c,#1976D2)}
+.kpi-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:8px}
+.kpi-v{font-size:28px;font-weight:700;letter-spacing:-.6px;line-height:1;margin-bottom:6px}
+.kpi-compare{display:flex;align-items:center;gap:8px}
+.kpi-prev{font-size:12px;color:#999}
+.delta{font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px}
+.delta.up{background:#FCEAE8;color:#D13C2B}
+.delta.dn{background:#E6F4EC;color:#2A7A4A}
+.delta.eq{background:#F0EFEB;color:#999}
+
+/* TIENDAS — super light, just a row each */
+.tienda-list{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
+.trow{background:#fff;border:1px solid #E5E4DF;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.trow-name{font-size:13px;font-weight:700;min-width:130px}
+.origen{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px}
+.piloto{background:#E3F2FD;color:#0D47A1}
+.anterior{background:#F3E5F5;color:#6A1B9A}
+.trow-metrics{display:flex;gap:20px;flex:1;flex-wrap:wrap}
+.tm{display:flex;flex-direction:column;gap:1px;min-width:60px}
+.tm-v{font-size:15px;font-weight:700;line-height:1}
+.tm-l{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
+.trow-deltas{display:flex;gap:8px;flex-wrap:wrap}
+
+/* DAY TABLE */
+.day-wrap{background:#fff;border:1px solid #E5E4DF;border-radius:10px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:#F5F4F0;border-bottom:1px solid #E5E4DF}
+th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+th.r{text-align:right}
+tbody tr{border-bottom:1px solid #F5F4F0;transition:background .1s}
+tbody tr:hover{background:#FAFAF8}
+tbody tr:last-child{border-bottom:none}
+td{padding:10px 14px;vertical-align:middle;white-space:nowrap}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+.day-name{font-weight:700;font-size:13px}
+.store-pill{font-size:10px;background:#F0EFEB;color:#555;padding:1px 6px;border-radius:4px;font-weight:500}
+.pup{background:#FCEAE8;color:#D13C2B;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.pdn{background:#E6F4EC;color:#2A7A4A;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.peq{background:#F0EFEB;color:#999;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+
+/* LOADING */
+.ld{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:#aaa}
+.sp{width:16px;height:16px;border:2px solid #E0DFD9;border-top-color:#1976D2;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:700px){
+  .hdr,.fbar,.main{padding-left:14px;padding-right:14px}
+  .wstrip{padding:8px 14px;gap:12px}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .trow{flex-direction:column;align-items:flex-start;gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="rtag">Piloto Cíclicos</span>
+    <span class="ctag">PE</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="fbar">
+  <span class="fl">Tienda</span>
+  <div class="sbtns" id="sbtns">
+    <button class="sb on" id="btn-all" onclick="selAll(this)">Todas</button>
+  </div>
+</div>
+
+<div class="ld" id="gld"><div class="sp"></div>Cargando datos...</div>
+
+<div id="app" style="display:none">
+
+  <div class="wstrip" id="wstrip">
+    <div class="wi"><div class="wi-l">Semana actual</div><div class="wi-v" id="w-cur">—</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Semana anterior</div><div class="wi-v" id="w-prev">—</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Vista</div><div class="wi-v" id="w-vista">General</div></div>
+  </div>
+
+  <div class="main">
+
+    <!-- KPIs -->
+    <div class="stitle">Resumen <span class="stitle-sub" id="kpi-sub">semana actual vs anterior</span></div>
+    <div class="kpi-row">
+      <div class="kpi" style="--c:#1976D2">
+        <div class="kpi-l">Misiones (CC)</div>
+        <div class="kpi-v" id="kv-cc">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-cc">ant: —</span><span class="delta" id="kd-cc">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#4CAF50">
+        <div class="kpi-l">Unidades contadas</div>
+        <div class="kpi-v" id="kv-un">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-un">ant: —</span><span class="delta" id="kd-un">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#FF9800">
+        <div class="kpi-l">% Finalizadas</div>
+        <div class="kpi-v" id="kv-pct">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-pct">ant: —</span><span class="delta" id="kd-pct">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#9C27B0">
+        <div class="kpi-l">Avg min / conteo</div>
+        <div class="kpi-v" id="kv-min">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-min">ant: —</span><span class="delta" id="kd-min">—</span></div>
+      </div>
+    </div>
+
+    <!-- POR TIENDA -->
+    <div class="stitle">Por tienda</div>
+    <div class="tienda-list" id="tienda-list"></div>
+
+    <!-- DÍA A DÍA -->
+    <div class="stitle" style="margin-bottom:12px">Día a día <span class="stitle-sub">semana actual vs anterior · <span id="dia-sub">general</span></span></div>
+    <div class="day-wrap">
+      <table>
+        <thead><tr>
+          <th>Día</th>
+          <th id="th-tienda" style="display:none">Tienda</th>
+          <th class="r">CC act</th>
+          <th class="r">CC ant</th>
+          <th class="r">Δ</th>
+          <th class="r">Unid act</th>
+          <th class="r">Unid ant</th>
+          <th class="r">Δ</th>
+          <th class="r">% Final act</th>
+          <th class="r">Min/CC act</th>
+        </tr></thead>
+        <tbody id="day-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SID='1pBN7BLWDnDko0mRCIg8GUGYYEZvEEdYwcEB0iipqKnU';
+const API_KEY='AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+let dataSem=[],dataDia=[];
+let allStores=[],selStore='all'; // 'all' o nombre de tienda
+
+async function fetchSheet(name){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(name)}?key=${API_KEY}`;
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('HTTP '+r.status+' ('+name+')');
+  const json=await r.json();
+  const rows=json.values||[];
+  const known=['COUNTRY','SEMANA','KEYWH','WAREHOUSENAME','TOTAL_CC_SEMANA','TOTAL_CC_DIA','FECHA','DIA'];
+  let hi=rows.findIndex(row=>row.some(c=>known.includes((c||'').toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;
+  const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};
+    hdrs.forEach((h,i)=>o[h.trim().toUpperCase()]=(row[i]||'').toString().trim());
+    if(o.SEMANA)o.SEMANA=o.SEMANA.split(' ')[0].split('T')[0];
+    if(o.FECHA)o.FECHA=o.FECHA.split(' ')[0].split('T')[0];
+    return o;
+  });
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('app').style.display='none';
+  try{
+    [dataSem,dataDia]=await Promise.all([fetchSheet('Resumen_KPIS'),fetchSheet('DETALLE')]);
+    buildStores();
+    document.getElementById('gld').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('gld').innerHTML=`<span style="color:#D13C2B">Error: ${e.message}</span>`;
+  }
+}
+
+function getSems(data){
+  return[...new Set(data.map(r=>r.SEMANA).filter(Boolean))].sort().reverse();
+}
+
+function fmtW(w){
+  if(!w)return'—';
+  const d=new Date(w);if(isNaN(d))return w;
+  return d.toLocaleDateString('es',{day:'numeric',month:'short'});
+}
+
+function fmt(v,dec=0){
+  const n=parseFloat(v);if(isNaN(n)||n===0)return'—';
+  return dec>0?n.toFixed(dec):Math.round(n).toLocaleString('es');
+}
+
+function delta(cur,prev,lessIsBetter=false){
+  const c=parseFloat(cur)||0,p=parseFloat(prev)||0;
+  if(!p)return{cls:'eq',txt:'—'};
+  const diff=c-p,pct=Math.round(Math.abs(diff)/p*100);
+  const better=(lessIsBetter&&diff<0)||(!lessIsBetter&&diff>0);
+  const cls=diff===0?'eq':better?'dn':'up';
+  const arrow=diff===0?'→':diff>0?'↑':'↓';
+  return{cls,txt:`${arrow} ${pct}%`};
+}
+
+function pill(cur,prev,lessIsBetter=false){
+  const d=delta(cur,prev,lessIsBetter);
+  return`<span class="p${d.cls}">${d.txt}</span>`;
+}
+
+function buildStores(){
+  allStores=[...new Set(dataSem.map(r=>r.WAREHOUSENAME).filter(Boolean))].sort();
+  const c=document.getElementById('sbtns');
+  c.innerHTML='<button class="sb on" id="btn-all" onclick="setSel(\'all\',this)">Todas</button>';
+  allStores.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='sb';b.textContent=s;
+    b.onclick=()=>setSel(s,b);
+    c.appendChild(b);
+  });
+  render();
+}
+
+function setSel(s,btn){
+  selStore=s;
+  document.querySelectorAll('#sbtns .sb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+function selAll(btn){setSel('all',btn);}
+
+function sum(arr,col){return arr.reduce((s,r)=>s+(parseFloat(r[col])||0),0);}
+function wavg(arr,col){
+  const v=arr.map(r=>parseFloat(r[col])||0).filter(x=>x>0);
+  return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;
+}
+
+function render(){
+  const sems=getSems(dataSem);
+  const curW=sems[0]||'',prevW=sems[1]||'';
+  const isSingle=selStore!=='all';
+
+  document.getElementById('w-cur').textContent='Sem. '+fmtW(curW);
+  document.getElementById('w-prev').textContent='Sem. '+fmtW(prevW);
+  document.getElementById('w-vista').textContent=isSingle?selStore:'General';
+  document.getElementById('dia-sub').textContent=isSingle?selStore:'todas las tiendas';
+
+  const filterSem=(w)=>isSingle
+    ?dataSem.filter(r=>r.SEMANA===w&&r.WAREHOUSENAME===selStore)
+    :dataSem.filter(r=>r.SEMANA===w);
+  const filterDia=(w)=>isSingle
+    ?dataDia.filter(r=>r.SEMANA===w&&r.WAREHOUSENAME===selStore)
+    :dataDia.filter(r=>r.SEMANA===w);
+
+  const semC=filterSem(curW),semP=filterSem(prevW);
+
+  // KPIs
+  const cCC=sum(semC,'TOTAL_CC_SEMANA'),pCC=sum(semP,'TOTAL_CC_SEMANA');
+  const cUN=sum(semC,'TOTAL_UNIDADES_CONTADAS'),pUN=sum(semP,'TOTAL_UNIDADES_CONTADAS');
+  const cPCT=wavg(semC,'PCT_FINALIZADAS'),pPCT=wavg(semP,'PCT_FINALIZADAS');
+  const cMin=wavg(semC,'AVG_MIN_POR_CONTEO'),pMin=wavg(semP,'AVG_MIN_POR_CONTEO');
+
+  setKPI('cc',cCC,pCC,false);
+  setKPI('un',cUN,pUN,false);
+  ['kv-pct','kp-pct'].forEach(()=>{});
+  document.getElementById('kv-cc').textContent=fmt(cCC);
+  document.getElementById('kp-cc').textContent='ant: '+fmt(pCC);
+  setDelta('kd-cc',cCC,pCC,false);
+  document.getElementById('kv-un').textContent=fmt(cUN);
+  document.getElementById('kp-un').textContent='ant: '+fmt(pUN);
+  setDelta('kd-un',cUN,pUN,false);
+  document.getElementById('kv-pct').textContent=cPCT>0?cPCT.toFixed(1)+'%':'—';
+  document.getElementById('kp-pct').textContent='ant: '+(pPCT>0?pPCT.toFixed(1)+'%':'—');
+  setDelta('kd-pct',cPCT,pPCT,false);
+  document.getElementById('kv-min').textContent=cMin>0?cMin.toFixed(1)+'m':'—';
+  document.getElementById('kp-min').textContent='ant: '+(pMin>0?pMin.toFixed(1)+'m':'—');
+  setDelta('kd-min',cMin,pMin,true);
+
+  // POR TIENDA
+  const storesToShow=isSingle?[selStore]:allStores;
+  document.getElementById('tienda-list').innerHTML=storesToShow.map(store=>{
+    const cR=dataSem.filter(r=>r.SEMANA===curW&&r.WAREHOUSENAME===store);
+    const pR=dataSem.filter(r=>r.SEMANA===prevW&&r.WAREHOUSENAME===store);
+    const cc=sum(cR,'TOTAL_CC_SEMANA'),pc=sum(pR,'TOTAL_CC_SEMANA');
+    const cu=sum(cR,'TOTAL_UNIDADES_CONTADAS'),pu=sum(pR,'TOTAL_UNIDADES_CONTADAS');
+    const cpct=wavg(cR,'PCT_FINALIZADAS');
+    const cmin=wavg(cR,'AVG_MIN_POR_CONTEO');
+    const origen=cR[0]?.ORIGEN_MISION||pR[0]?.ORIGEN_MISION||'';
+    const oCls=origen==='Piloto'?'piloto':'anterior';
+    return`<div class="trow">
+      <div class="trow-name">${store}${origen?` <span class="origen ${oCls}">${origen}</span>`:''}</div>
+      <div class="trow-metrics">
+        <div class="tm"><div class="tm-v" style="color:#1976D2">${fmt(cc)}</div><div class="tm-l">CC act</div></div>
+        <div class="tm"><div class="tm-v">${fmt(pc)}</div><div class="tm-l">CC ant</div></div>
+        <div class="tm"><div class="tm-v" style="color:#4CAF50">${fmt(cu)}</div><div class="tm-l">Unid act</div></div>
+        <div class="tm"><div class="tm-v" style="color:#FF9800">${cpct>0?cpct.toFixed(1)+'%':'—'}</div><div class="tm-l">% Final</div></div>
+        <div class="tm"><div class="tm-v" style="color:#9C27B0">${cmin>0?cmin.toFixed(1)+'m':'—'}</div><div class="tm-l">Min/CC</div></div>
+      </div>
+      <div class="trow-deltas">
+        ${pill(cc,pc,false)}
+        ${pill(cu,pu,false)}
+      </div>
+    </div>`;
+  }).join('');
+
+  // DÍA A DÍA
+  const DIAS=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  const diaC=filterDia(curW),diaP=filterDia(prevW);
+
+  // Mostrar columna tienda solo si hay varias
+  document.getElementById('th-tienda').style.display=isSingle?'none':'table-cell';
+
+  // Si general: agrupar por día sumando todas las tiendas
+  // Si tienda única: mostrar esa tienda
+  const rows=[];
+  if(isSingle){
+    DIAS.forEach(dia=>{
+      const cR=diaC.find(r=>r.DIA===dia||r.DIA_SEMANA===dia);
+      const pR=diaP.find(r=>r.DIA===dia||r.DIA_SEMANA===dia);
+      if(!cR&&!pR)return;
+      rows.push({dia,store:selStore,
+        cCC:parseFloat(cR?.TOTAL_CC_DIA||0),pCC:parseFloat(pR?.TOTAL_CC_DIA||0),
+        cUN:parseFloat(cR?.TOTAL_UNIDADES_CONTADAS||0),pUN:parseFloat(pR?.TOTAL_UNIDADES_CONTADAS||0),
+        cPCT:parseFloat(cR?.PCT_FINALIZADAS||0),cMin:parseFloat(cR?.AVG_MIN_POR_CONTEO||0)
+      });
+    });
+  } else {
+    DIAS.forEach(dia=>{
+      const cRows=diaC.filter(r=>r.DIA===dia||r.DIA_SEMANA===dia);
+      const pRows=diaP.filter(r=>r.DIA===dia||r.DIA_SEMANA===dia);
+      if(!cRows.length&&!pRows.length)return;
+      rows.push({dia,store:'',
+        cCC:sum(cRows,'TOTAL_CC_DIA'),pCC:sum(pRows,'TOTAL_CC_DIA'),
+        cUN:sum(cRows,'TOTAL_UNIDADES_CONTADAS'),pUN:sum(pRows,'TOTAL_UNIDADES_CONTADAS'),
+        cPCT:wavg(cRows,'PCT_FINALIZADAS'),cMin:wavg(cRows,'AVG_MIN_POR_CONTEO')
+      });
+    });
+  }
+
+  document.getElementById('day-body').innerHTML=rows.map(r=>`<tr>
+    <td><span class="day-name">${r.dia}</span></td>
+    <td style="display:${isSingle?'none':'table-cell'}"><span class="store-pill">${r.store}</span></td>
+    <td class="r">${r.cCC||'—'}</td>
+    <td class="r">${r.pCC||'—'}</td>
+    <td class="r">${pill(r.cCC,r.pCC,false)}</td>
+    <td class="r">${fmt(r.cUN)}</td>
+    <td class="r">${fmt(r.pUN)}</td>
+    <td class="r">${pill(r.cUN,r.pUN,false)}</td>
+    <td class="r">${r.cPCT>0?r.cPCT.toFixed(1)+'%':'—'}</td>
+    <td class="r">${r.cMin>0?r.cMin.toFixed(1)+'m':'—'}</td>
+  </tr>`).join('')
+  ||`<tr><td colspan="10" style="text-align:center;padding:28px;color:#aaa">Sin datos para los filtros seleccionados</td></tr>`;
+}
+
+function setDelta(id,cur,prev,lessIsBetter){
+  const d=delta(cur,prev,lessIsBetter);
+  const el=document.getElementById(id);
+  el.className='delta '+d.cls;
+  el.textContent=d.txt;
+}
+
+loadAll();
+</script>
+</body>
+</html>
