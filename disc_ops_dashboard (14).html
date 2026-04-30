@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboOps — Disciplina Operativa</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'Figtree',sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden}
+
+/* HEADER */
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:8px}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}
+.logo b{color:#E24B4A}
+.rtag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#FCEAE8;color:#C0392B;border:1px solid #F5C6C0;padding:2px 8px;border-radius:10px;margin-left:8px}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#999}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s}
+.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid #DDD;border-radius:6px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}
+.btn:hover{background:#F5F4F0}
+
+/* FILTER BAR */
+.fbar{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:sticky;top:53px;z-index:49}
+.fl{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:5px 14px;border:1.5px solid #E0DFD9;border-radius:20px;font-size:12px;font-weight:500;color:#666;cursor:pointer;background:#fff;font-family:'Figtree',sans-serif;transition:all .15s;white-space:nowrap}
+.pill:hover{border-color:#888;color:#111}
+.pill.on{background:#111;color:#fff;border-color:#111}
+.fsep{width:1px;height:20px;background:#E5E4DF;flex-shrink:0}
+
+/* WEEK STRIP */
+.wstrip{background:#111;color:#fff;padding:8px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.wi{display:flex;flex-direction:column}
+.wi-l{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#666}
+.wi-v{font-size:13px;font-weight:600;margin-top:1px}
+.wsep{width:1px;height:22px;background:#333}
+
+/* MAIN */
+.main{padding:20px 24px}
+.stitle{font-size:13px;font-weight:700;margin-bottom:12px;color:#111}
+.stitle-sub{font-size:11px;font-weight:400;color:#999;margin-left:6px}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:16px 18px;border-left:3px solid var(--c,#E24B4A)}
+.kpi-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:8px}
+.kpi-v{font-size:28px;font-weight:700;letter-spacing:-.6px;line-height:1;margin-bottom:4px}
+.kpi-s{font-size:11px;color:#bbb}
+
+/* BANNER */
+.banner{border-radius:8px;padding:12px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.b-gold  {background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.b-ok    {background:#F0FDF4;border:1px solid #BBF7D0;color:#166534}
+.b-push  {background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412}
+
+/* CLUSTER BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.b-gold-c  {background:#FEF3C7;color:#D97706;border:1px solid #FDE68A}
+.b-silver-c{background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0}
+.b-bronze-c{background:#FEF0E7;color:#B45309;border:1px solid #FCD9B4}
+
+/* STORE ROWS */
+.tlist{display:flex;flex-direction:column;gap:6px}
+.trow{background:#fff;border:1px solid #E5E4DF;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-left:3px solid transparent;transition:border-color .15s}
+.trow:hover{border-left-color:#E24B4A}
+.trow-left{min-width:170px}
+.trow-name{font-size:13px;font-weight:700}
+.trow-id{font-size:10px;color:#aaa;margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.trow-zl{font-size:10px;color:#aaa;margin-top:1px}
+.trow-metrics{display:flex;gap:16px;flex:1;flex-wrap:wrap;align-items:flex-end}
+.tm{display:flex;flex-direction:column;gap:1px;min-width:60px}
+.tm-v{font-size:15px;font-weight:700;line-height:1}
+.tm-l{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.tm-bar{height:3px;background:#F0EFEB;border-radius:2px;margin-top:3px;overflow:hidden}
+.tm-fill{height:3px;border-radius:2px;transition:width .5s}
+.fg{background:#4CAF50}.fy{background:#FF9800}.fr{background:#E24B4A}.fgr{background:#ccc}
+.trow-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:72px}
+.dis-big{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.dg{color:#2A7A4A}.dy{color:#D97706}.dr{color:#E24B4A}
+.off-ok{color:#2A7A4A;font-weight:700;font-size:12px}
+.off-bad{color:#E24B4A;font-weight:700;font-size:12px}
+.fefo-tag{font-size:10px;font-weight:600;background:#F5F4F0;border:1px solid #E5E4DF;padding:1px 6px;border-radius:4px;color:#888}
+
+/* LOADING / ERROR */
+.ld{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:#aaa;font-size:13px}
+.sp{width:16px;height:16px;border:2px solid #E0DFD9;border-top-color:#E24B4A;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{background:#FCEAE8;border:1px solid #F5C6C0;border-radius:8px;padding:14px 18px;color:#C0392B;font-size:13px;margin:16px 24px;display:none}
+
+@media(max-width:700px){
+  .hdr,.fbar,.main{padding-left:14px;padding-right:14px}
+  .wstrip{padding:8px 14px;gap:12px}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="rtag">Disciplina Operativa</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="fbar">
+  <span class="fl">País</span>
+  <div class="pills" id="country-pills"></div>
+  <div class="fsep"></div>
+  <span class="fl">Zone Lead</span>
+  <div class="pills" id="zl-pills"></div>
+</div>
+
+<div class="err-box" id="err"></div>
+<div class="ld" id="ld"><div class="sp"></div>Cargando datos...</div>
+
+<div id="app" style="display:none">
+  <div class="wstrip">
+    <div class="wi"><div class="wi-l">Semana</div><div class="wi-v" id="w-sem">—</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Zone Lead</div><div class="wi-v" id="w-zl">Todos</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Tiendas</div><div class="wi-v" id="w-n">—</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Cluster</div><div class="wi-v" id="w-cl">—</div></div>
+  </div>
+
+  <div class="main">
+    <div class="stitle">Resumen <span class="stitle-sub" id="sub-lbl">vista general</span></div>
+    <div class="kpi-row">
+      <div class="kpi" style="--c:#E24B4A"><div class="kpi-l">DIS_OPS Promedio</div><div class="kpi-v" id="kv0">—</div><div class="kpi-s">score ponderado</div></div>
+      <div class="kpi" style="--c:#1976D2"><div class="kpi-l">Surtido <span style="color:#ddd;font-weight:400">40%</span></div><div class="kpi-v" id="kv1">—</div><div class="kpi-s" id="ks1"></div></div>
+      <div class="kpi" style="--c:#4CAF50"><div class="kpi-l">Cyclic SO <span style="color:#ddd;font-weight:400">20%</span></div><div class="kpi-v" id="kv2">—</div><div class="kpi-s" id="ks2"></div></div>
+      <div class="kpi" style="--c:#FF9800"><div class="kpi-l">Fruver <span style="color:#ddd;font-weight:400">20%</span></div><div class="kpi-v" id="kv3">—</div><div class="kpi-s" id="ks3"></div></div>
+      <div class="kpi" style="--c:#00897B"><div class="kpi-l">Cíclicos <span style="color:#ddd;font-weight:400">5%</span></div><div class="kpi-v" id="kv4">—</div><div class="kpi-s" id="ks4"></div></div>
+    </div>
+
+    <div id="banner" style="display:none"></div>
+
+    <div class="stitle">Por tienda <span class="stitle-sub">ordenadas peor → mejor DIS_OPS</span></div>
+    <div class="tlist" id="tlist"></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const PUB_ID       = '2PACX-1vQnT4uViGiikmSNyKqTYcaQDcW5UUsxipbLFpETotIJm46MVdk8AwgQ0-M5IBE4sRZ6h8KJ0QGy3iXE';
+const GID_DETALLES = '1138623282';
+const GID_ZL       = '258561144';
+const csvUrl = gid => `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${gid}&single=true&output=csv`;
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let allRows    = [];   // one row per store (latest week)
+let zlMap      = {};   // "COUNTRY|WH" -> {lead, email, district, city}
+let selCountry = 'all';
+let selZL      = 'all';
+
+// ── CSV PARSER ────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const clean = s => s.replace(/\r/g, '');
+  const split = line => {
+    const out = []; let cur = ''; let q = false;
+    for (const c of line) {
+      if (c === '"') { q = !q; continue; }
+      if (c === ',' && !q) { out.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+
+  // Aleph inserts metadata rows — find real header row
+  const KNOWN = ['COUNTRY_CODE','WH_ID','DIS_OPS','SEMANA','WAREHOUSENAME',
+                 'PROGRESS_SURTIDO','PAÍS','PAIS','Zone Lead','Key','WH ID'];
+  let hi = 0;
+  for (let i = 0; i < Math.min(lines.length, 30); i++) {
+    if (split(clean(lines[i])).some(c => KNOWN.includes(c.trim()))) { hi = i; break; }
+  }
+
+  const headers = split(clean(lines[hi])).map(h => h.trim());
+  return lines.slice(hi + 1)
+    .map(l => {
+      const vals = split(clean(l));
+      const o = {};
+      headers.forEach((h, i) => o[h] = (vals[i] || '').trim());
+      return o;
+    })
+    .filter(r => Object.values(r).some(v => v));
+}
+
+// ── FETCH ─────────────────────────────────────────────────────────────────
+async function fetchCSV(gid) {
+  const res = await fetch(csvUrl(gid));
+  if (!res.ok) throw new Error(`HTTP ${res.status} leyendo tab gid=${gid}. Verifica que el sheet esté publicado en la web.`);
+  return parseCSV(await res.text());
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────
+async function loadAll() {
+  $('dot').className = 'dot';
+  $('upd').textContent = 'Cargando...';
+  $('ld').style.display = 'flex';
+  $('app').style.display = 'none';
+  $('err').style.display = 'none';
+
+  try {
+    const [det, zl] = await Promise.all([fetchCSV(GID_DETALLES), fetchCSV(GID_ZL)]);
+
+    // Build ZL map
+    zlMap = {};
+    zl.forEach(r => {
+      const c  = (r['PAÍS'] || r['PAIS'] || r['COUNTRY_CODE'] || '').trim();
+      const wh = (r['WH ID'] || r['WH_ID'] || '').toString().trim();
+      if (!c || !wh) return;
+      zlMap[`${c}|${wh}`] = {
+        lead:     (r['Zone Lead'] || r['ZONE_LEAD'] || '').trim(),
+        email:    (r['Email ZL']  || '').trim(),
+        district: (r['District Lead'] || '').trim(),
+        city:     (r['CITY_NAME'] || '').trim(),
+      };
+    });
+
+    // Keep only latest week per store, skip rows without ZL
+    const byStore = {};
+    det.forEach(r => {
+      const c  = (r['COUNTRY_CODE'] || '').trim();
+      const wh = (r['WH_ID'] || '').toString().trim();
+      if (!c || !wh) return;
+      const sem = (r['SEMANA'] || '').substring(0, 10);
+      const k   = `${c}|${wh}`;
+      if (!byStore[k] || sem > (byStore[k]._sem || '')) {
+        byStore[k] = { ...r, _sem: sem, _c: c, _wh: wh, _k: k };
+      }
+    });
+
+    // Only stores with a valid ZL
+    allRows = Object.values(byStore).filter(r => (zlMap[r._k]?.lead || '').trim() !== '');
+
+    buildPills();
+
+    $('ld').style.display = 'none';
+    $('app').style.display = '';
+    $('dot').className = 'dot ok';
+    $('upd').textContent = 'Act. ' + new Date().toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit'});
+    render();
+
+  } catch(e) {
+    $('ld').style.display = 'none';
+    const eb = $('err');
+    eb.textContent = '⚠️ ' + e.message;
+    eb.style.display = '';
+  }
+}
+
+// ── PILLS ─────────────────────────────────────────────────────────────────
+function buildPills() {
+  const countries = [...new Set(allRows.map(r => r._c).filter(Boolean))].sort();
+  renderPills('country-pills', ['all', ...countries],
+    c => c === 'all' ? 'Todos' : `${flag(c)} ${c}`,
+    c => setC(c),
+    c => c === selCountry);
+
+  buildZLPills();
+}
+
+function buildZLPills() {
+  const src = selCountry === 'all' ? allRows : allRows.filter(r => r._c === selCountry);
+  const zls = [...new Set(src.map(r => zlMap[r._k]?.lead || '').filter(Boolean))].sort();
+  renderPills('zl-pills', ['all', ...zls],
+    z => z === 'all' ? 'Todos' : z,
+    z => setZ(z),
+    z => z === selZL);
+}
+
+function renderPills(containerId, items, label, onClick, isActive) {
+  const el = $(containerId);
+  el.innerHTML = '';
+  items.forEach(item => {
+    const b = document.createElement('button');
+    b.className = 'pill' + (isActive(item) ? ' on' : '');
+    b.textContent = label(item);
+    b.onclick = () => onClick(item);
+    el.appendChild(b);
+  });
+}
+
+function setC(c) {
+  selCountry = c;
+  if (selZL !== 'all') selZL = 'all';
+  buildPills();
+  render();
+}
+function setZ(z) {
+  selZL = z;
+  buildZLPills();
+  render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render() {
+  let vis = allRows;
+  if (selCountry !== 'all') vis = vis.filter(r => r._c === selCountry);
+  if (selZL !== 'all')      vis = vis.filter(r => (zlMap[r._k]?.lead || '') === selZL);
+  vis = [...vis].sort((a, b) => (num(a['DIS_OPS']) || 0) - (num(b['DIS_OPS']) || 0));
+
+  // Strip
+  const sem = [...new Set(vis.map(r => r._sem).filter(Boolean))].sort().at(-1) || '—';
+  $('w-sem').textContent  = 'Sem. ' + fmtW(sem);
+  $('w-zl').textContent   = selZL !== 'all' ? selZL : 'Todos';
+  $('w-n').textContent    = vis.length;
+  $('sub-lbl').textContent = selZL !== 'all' ? selZL : (selCountry !== 'all' ? selCountry : 'vista general');
+
+  const gold   = vis.filter(r => (num(r['DIS_OPS']) || 0) >= 0.90).length;
+  const silver = vis.filter(r => { const v = num(r['DIS_OPS']) || 0; return v >= 0.80 && v < 0.90; }).length;
+  const bronze = vis.filter(r => (num(r['DIS_OPS']) || 0) < 0.80).length;
+  $('w-cl').textContent = `🥇${gold}  🥈${silver}  🥉${bronze}`;
+
+  // KPIs
+  const avg = col => {
+    const vals = vis.map(r => num(r[col])).filter(v => v !== null);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  };
+  $('kv0').textContent = pct(avg('DIS_OPS'));
+  $('kv1').textContent = pct(avg('PROGRESS_SURTIDO'));
+  $('kv2').textContent = pct(avg('PROGRESS_CYCLIC_SO'));
+  $('kv3').textContent = pct(avg('DISC_FRUVER'));
+  $('kv4').textContent = pct(avg('PROGRESS_CYCLICS'));
+
+  // Sub-labels: tiendas debajo de 80%
+  [['ks1','PROGRESS_SURTIDO'],['ks2','PROGRESS_CYCLIC_SO'],['ks3','DISC_FRUVER'],['ks4','PROGRESS_CYCLICS']].forEach(([id,col]) => {
+    const below = vis.filter(r => (num(r[col]) || 0) < 0.80).length;
+    $(id).textContent = below > 0 ? `${below} tienda${below>1?'s':''} < 80%` : '';
+  });
+
+  // Banner
+  showBanner(vis, gold, silver, bronze);
+
+  // Table
+  $(tlist).innerHTML = vis.length
+    ? vis.map(storeRow).join('')
+    : '<div style="text-align:center;padding:40px;color:#aaa">Sin tiendas para los filtros seleccionados</div>';
+}
+
+// ── BANNER ────────────────────────────────────────────────────────────────
+function showBanner(vis, gold, silver, bronze) {
+  const el = $('banner');
+  if (!vis.length) { el.style.display = 'none'; return; }
+
+  const pctGold = gold / vis.length;
+  let cls, icon, msgs;
+
+  if (pctGold >= 0.80) {
+    cls = 'banner b-gold'; icon = '🏆';
+    msgs = [
+      'Portafolio sólido — la mayoría de tiendas en Gold. Así se mantiene la disciplina.',
+      'Excelente semana. Más del 80% en Gold, eso no pasa solo.',
+      'Top performance. Mantén la cadencia y no bajes la guardia en las Bronze.',
+    ];
+  } else if (pctGold >= 0.50) {
+    cls = 'banner b-ok'; icon = '📈';
+    msgs = [
+      `${gold} tiendas en Gold, buen ritmo. Las ${bronze} Bronze son la oportunidad de esta semana.`,
+      'Más de la mitad en Gold. Con foco en las Bronze puedes cerrar la semana arriba.',
+      `Solid. ${silver} en Silver a un paso de Gold — prioriza surtido y SO en esas tiendas.`,
+    ];
+  } else {
+    cls = 'banner b-push'; icon = '🎯';
+    msgs = [
+      `${bronze} tiendas en Bronze — semana de trabajo. Surtido y SO primero, el resto viene solo.`,
+      'Hay margen de mejora. Enfócate en las métricas de mayor peso: surtido (40%) y SO (20%).',
+      `Semana difícil pero manejable. ${gold} en Gold ya — las demás tienen camino claro.`,
+    ];
+  }
+
+  el.className = cls;
+  el.style.display = 'flex';
+  el.innerHTML = `<span style="font-size:18px">${icon}</span><span>${msgs[Math.floor(Math.random() * msgs.length)]}</span>`;
+}
+
+// ── STORE ROW ─────────────────────────────────────────────────────────────
+function storeRow(r) {
+  const zl   = zlMap[r._k] || {};
+  const dis  = num(r['DIS_OPS']);
+  const surt = num(r['PROGRESS_SURTIDO']);
+  const cyc  = num(r['PROGRESS_CYCLICS']);
+  const so   = num(r['PROGRESS_CYCLIC_SO']);
+  const fruv = num(r['DISC_FRUVER']);
+  const off  = num(r['OFF_SKU']);
+  const fefo = num(r['FEFO_PCT_COMPLETADAS']);
+  const name = (r['WAREHOUSENAME'] || r['WAREHOUSE_NAME'] || '').trim() || `Tienda ${r._wh}`;
+  const b    = badgeCls(dis);
+
+  return `<div class="trow">
+    <div class="trow-left">
+      <div class="trow-name">${name}</div>
+      <div class="trow-id"><span class="badge ${b.cls}">${b.icon} ${b.lbl}</span> ID ${r._wh} · ${r._c}</div>
+      ${zl.lead ? `<div class="trow-zl">${zl.lead}${zl.city ? ' · ' + zl.city : ''}</div>` : ''}
+    </div>
+    <div class="trow-metrics">
+      ${mc('Surtido','40%',surt)}
+      ${mc('Cíclicos','5%',cyc)}
+      ${mc('Cyclic SO','20%',so)}
+      ${mc('Fruver','20%',fruv)}
+      <div class="tm">
+        <div class="tm-v" style="font-size:13px">
+          ${off === null ? '—' : off <= 5 ? `<span class="off-ok">✓ ${off}</span>` : `<span class="off-bad">✗ ${off}</span>`}
+        </div>
+        <div class="tm-l">Off SKU <span style="color:#ddd">15%</span></div>
+      </div>
+      <div class="tm">
+        <div class="tm-v">${fefo !== null ? `<span class="fefo-tag">${pct(fefo)}</span>` : '<span class="fefo-tag">—</span>'}</div>
+        <div class="tm-l">FEFO <span style="color:#ddd">(info)</span></div>
+      </div>
+    </div>
+    <div class="trow-right">
+      <div class="dis-big ${dcls(dis)}">${pct(dis)}</div>
+      <div style="font-size:10px;color:#aaa">DIS_OPS</div>
+    </div>
+  </div>`;
+}
+
+function mc(label, wt, v) {
+  const cls = v === null ? 'fgr' : v >= 0.85 ? 'fg' : v >= 0.70 ? 'fy' : 'fr';
+  const hex = v === null ? '#ccc' : v >= 0.85 ? '#2A7A4A' : v >= 0.70 ? '#D97706' : '#E24B4A';
+  const w   = Math.min(100, Math.max(0, (v || 0) * 100)).toFixed(1);
+  return `<div class="tm">
+    <div class="tm-v" style="color:${hex}">${pct(v)}</div>
+    <div class="tm-l">${label} <span style="color:#ddd">${wt}</span></div>
+    <div class="tm-bar"><div class="tm-fill ${cls}" style="width:${w}%"></div></div>
+  </div>`;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const $   = id => document.getElementById(id);
+const num = v  => (v === null || v === undefined || v === '') ? null : +v;
+const pct = v  => v === null ? '—' : (v * 100).toFixed(1) + '%';
+const flag = c => ({'CO':'🇨🇴','AR':'🇦🇷','PE':'🇵🇪','BR':'🇧🇷','CL':'🇨🇱','MX':'🇲🇽'}[c] || '');
+const fmtW = w => { try { return new Date(w).toLocaleDateString('es',{day:'numeric',month:'short'}); } catch{ return w; } };
+const dcls = v => v === null ? '' : v >= 0.90 ? 'dg' : v >= 0.80 ? 'dy' : 'dr';
+const badgeCls = v => {
+  if (v === null)  return { cls:'b-bronze-c', icon:'',   lbl:'—'      };
+  if (v >= 0.90)   return { cls:'b-gold-c',   icon:'🥇', lbl:'GOLD'   };
+  if (v >= 0.80)   return { cls:'b-silver-c', icon:'🥈', lbl:'SILVER' };
+  return                   { cls:'b-bronze-c', icon:'🥉', lbl:'BRONZE' };
+};
+
+// Fix: use variable name correctly
+const tlist = 'tlist';
+
+loadAll();
+</script>
+</body>
+</html>
