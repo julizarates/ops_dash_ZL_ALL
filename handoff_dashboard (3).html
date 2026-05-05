@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff POST · CO WH12</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#080c10;--surface:#0e1318;--border:#1a2030;--text:#c9d4e0;--muted:#4a5568;
+    --blue:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#a78bfa;--teal:#2dd4bf;--pink:#f472b6;--lime:#84cc16;--orange:#fb923c;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;padding:20px;}
+  .header{border-left:3px solid var(--blue);padding-left:16px;margin-bottom:18px;}
+  .header h1{font-size:17px;font-weight:700;color:#fff;letter-spacing:.5px;}
+  .header p{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:4px;}
+  .insight{background:#0a1020;border:1px solid #1a2535;border-radius:6px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .insight p{font-size:11px;color:#7a8fa8;line-height:1.5;}
+  .insight p strong{color:#94a3b8;}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{padding:7px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s;font-family:'IBM Plex Mono',monospace;}
+  .tab.ar{background:rgba(251,146,60,.15);border-color:var(--orange);color:var(--orange);}
+  .tab.aj{background:rgba(59,130,246,.15);border-color:var(--blue);color:var(--blue);}
+  .tab.av{background:rgba(167,139,250,.15);border-color:var(--purple);color:var(--purple);}
+  .tab.as{background:rgba(244,114,182,.15);border-color:var(--pink);color:var(--pink);}
+  .tab.ad{background:rgba(132,204,22,.15);border-color:var(--lime);color:var(--lime);}
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;position:relative;overflow:hidden;}
+  .kpi::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;}
+  .k1::before{background:var(--blue);}.k2::before{background:var(--green);}.k3::before{background:var(--orange);}
+  .kpi-label{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+  .kpi-body{display:flex;justify-content:space-between;align-items:flex-end;}
+  .kpi-block{text-align:center;flex:1;}
+  .kpi-val{font-size:18px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+  .kpi-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+  .kpi-sep{width:1px;background:var(--border);align-self:stretch;margin:0 8px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;}
+  .card.full{grid-column:1/-1;}
+  .ctitle{font-size:11px;font-weight:600;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+  .lg{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+  .ld{width:8px;height:8px;border-radius:1px;display:inline-block;margin-right:4px;vertical-align:middle;}
+  .lt{font-size:11px;color:var(--muted);}
+  table{width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace;}
+  th{padding:7px 10px;text-align:right;color:var(--muted);font-size:10px;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:400;}
+  th:first-child{text-align:left;}
+  td{padding:6px 10px;text-align:right;border-bottom:1px solid #111820;}
+  td:first-child{text-align:left;color:#64748b;}
+  tr:hover td{background:#0f1520;}
+  .cb{color:var(--blue);}.cg{color:var(--green);}.ca{color:var(--amber);}.cr{color:#fc8181;}
+  .cp{color:var(--purple);}.ct2{color:var(--teal);}.cpk{color:var(--pink);}.cl{color:var(--lime);}.co{color:var(--orange);}
+  .neg{color:var(--green);}.pos{color:var(--red);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:10px;font-family:'IBM Plex Mono',monospace;margin-bottom:12px;background:rgba(59,130,246,.1);color:#93c5fd;border:1px solid rgba(59,130,246,.2);}
+  .panel{display:none;}.panel.active{display:block;}
+  /* Resumen especial */
+  .ref-line{position:relative;}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>HANDOFF POST · CO · Warehouse 12</h1>
+  <p>Semana 1 (17–20 Abr) · Semana 2 (23–26 Abr) · Semana 3 (28 Abr–3 May) · Desde 14:00</p>
+</div>
+<div class="insight">
+  <span style="font-size:16px">💡</span>
+  <p><strong>IN_QUEUE = TRUE</strong>: el RT ya aceptó y marcó que está en tienda, pero tarda en llegar. Mide la demora real entre aceptación y llegada al cliente.</p>
+</div>
+<div class="tabs">
+  <div class="tab ar" onclick="sw('res',this)">📊 Resumen</div>
+  <div class="tab" onclick="sw('jue',this)">📅 Jueves</div>
+  <div class="tab" onclick="sw('vie',this)">📅 Viernes</div>
+  <div class="tab" onclick="sw('sab',this)">📅 Sábado</div>
+  <div class="tab" onclick="sw('dom',this)">📅 Domingo</div>
+</div>
+
+<!-- RESUMEN -->
+<div class="panel active" id="panel-res">
+  <div class="kpi-grid">
+    <div class="kpi k1">
+      <div class="kpi-label">Avg HP · Semana 1 (baseline)</div>
+      <div class="kpi-body"><div class="kpi-block"><div class="kpi-val cb">1.04 min</div><div class="kpi-sub">17–20 Abr</div></div></div>
+    </div>
+    <div class="kpi k2">
+      <div class="kpi-label">Avg HP · Semana 2</div>
+      <div class="kpi-body"><div class="kpi-block"><div class="kpi-val cg">0.61 min</div><div class="kpi-sub">23–26 Abr · ↓ 41%</div></div></div>
+    </div>
+    <div class="kpi k3">
+      <div class="kpi-label">Avg HP · Semana 3</div>
+      <div class="kpi-body"><div class="kpi-block"><div class="kpi-val co">0.71 min</div><div class="kpi-sub">28 Abr–3 May · ↓ 32%</div></div></div>
+    </div>
+  </div>
+
+  <div class="card full" style="margin-bottom:12px">
+    <div class="ctitle">Evolución diaria · Avg Handoff POST por día (eje X) vs fecha (eje Y)</div>
+    <div class="lg">
+      <span class="lt"><span class="ld" style="background:var(--red)"></span>Sem 1 · Baseline</span>
+      <span class="lt"><span class="ld" style="background:var(--green)"></span>Sem 2 · Post-experimento</span>
+      <span class="lt"><span class="ld" style="background:var(--orange)"></span>Sem 3 · Seguimiento</span>
+      <span class="lt" style="font-size:10px;color:#374151">| línea punteada = baseline (1.04 min)</span>
+    </div>
+    <canvas id="res_main" height="320"></canvas>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="ctitle">Avg HP por semana</div>
+      <canvas id="res_sem" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="ctitle">Total órdenes por día</div>
+      <canvas id="res_ord" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="card full">
+    <div class="ctitle">Tabla resumen · Avg HP y órdenes por día</div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Día</th><th>Semana</th><th>Órdenes</th><th>Avg HP</th><th>vs Baseline</th></tr></thead>
+      <tbody id="res_tbl"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- JUEVES -->
+<div class="panel" id="panel-jue">
+  <div class="kpi-grid" id="kpi-jue"></div>
+  <div class="grid2">
+    <div class="card"><div class="ctitle">HP Avg · Todas las órdenes</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--blue)"></span>Jue 17/04</span><span class="lt"><span class="ld" style="background:var(--green)"></span>Jue 23/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>Jue 30/04</span></div><canvas id="jc1" height="200"></canvas></div>
+    <div class="card"><div class="ctitle">Órdenes por hora</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--blue)"></span>17/04</span><span class="lt"><span class="ld" style="background:var(--green)"></span>23/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>30/04</span></div><canvas id="jc2" height="200"></canvas></div>
+  </div>
+  <div class="card full"><div class="ctitle">Tabla · Todas · Jueves</div>
+    <table><thead><tr><th>Hora</th><th>Órd 17/04</th><th class="cb">HP 17/04</th><th>Órd 23/04</th><th class="cg">HP 23/04</th><th>Órd 30/04</th><th class="co">HP 30/04</th></tr></thead><tbody id="jt1"></tbody></table>
+  </div>
+</div>
+
+<!-- VIERNES -->
+<div class="panel" id="panel-vie">
+  <div class="kpi-grid" id="kpi-vie"></div>
+  <div class="grid2">
+    <div class="card"><div class="ctitle">HP Avg · Todas las órdenes</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--purple)"></span>Vie 18/04</span><span class="lt"><span class="ld" style="background:var(--teal)"></span>Vie 24/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>Vie 01/05</span></div><canvas id="vc1" height="200"></canvas></div>
+    <div class="card"><div class="ctitle">Órdenes por hora</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--purple)"></span>18/04</span><span class="lt"><span class="ld" style="background:var(--teal)"></span>24/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>01/05</span></div><canvas id="vc2" height="200"></canvas></div>
+  </div>
+  <div class="card full"><div class="ctitle">Tabla · Todas · Viernes</div>
+    <table><thead><tr><th>Hora</th><th>Órd 18/04</th><th class="cp">HP 18/04</th><th>Órd 24/04</th><th class="ct2">HP 24/04</th><th>Órd 01/05</th><th class="co">HP 01/05</th></tr></thead><tbody id="vt1"></tbody></table>
+  </div>
+</div>
+
+<!-- SABADO -->
+<div class="panel" id="panel-sab">
+  <div class="grid2">
+    <div class="card"><div class="ctitle">HP Avg · IN_QUEUE</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--pink)"></span>19/04</span><span class="lt"><span class="ld" style="background:var(--lime)"></span>25/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>02/05</span></div><canvas id="sc1" height="200"></canvas></div>
+    <div class="card"><div class="ctitle">Órdenes por hora</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--pink)"></span>19/04</span><span class="lt"><span class="ld" style="background:var(--lime)"></span>25/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>02/05</span></div><canvas id="sc2" height="200"></canvas></div>
+  </div>
+</div>
+
+<!-- DOMINGO -->
+<div class="panel" id="panel-dom">
+  <div class="grid2">
+    <div class="card"><div class="ctitle">HP Avg · IN_QUEUE</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--teal)"></span>20/04</span><span class="lt"><span class="ld" style="background:var(--amber)"></span>26/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>03/05</span></div><canvas id="dc1" height="200"></canvas></div>
+    <div class="card"><div class="ctitle">Órdenes por hora</div><div class="lg"><span class="lt"><span class="ld" style="background:var(--teal)"></span>20/04</span><span class="lt"><span class="ld" style="background:var(--amber)"></span>26/04</span><span class="lt"><span class="ld" style="background:var(--orange)"></span>03/05</span></div><canvas id="dc2" height="200"></canvas></div>
+  </div>
+</div>
+
+<script>
+// ===== DATA BY DATE =====
+const byDate = {
+  '17/04':{sem:1,dia:'Jue',o:[60,48,40,20,29,14,19,19,69,45],v:[.58,.69,1.90,1.01,1.18,1.66,1.09,.90,1.01,.98],h:[14,15,16,17,18,19,20,21,22,23]},
+  '18/04':{sem:1,dia:'Vie',o:[34,44,70,84,107,105,61,38,24,55],v:[1.39,.92,1.02,1.22,1.10,1.16,2.17,1.24,1.18,1.21],h:[14,15,16,17,18,19,20,21,22,23]},
+  '19/04':{sem:1,dia:'Sáb',o:[30,11,38,70,42,8,21,6],v:[1.04,1.15,1.03,1.00,.93,.81,.74,1.08],h:[14,15,16,17,18,19,20,21]},
+  '20/04':{sem:1,dia:'Dom',o:[56,37,46,60,49,34,20,19],v:[.62,.73,.74,.60,1.01,.77,.78,.74],h:[14,15,16,17,18,19,20,21]},
+  '23/04':{sem:2,dia:'Jue',o:[61,43,57,72,59,40,49,39,38,25],v:[.42,.43,.49,.42,.67,.57,.79,.58,.75,.53],h:[14,15,16,17,18,19,20,21,22,23]},
+  '24/04':{sem:2,dia:'Vie',o:[28,35,55,41,43,20,15,53,18,29],v:[.48,.42,.46,.57,.81,.92,.58,.54,.40,.60],h:[14,15,16,17,18,19,20,21,22,23]},
+  '25/04':{sem:2,dia:'Sáb',o:[6,7,24,32,76,15,31,8,16,29],v:[.90,1.34,.61,.80,.60,.73,.52,.52,.52,.48],h:[14,15,16,17,18,19,20,21,22,23]},
+  '26/04':{sem:2,dia:'Dom',o:[51,68,64,59,59,9,10,5],v:[.42,.73,.70,.50,.60,.47,.51,.69],h:[14,15,16,17,18,19,20,21]},
+  '28/04':{sem:3,dia:'Mar',o:[42,40,57,13,20,6,28,28],v:[.44,.52,.57,1.24,.58,2.20,.65,.76],h:[14,15,16,17,18,19,20,21]},
+  '29/04':{sem:3,dia:'Mié',o:[25,55,37,54,66,27,39,26],v:[1.19,.42,.60,.50,.62,.60,.57,.42],h:[14,15,16,17,18,19,20,21]},
+  '30/04':{sem:3,dia:'Jue',o:[57,47,53,15,17,11,6,8,4,7],v:[.89,.44,.40,.47,1.21,1.88,1.24,.73,.30,.79],h:[14,15,16,17,18,19,20,21,22,23]},
+  '01/05':{sem:3,dia:'Vie',o:[67,51,70,77,79,61,14,35,11,8],v:[.49,.50,.50,.57,.54,.67,.80,.59,.68,1.01],h:[14,15,16,17,18,19,20,21,22,23]},
+  '02/05':{sem:3,dia:'Sáb',o:[14,53,59,70,96,94,93,72,63,49],v:[.81,.49,.71,.47,.48,.45,.45,.51,.53,.74],h:[14,15,16,17,18,19,20,21,22,23]},
+  '03/05':{sem:3,dia:'Dom',o:[69,53,37,41,24,11,13],v:[.54,.65,.77,.81,.59,.66,1.21],h:[14,15,16,17,18,19,20]},
+};
+
+const BASELINE = 1.04;
+const avgArr=a=>(a.reduce((s,v)=>s+v,0)/a.length);
+const totArr=a=>a.reduce((s,v)=>s+v,0);
+
+// Compute per-day summaries
+const dates = Object.keys(byDate);
+const daySummary = dates.map(d => {
+  const dd = byDate[d];
+  return { date:d, sem:dd.sem, dia:dd.dia, ordenes:totArr(dd.o), avgHP: avgArr(dd.v) };
+});
+
+// ===== TABS =====
+function sw(tab,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('ar','aj','av','as','ad'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  el.classList.add({res:'ar',jue:'aj',vie:'av',sab:'as',dom:'ad'}[tab]);
+}
+
+// ===== RESUMEN TABLE =====
+const semColor = {1:'var(--red)',2:'var(--green)',3:'var(--orange)'};
+const semLabel = {1:'Sem 1','2':'Sem 2',3:'Sem 3'};
+document.getElementById('res_tbl').innerHTML = daySummary.map(d=>{
+  const diff = (d.avgHP - BASELINE).toFixed(2);
+  const pct = Math.round(((d.avgHP-BASELINE)/BASELINE)*100);
+  const cls = pct<=0?'neg':'pos';
+  return `<tr>
+    <td>${d.date}</td><td>${d.dia}</td>
+    <td style="color:${semColor[d.sem]}">Sem ${d.sem}</td>
+    <td>${d.ordenes}</td>
+    <td style="color:${semColor[d.sem]};font-weight:600">${d.avgHP.toFixed(2)} min</td>
+    <td class="${cls}">${pct>0?'+':''}${pct}%</td>
+  </tr>`;
+}).join('');
+
+// ===== CHART CONFIGS =====
+const gc='#1a2030',tc='#4a5568';
+const bOpts=ymax=>({responsive:true,maintainAspectRatio:true,
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#0e1318',borderColor:'#1a2030',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#c9d4e0',titleFont:{family:'IBM Plex Mono',size:11},bodyFont:{family:'IBM Plex Mono',size:11}}},
+  scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}},suggestedMax:ymax}}
+});
+
+// ===== RESUMEN MAIN CHART (horizontal bar) =====
+// Y = date labels, X = avgHP
+const dayLabels = daySummary.map(d=> d.date+' ('+d.dia+')');
+const dayVals   = daySummary.map(d=> d.avgHP);
+const dayColors = daySummary.map(d=> d.sem===1?'rgba(239,68,68,.75)':d.sem===2?'rgba(16,185,129,.75)':'rgba(251,146,60,.75)');
+const dayBorders= daySummary.map(d=> d.sem===1?'#ef4444':d.sem===2?'#10b981':'#fb923c');
+
+new Chart(document.getElementById('res_main'),{
+  type:'bar',
+  data:{labels:dayLabels, datasets:[
+    {label:'Avg HP',data:dayVals,backgroundColor:dayColors,borderColor:dayBorders,borderWidth:1,borderRadius:4},
+    {label:'Baseline',data:Array(dayLabels.length).fill(BASELINE),type:'line',borderColor:'rgba(239,68,68,.4)',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+  ]},
+  options:{
+    indexAxis:'y',
+    responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#0e1318',borderColor:'#1a2030',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#c9d4e0',
+      callbacks:{label:ctx=>ctx.dataset.label==='Baseline'?' Baseline: '+BASELINE+' min':' Avg HP: '+ctx.parsed.x.toFixed(2)+' min'}}},
+    scales:{
+      x:{grid:{color:gc},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}},title:{display:true,text:'Avg Handoff POST (min)',color:tc,font:{family:'IBM Plex Mono',size:10}},suggestedMax:2.5},
+      y:{grid:{color:'#0d1117'},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}}}
+    }
+  }
+});
+
+// Semana avg chart
+new Chart(document.getElementById('res_sem'),{type:'bar',data:{
+  labels:['Sem 1\n17-20 Abr','Sem 2\n23-26 Abr','Sem 3\n28 Abr-3 May'],
+  datasets:[{label:'Avg HP',data:[1.04,0.61,0.71],
+    backgroundColor:['rgba(239,68,68,.7)','rgba(16,185,129,.7)','rgba(251,146,60,.7)'],
+    borderColor:['#ef4444','#10b981','#fb923c'],borderWidth:1,borderRadius:4}]
+},options:{...bOpts(1.4),plugins:{...bOpts(1.4).plugins,tooltip:{...bOpts(1.4).plugins.tooltip,callbacks:{label:ctx=>' '+ctx.parsed.y.toFixed(2)+' min'}}}}});
+
+// Órdenes por día
+new Chart(document.getElementById('res_ord'),{type:'bar',data:{
+  labels:dayLabels,
+  datasets:[{label:'Órdenes',data:daySummary.map(d=>d.ordenes),
+    backgroundColor:dayColors,borderColor:dayBorders,borderWidth:1,borderRadius:3}]
+},options:{indexAxis:'y',responsive:true,maintainAspectRatio:true,
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#0e1318',borderColor:'#1a2030',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#c9d4e0'}},
+  scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}}},y:{grid:{color:'#0d1117'},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}}}}}});
+
+// ===== HELPER FUNCS =====
+function multiBar(id, datasets, labs){
+  new Chart(document.getElementById(id),{type:'bar',data:{labels:labs,datasets},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0e1318',borderColor:'#1a2030',borderWidth:1,titleColor:'#94a3b8',bodyColor:'#c9d4e0',titleFont:{family:'IBM Plex Mono',size:11},bodyFont:{family:'IBM Plex Mono',size:11}}},
+    scales:{x:{grid:{color:gc},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}}},y:{grid:{color:gc},ticks:{color:tc,font:{size:10,family:'IBM Plex Mono'}}}}}});
+}
+function multiTbl(id,cols){
+  const maxH=Math.max(...cols.map(c=>c.data.length));
+  let html='';
+  for(var i=0;i<maxH;i++){
+    html+='<tr>';
+    const h=cols[0].data[i]?cols[0].data[i].h:null;
+    html+=h?'<td>'+h+':00</td>':'<td>—</td>';
+    cols.forEach(c=>{
+      const row=c.data[i];
+      html+=row?'<td>'+row.o+'</td><td class="'+c.cls+'">'+row.v.toFixed(2)+'</td>':'<td>—</td><td>—</td>';
+    });
+    html+='</tr>';
+  }
+  document.getElementById(id).innerHTML=html;
+}
+
+// Build per-date objects for chart use
+function dData(key){return byDate[key]?byDate[key].h.map((_,i)=>({h:byDate[key].h[i],o:byDate[key].o[i],v:byDate[key].v[i]})):[];}
+
+// JUEVES
+const j17=dData('17/04'),j23=dData('23/04'),j30=dData('30/04');
+const jLabs=[...new Set([...j17,...j23,...j30].map(d=>d.h))].sort((a,b)=>a-b).map(h=>h+':00');
+multiBar('jc1',[
+  {label:'17/04',data:j17.map(d=>d.v),backgroundColor:'rgba(59,130,246,.6)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
+  {label:'23/04',data:j23.map(d=>d.v),backgroundColor:'rgba(16,185,129,.6)',borderColor:'#10b981',borderWidth:1,borderRadius:3},
+  {label:'30/04',data:j30.map(d=>d.v),backgroundColor:'rgba(251,146,60,.6)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],jLabs);
+multiBar('jc2',[
+  {label:'17/04',data:j17.map(d=>d.o),backgroundColor:'rgba(59,130,246,.5)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
+  {label:'23/04',data:j23.map(d=>d.o),backgroundColor:'rgba(16,185,129,.5)',borderColor:'#10b981',borderWidth:1,borderRadius:3},
+  {label:'30/04',data:j30.map(d=>d.o),backgroundColor:'rgba(251,146,60,.5)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],jLabs);
+multiTbl('jt1',[{data:j17,cls:'cb'},{data:j23,cls:'cg'},{data:j30,cls:'co'}]);
+
+// KPI Jueves
+(function(){
+  const kd=[
+    {lbl:'Avg HP Jue',va:avgArr(j17.map(d=>d.v)).toFixed(2)+' min',vb:avgArr(j23.map(d=>d.v)).toFixed(2)+' min',vc:avgArr(j30.map(d=>d.v)).toFixed(2)+' min',la:'17/04',lb:'23/04',lc:'30/04',ca:'var(--blue)',cb:'var(--green)',cc:'var(--orange)'},
+    {lbl:'Órdenes',va:totArr(j17.map(d=>d.o)),vb:totArr(j23.map(d=>d.o)),vc:totArr(j30.map(d=>d.o)),la:'17/04',lb:'23/04',lc:'30/04',ca:'var(--blue)',cb:'var(--green)',cc:'var(--orange)'},
+  ];
+  document.getElementById('kpi-jue').innerHTML=kd.map((r,i)=>`
+    <div class="kpi k${i+1}"><div class="kpi-label">${r.lbl}</div>
+    <div class="kpi-body">
+      <div class="kpi-block"><div class="kpi-val" style="color:${r.ca}">${r.va}</div><div class="kpi-sub">${r.la}</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val" style="color:${r.cb}">${r.vb}</div><div class="kpi-sub">${r.lb}</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val" style="color:${r.cc}">${r.vc}</div><div class="kpi-sub">${r.lc}</div></div>
+    </div></div>`).join('')+'<div class="kpi k3"><div class="kpi-label">Reducción vs baseline</div><div class="kpi-body"><div class="kpi-block"><div class="kpi-val cg">↓ 41%</div><div class="kpi-sub">sem 2 vs sem 1</div></div><div class="kpi-sep"></div><div class="kpi-block"><div class="kpi-val co">↓ 15%</div><div class="kpi-sub">sem 3 vs sem 1</div></div></div></div>';
+})();
+
+// VIERNES
+const v18=dData('18/04'),v24=dData('24/04'),v01=dData('01/05');
+const vLabs=[...new Set([...v18,...v24,...v01].map(d=>d.h))].sort((a,b)=>a-b).map(h=>h+':00');
+multiBar('vc1',[
+  {label:'18/04',data:v18.map(d=>d.v),backgroundColor:'rgba(167,139,250,.6)',borderColor:'#a78bfa',borderWidth:1,borderRadius:3},
+  {label:'24/04',data:v24.map(d=>d.v),backgroundColor:'rgba(45,212,191,.6)',borderColor:'#2dd4bf',borderWidth:1,borderRadius:3},
+  {label:'01/05',data:v01.map(d=>d.v),backgroundColor:'rgba(251,146,60,.6)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],vLabs);
+multiBar('vc2',[
+  {label:'18/04',data:v18.map(d=>d.o),backgroundColor:'rgba(167,139,250,.5)',borderColor:'#a78bfa',borderWidth:1,borderRadius:3},
+  {label:'24/04',data:v24.map(d=>d.o),backgroundColor:'rgba(45,212,191,.5)',borderColor:'#2dd4bf',borderWidth:1,borderRadius:3},
+  {label:'01/05',data:v01.map(d=>d.o),backgroundColor:'rgba(251,146,60,.5)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],vLabs);
+multiTbl('vt1',[{data:v18,cls:'cp'},{data:v24,cls:'ct2'},{data:v01,cls:'co'}]);
+
+(function(){
+  document.getElementById('kpi-vie').innerHTML=`
+    <div class="kpi k1"><div class="kpi-label">Avg HP Vie</div><div class="kpi-body">
+      <div class="kpi-block"><div class="kpi-val cp">${avgArr(v18.map(d=>d.v)).toFixed(2)} min</div><div class="kpi-sub">18/04</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val ct2">${avgArr(v24.map(d=>d.v)).toFixed(2)} min</div><div class="kpi-sub">24/04</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val co">${avgArr(v01.map(d=>d.v)).toFixed(2)} min</div><div class="kpi-sub">01/05</div></div>
+    </div></div>
+    <div class="kpi k2"><div class="kpi-label">Órdenes</div><div class="kpi-body">
+      <div class="kpi-block"><div class="kpi-val cp">${totArr(v18.map(d=>d.o))}</div><div class="kpi-sub">18/04</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val ct2">${totArr(v24.map(d=>d.o))}</div><div class="kpi-sub">24/04</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val co">${totArr(v01.map(d=>d.o))}</div><div class="kpi-sub">01/05</div></div>
+    </div></div>
+    <div class="kpi k3"><div class="kpi-label">Reducción vs baseline</div><div class="kpi-body">
+      <div class="kpi-block"><div class="kpi-val cg">↓ 48%</div><div class="kpi-sub">sem 2 vs sem 1</div></div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-block"><div class="kpi-val co">↓ 46%</div><div class="kpi-sub">sem 3 vs sem 1</div></div>
+    </div></div>`;
+})();
+
+// SABADO
+const s19=dData('19/04'),s25=dData('25/04'),s02=dData('02/05');
+const sLabs=[...new Set([...s19,...s25,...s02].map(d=>d.h))].sort((a,b)=>a-b).map(h=>h+':00');
+multiBar('sc1',[
+  {label:'19/04',data:s19.map(d=>d.v),backgroundColor:'rgba(244,114,182,.6)',borderColor:'#f472b6',borderWidth:1,borderRadius:3},
+  {label:'25/04',data:s25.map(d=>d.v),backgroundColor:'rgba(132,204,22,.6)',borderColor:'#84cc16',borderWidth:1,borderRadius:3},
+  {label:'02/05',data:s02.map(d=>d.v),backgroundColor:'rgba(251,146,60,.6)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],sLabs);
+multiBar('sc2',[
+  {label:'19/04',data:s19.map(d=>d.o),backgroundColor:'rgba(244,114,182,.5)',borderColor:'#f472b6',borderWidth:1,borderRadius:3},
+  {label:'25/04',data:s25.map(d=>d.o),backgroundColor:'rgba(132,204,22,.5)',borderColor:'#84cc16',borderWidth:1,borderRadius:3},
+  {label:'02/05',data:s02.map(d=>d.o),backgroundColor:'rgba(251,146,60,.5)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],sLabs);
+
+// DOMINGO
+const d20=dData('20/04'),d26=dData('26/04'),d03=dData('03/05');
+const dLabs=[...new Set([...d20,...d26,...d03].map(d=>d.h))].sort((a,b)=>a-b).map(h=>h+':00');
+multiBar('dc1',[
+  {label:'20/04',data:d20.map(d=>d.v),backgroundColor:'rgba(45,212,191,.6)',borderColor:'#2dd4bf',borderWidth:1,borderRadius:3},
+  {label:'26/04',data:d26.map(d=>d.v),backgroundColor:'rgba(245,158,11,.6)',borderColor:'#f59e0b',borderWidth:1,borderRadius:3},
+  {label:'03/05',data:d03.map(d=>d.v),backgroundColor:'rgba(251,146,60,.6)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],dLabs);
+multiBar('dc2',[
+  {label:'20/04',data:d20.map(d=>d.o),backgroundColor:'rgba(45,212,191,.5)',borderColor:'#2dd4bf',borderWidth:1,borderRadius:3},
+  {label:'26/04',data:d26.map(d=>d.o),backgroundColor:'rgba(245,158,11,.5)',borderColor:'#f59e0b',borderWidth:1,borderRadius:3},
+  {label:'03/05',data:d03.map(d=>d.o),backgroundColor:'rgba(251,146,60,.5)',borderColor:'#fb923c',borderWidth:1,borderRadius:3},
+],dLabs);
+</script>
+</body>
+</html>
