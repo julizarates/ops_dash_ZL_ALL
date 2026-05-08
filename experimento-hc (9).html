@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Board — Experimento HC</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'Figtree',sans-serif;font-size:13px;line-height:1.5}
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}.logo b{color:#E24B4A}
+.exp-tag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;padding:2px 8px;border-radius:10px;margin-left:8px}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#999}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s}.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid #DDD;border-radius:6px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}.btn:hover{background:#F5F4F0}
+.exp-banner{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ep{display:flex;align-items:center;gap:6px;font-size:11px}
+.epl{color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px}
+.epv{font-weight:700;color:#111}
+.esep{width:1px;height:20px;background:#E5E4DF}
+.ebadge{background:#FFF3E0;color:#E65100;border:1px solid #FFCC80;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px}
+.country-nav{background:#fff;border-bottom:1px solid #E5E4DF;padding:0 24px;display:flex;position:sticky;top:53px;z-index:49}
+.ctab{padding:10px 20px;font-size:12px;font-weight:600;color:#888;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;user-select:none}
+.ctab.on{color:#111;border-bottom-color:#111}.ctab:hover{color:#555}
+.ld{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:#aaa}
+.sp{width:16px;height:16px;border:2px solid #E0DFD9;border-top-color:#E65100;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.content{padding:20px 24px}.csec{display:none}.csec.on{display:block}
+.chdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.chdr h2{font-size:16px;font-weight:700}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+/* STORE CARD */
+.scard{background:#fff;border:1px solid #E5E4DF;border-radius:12px;overflow:hidden}
+.scard-hdr{padding:11px 16px;border-bottom:1px solid #F0EFEB;display:flex;align-items:center;justify-content:space-between;border-top:3px solid var(--cc,#E24B4A)}
+.scard-name{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.scard-body{padding:16px}
+.slbl{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;margin-top:14px}
+.slbl:first-child{margin-top:0}
+/* HC PANEL */
+.hc-panel{background:#F9F8F5;border-radius:10px;padding:12px;margin-bottom:0}
+.hc-target-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #EEEDEA}
+.hc-target-lbl{font-size:11px;font-weight:700;color:#555}
+.hc-target-val{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.hc-target-sub{font-size:10px;color:#aaa}
+/* HC compare grid */
+.hc-cmp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.hc-col{display:flex;flex-direction:column;gap:2px}
+.hc-col-lbl{font-size:9px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
+.hc-col-val{font-size:18px;font-weight:700;letter-spacing:-.4px;line-height:1.1}
+.hc-col-sub{font-size:10px;color:#888}
+/* Delta chips */
+.chip{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+.chip-bad{background:#FFF0F0;color:#C62828}
+.chip-ok{background:#F1F8E9;color:#2E7D32}
+.chip-neu{background:#E3F2FD;color:#1565C0}
+.chip-warn{background:#FFF8E1;color:#E65100}
+/* HC delta row */
+.hc-delta-row{display:flex;gap:8px;flex-wrap:wrap}
+/* Role breakdown */
+.hc-roles{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #EEEDEA}
+.hc-role-box{background:#fff;border-radius:7px;padding:7px 10px}
+.hc-role-lbl{font-size:10px;color:#aaa;font-weight:600;margin-bottom:3px}
+.hc-role-row{display:flex;align-items:center;gap:5px;font-size:11px}
+.hc-role-b{color:#aaa}.hc-role-arr{color:#ddd;font-size:10px}.hc-role-a{font-weight:700;color:#111}
+/* KPI grid */
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kgrid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.kba{background:#F9F8F5;border-radius:8px;padding:8px 10px}
+.kba-lbl{font-size:10px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.kba-row{display:flex;align-items:center;gap:4px;font-size:11px;flex-wrap:wrap}
+.kba-b{color:#999;font-weight:500}.kba-arr{color:#ccc;font-size:10px}.kba-a{font-weight:700;color:#111}
+.kbadge{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px}
+.kbad{background:#FFF0F0;color:#C62828}.kok{background:#F1F8E9;color:#2E7D32}.kneu{background:#F5F4F0;color:#888}
+/* Chart */
+.chart-bars{position:relative;height:80px;background:#F9F8F5;border-radius:8px;overflow:hidden;display:flex;align-items:flex-end;gap:1px;padding:4px 4px 0}
+.chart-ref{position:absolute;left:4px;right:4px;height:0;border-top:1.5px dashed #2196F3;z-index:2}
+.chart-ref2{position:absolute;left:4px;right:4px;height:0;border-top:1.5px dotted #E65100;z-index:2}
+.chart-lbl-row{display:flex;gap:1px;padding:2px 4px 0}
+.chart-leg{display:flex;gap:12px;margin-top:5px;flex-wrap:wrap}
+.chart-leg-i{display:flex;align-items:center;gap:4px;font-size:10px;color:#888}
+.chart-leg-dot{width:8px;height:8px;border-radius:2px}
+/* Weekly table */
+.wtbl{width:100%;border-collapse:collapse;font-size:11px}
+.wtbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#aaa;padding:5px 8px;border-bottom:1px solid #E5E4DF;text-align:right;white-space:nowrap}
+.wtbl th:first-child{text-align:left}
+.wtbl td{padding:5px 8px;border-bottom:1px solid #F5F4F0;text-align:right;white-space:nowrap}
+.wtbl td:first-child{text-align:left;font-weight:500}
+.wtbl tr:last-child td{border-bottom:none}
+.wtbl tr.partial td{color:#bbb}
+/* Pickers table */
+.ptbl-wrap{overflow-x:auto}
+.ptbl{width:100%;border-collapse:collapse;font-size:11px}
+.ptbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#aaa;padding:5px 8px;border-bottom:1px solid #E5E4DF;text-align:right;white-space:nowrap}
+.ptbl th:first-child{text-align:left}
+.ptbl td{padding:6px 8px;border-bottom:1px solid #F5F4F0;text-align:right;white-space:nowrap}
+.ptbl td:first-child{text-align:left;font-weight:500;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.ptbl tr:last-child td{border-bottom:none}
+.prank{font-size:10px;color:#ccc;font-weight:700;margin-right:3px}
+.mn{font-weight:700}.mp{font-size:10px;margin-left:2px}
+.mph{color:#C62828;font-weight:600}.mpl{color:#2E7D32;font-weight:600}.mpw{color:#E65100;font-weight:600}.mpn{color:#aaa}
+.nodata{color:#aaa;font-size:11px;padding:8px 0}
+@media(max-width:900px){.sgrid{grid-template-columns:1fr}.hc-cmp-grid{grid-template-columns:1fr 1fr}.kgrid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.hdr{padding:10px 14px}.content{padding:12px}.kgrid{grid-template-columns:1fr}.hc-roles{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="exp-tag">Experimento HC</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="exp-banner">
+  <div class="ep"><span class="epl">Inicio</span><span class="epv">Jue 1 May 2026</span></div>
+  <div class="esep"></div>
+  <div class="ep"><span class="epl">Duración</span><span class="epv" id="exp-days">—</span></div>
+  <div class="esep"></div>
+  <div class="ep"><span class="epl">Tiendas</span><span class="epv">6 (2 por país)</span></div>
+  <div class="esep"></div>
+  <div class="ep"><span class="epl">Países</span><span class="epv">PE · AR · BR</span></div>
+  <div class="esep"></div>
+  <div class="ep"><span class="epl">Target HC</span><span class="ebadge">-30% Pickers</span></div>
+</div>
+
+<div class="country-nav">
+  <div class="ctab on" onclick="showC('all',this)">Todas</div>
+  <div class="ctab" onclick="showC('PE',this)">🇵🇪 Perú</div>
+  <div class="ctab" onclick="showC('AR',this)">🇦🇷 Argentina</div>
+  <div class="ctab" onclick="showC('BR',this)">🇧🇷 Brasil</div>
+</div>
+
+<div class="ld" id="gld"><div class="sp"></div>Cargando datos del experimento...</div>
+
+<div class="content" id="content" style="display:none">
+  <div class="csec on" id="sec-PE"><div class="chdr"><span style="font-size:20px">🇵🇪</span><h2>Perú</h2></div><div class="sgrid" id="grid-PE"></div></div>
+  <div class="csec on" id="sec-AR"><div class="chdr"><span style="font-size:20px">🇦🇷</span><h2>Argentina</h2></div><div class="sgrid" id="grid-AR"></div></div>
+  <div class="csec on" id="sec-BR"><div class="chdr"><span style="font-size:20px">🇧🇷</span><h2>Brasil</h2></div><div class="sgrid" id="grid-BR"></div></div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────
+const EXP_START    = '2026-05-01';
+const BEFORE_WEEKS = 4;
+const SID = '1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U';
+const API_KEY = 'AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEETS = {def:'Defectos',so:'Stockouts',can:'Cancelaciones',pick:'Pickers',hc:'HC'};
+
+// ── Experiment stores with approved target HC ─────────────────
+const EXP_STORES = [
+  {id:'bena',   country:'PE', name:'Benavides',     cc:'#E24B4A', targetHC:20, match:n=>/benavides/i.test(n)},
+  {id:'macchu', country:'PE', name:'Macchu Picchu',  cc:'#E24B4A', targetHC:7,  match:n=>/macchu/i.test(n)},
+  {id:'humb',   country:'AR', name:'Humboldt',       cc:'#2196F3', targetHC:23, match:n=>/humboldt/i.test(n)},
+  {id:'vicen',  country:'AR', name:'Vicente Lopez',  cc:'#2196F3', targetHC:16, match:n=>/vicente/i.test(n)},
+  {id:'acli',   country:'BR', name:'Aclimação',      cc:'#4CAF50', targetHC:8,  match:n=>/aclima/i.test(n)},
+  {id:'carrao', country:'BR', name:'Carrão',         cc:'#4CAF50', targetHC:8,  match:n=>/carr/i.test(n)},
+];
+
+const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let D = {def:[],so:[],can:[],pick:[],hc:[]};
+
+// ── Safe number helpers ───────────────────────────────────────
+const N  = v => (isFinite(v) && v!=null) ? +v : 0;
+const f1 = v => N(v).toFixed(1);
+const f2 = v => N(v).toFixed(2);
+const f0 = v => Math.round(N(v)).toString();
+const pct = v => N(v*100).toFixed(1)+'%';
+
+// ── Date helpers ──────────────────────────────────────────────
+function addDays(d,k){const r=new Date(d+'T12:00:00');r.setDate(r.getDate()+k);return r.toISOString().split('T')[0];}
+function getMonday(d){const dt=new Date(d+'T12:00:00');const day=dt.getDay();dt.setDate(dt.getDate()+(day===0?-6:1-day));return dt.toISOString().split('T')[0];}
+function fmtDate(d){if(!d)return'—';const dt=new Date(d+'T12:00:00');return isNaN(dt)?d:dt.toLocaleDateString('es',{day:'numeric',month:'short'});}
+function daysDiff(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/(864e5));}
+function dowOf(d){return new Date(d+'T12:00:00').getDay();}
+
+const EXP_MON      = getMonday(EXP_START);
+const BEFORE_START = addDays(EXP_MON, -BEFORE_WEEKS*7);
+
+// Date filters for operational sheets (SEMANA-based)
+function isBeforeOp(r){const s=r.SEMANA||r.FECHA||'';return s>=BEFORE_START&&s<EXP_MON;}
+function isAfterOp(r) {const s=r.SEMANA||r.FECHA||'';return s>=EXP_MON;}
+
+// Date filters for HC sheet (DATE-based, daily)
+function isBeforeHC(r){const d=r.DATE||r.FECHA||'';return d>=BEFORE_START&&d<EXP_START;}
+function isAfterHC(r) {const d=r.DATE||r.FECHA||'';return d>=EXP_START;}
+
+// This week / prev week use actual current date (not EXP_MON)
+function getThisWeekMon(){return getMonday(new Date().toISOString().split('T')[0]);}
+function isThisWeekHC(r){const d=r.DATE||r.FECHA||'';const m=getThisWeekMon();return d>=m&&d<=addDays(m,6);}
+function isPrevWeekHC(r){const d=r.DATE||r.FECHA||'';const m=getThisWeekMon();const pm=addDays(m,-7);return d>=pm&&d<m;}
+
+// ── Fetch — robust Aleph header detection ─────────────────────
+async function fetchSheet(g){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(SHEETS[g])}?key=${API_KEY}`;
+  const r=await fetch(url);if(!r.ok)throw new Error(g+': HTTP '+r.status);
+  const json=await r.json();const rows=json.values||[];
+  const known=['SEMANA','FECHA','DATE','WEEK','COUNTRY','COUNTRY_CODE','TICKETS','ORDENES',
+    'WAREHOUSENAME','KEYWH','PICKER_NAME','FULLNAME','AVG_ASSIGN','AVG_PICKING','AVG_PACKING',
+    'AVG_PICK_PACK','AVG_HANDOFF','AVG_ASSING_TO_PICKER','AVG_HANDOFF_POST','AVG_CYCLE_TIME',
+    'P90_PICK_PACK','AVG_TOTAL_TIME','PICKERS','STORE_LEAD','TOTAL_HC','ORDERS','PRODUCTIVIDAD',
+    'LEVEL_2','STOCKOUT_TYPE','SUBCATEGORY','TOP_PICKER','PRODUCT_NAME','HORAS_CONECTADAS'];
+  let hi=rows.findIndex(row=>row.filter(Boolean).some(c=>known.includes(c.toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;
+  const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};hdrs.forEach((h,i)=>{if(h)o[h.toString().trim()]=(row[i]||'').toString().trim();});
+    ['SEMANA','FECHA','DATE','WEEK'].forEach(k=>{if(o[k])o[k]=o[k].split(' ')[0].split('T')[0];});
+    return o;
+  });
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('content').style.display='none';
+  try{
+    const results=await Promise.all(Object.keys(SHEETS).map(g=>fetchSheet(g)));
+    [D.def,D.so,D.can,D.pick,D.hc]=results;
+    renderAll();
+    document.getElementById('gld').style.display='none';
+    document.getElementById('content').style.display='block';
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+    const today=new Date().toISOString().split('T')[0];
+    const days=Math.max(0,daysDiff(EXP_START,today));
+    document.getElementById('exp-days').textContent=`${days} días · Sem ${Math.ceil(days/7)||1}`;
+  }catch(e){
+    document.getElementById('gld').innerHTML=`<span style="color:#E24B4A;padding:20px;display:block">❌ ${e.message}</span>`;
+    console.error(e);
+  }
+}
+
+// ── Math ──────────────────────────────────────────────────────
+function sumF(arr,col){return arr.reduce((s,r)=>s+N(parseFloat(r[col])),0);}
+function wavg(arr,col){const w=sumF(arr,'ORDENES');return w?arr.reduce((s,r)=>s+N(parseFloat(r.ORDENES))*N(parseFloat(r[col])),0)/w:0;}
+function cycleOf(r){return N(parseFloat(r.AVG_ASSIGN))+N(parseFloat(r.AVG_PICKING))+N(parseFloat(r.AVG_PACKING))+N(parseFloat(r.AVG_HANDOFF));}
+function wavgCy(arr){const w=sumF(arr,'ORDENES');return w?arr.reduce((s,r)=>s+N(parseFloat(r.ORDENES))*cycleOf(r),0)/w:0;}
+function avgArr(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+function storeF(data,store){return data.filter(r=>store.match(r.WAREHOUSENAME||''));}
+
+// ── HC weekly aggregation ─────────────────────────────────────
+function hcWeekStats(rows){
+  if(!rows.length)return{pk:0,sl:0,total:0,orders:0,prod:0,days:0};
+  const pk    = N(avgArr(rows.map(r=>N(parseFloat(r.PICKERS)))));
+  const sl    = N(avgArr(rows.map(r=>N(parseFloat(r.STORE_LEAD)))));
+  const total = N(avgArr(rows.map(r=>N(parseFloat(r.TOTAL_HC)))));
+  // ORDERS: prefer HC sheet field, fallback 0
+  const orders= rows.some(r=>r.ORDERS)?sumF(rows,'ORDERS'):0;
+  const prod  = total ? orders/total : 0;
+  return{pk,sl,total,orders,prod,days:rows.length};
+}
+
+// ── Compute per store ─────────────────────────────────────────
+function computeStore(store){
+  const def  = storeF(D.def,  store);
+  const so   = storeF(D.so,   store);
+  const can  = storeF(D.can,  store);
+  const pick = storeF(D.pick, store);
+  const hc   = storeF(D.hc,   store);
+
+  // ── BEFORE baseline (4 sem, SEMANA-based operational) ────────
+  function wkAvg(rows,col){
+    const m={};
+    rows.filter(isBeforeOp).forEach(r=>{const w=r.SEMANA||r.FECHA||'';if(w)m[w]=(m[w]||0)+N(parseFloat(r[col]));});
+    const v=Object.values(m);return v.length?avgArr(v):0;
+  }
+  function wkAvgCyBefore(){
+    const m={};
+    pick.filter(isBeforeOp).forEach(r=>{const w=r.SEMANA||r.FECHA||'';if(w){if(!m[w])m[w]=[];m[w].push(r);}});
+    return avgArr(Object.values(m).map(rows=>wavgCy(rows)));
+  }
+
+  const bOrd     = wkAvg(pick,'ORDENES');
+  const bDefRate = bOrd ? wkAvg(def,'TICKETS')/bOrd : 0;
+  const bSORate  = bOrd ? wkAvg(so,'ORDENES')/bOrd  : 0;
+  const bCanRate = bOrd ? wkAvg(can,'ORDENES')/bOrd : 0;
+  const bCy      = N(wkAvgCyBefore());
+
+  // HC before (daily avg)
+  const hcBefore = hc.filter(isBeforeHC);
+  const bHC = hcWeekStats(hcBefore);
+
+  // Productividad before: total orders / total picker-days
+  const bOrdTotal  = N(sumF(pick.filter(isBeforeOp), 'ORDENES'));
+  const bPickDays  = N(sumF(hcBefore, 'PICKERS'));
+  const bProd      = bPickDays ? bOrdTotal / bPickDays : 0;
+
+  // ── HC THIS week (current experiment week) ────────────────────
+  const hcThisWeek = hc.filter(isThisWeekHC);
+  const thisHC     = hcWeekStats(hcThisWeek);
+
+  // ── HC PREVIOUS week ──────────────────────────────────────────
+  const hcPrevWeek = hc.filter(isPrevWeekHC);
+  const prevHC     = hcWeekStats(hcPrevWeek);
+
+  // ── AFTER: full experiment period ────────────────────────────
+  const afterPick = pick.filter(isAfterOp);
+  const afterDef  = def.filter(isAfterOp);
+  const afterSO   = so.filter(isAfterOp);
+  const afterCan  = can.filter(isAfterOp);
+  const afterHC   = hc.filter(isAfterHC);
+
+  const aOrd     = N(sumF(afterPick,'ORDENES'));
+  const aDefN    = N(sumF(afterDef,'TICKETS'));
+  const aSON     = N(sumF(afterSO,'ORDENES'));
+  const aCanN    = N(sumF(afterCan,'ORDENES'));
+  const aCy      = N(wavgCy(afterPick));
+  const aDefRate = aOrd ? aDefN/aOrd : 0;
+  const aSORate  = aOrd ? aSON/aOrd  : 0;
+  const aCanRate = aOrd ? aCanN/aOrd : 0;
+
+  // Productividad after: total orders / total picker-days
+  const aPickDays = N(sumF(afterHC, 'PICKERS'));
+  const aProd     = aPickDays ? aOrd / aPickDays : 0;
+
+  // ── Weekly breakdown ──────────────────────────────────────────
+  const today=new Date().toISOString().split('T')[0];
+  const sems=[...new Set([...afterDef,...afterSO,...afterCan,...afterPick]
+    .map(r=>r.SEMANA||r.FECHA||'').filter(Boolean))].sort();
+
+  const weekly=sems.map(sem=>{
+    const pR=afterPick.filter(r=>(r.SEMANA||r.FECHA||'')===sem);
+    const dR=afterDef.filter(r=>(r.SEMANA||r.FECHA||'')===sem);
+    const sR=afterSO.filter(r=>(r.SEMANA||r.FECHA||'')===sem);
+    const cR=afterCan.filter(r=>(r.SEMANA||r.FECHA||'')===sem);
+    const end=addDays(sem,6);
+    const hR=afterHC.filter(r=>{const d=r.DATE||r.FECHA||'';return d>=sem&&d<=end;});
+    const ord=N(sumF(pR,'ORDENES'));
+    const hcW=hcWeekStats(hR);
+    const hcPkDays=N(sumF(hR,'PICKERS'));
+    const prod=hcPkDays?ord/hcPkDays:0;
+    return{
+      sem, ord,
+      defN:N(sumF(dR,'TICKETS')), defR:ord?N(sumF(dR,'TICKETS'))/ord:0,
+      soN:N(sumF(sR,'ORDENES')),  soR:ord?N(sumF(sR,'ORDENES'))/ord:0,
+      canN:N(sumF(cR,'ORDENES')), canR:ord?N(sumF(cR,'ORDENES'))/ord:0,
+      cy:N(wavgCy(pR)), hcPk:hcW.pk, hcSl:hcW.sl, hcTot:hcW.total,
+      prod, partial:sem>=getMonday(today)
+    };
+  });
+
+  // HC daily for chart
+  const hcDaily=afterHC
+    .map(r=>({date:r.DATE||r.FECHA||'',pk:N(parseFloat(r.PICKERS)),sl:N(parseFloat(r.STORE_LEAD)),total:N(parseFloat(r.TOTAL_HC))}))
+    .filter(r=>r.date).sort((a,b)=>a.date.localeCompare(b.date));
+
+  // ── Top 10 pickers ────────────────────────────────────────────
+  const normNm=s=>(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'').slice(0,20);
+  const dM={},sM={},cM={};
+  afterDef.forEach(r=>{const p=normNm(r.TOP_PICKER);if(p&&r.TOP_PICKER!=='—')dM[p]=(dM[p]||0)+N(parseFloat(r.TICKETS));});
+  afterSO.forEach(r=>{const p=normNm(r.TOP_PICKER);if(p&&r.TOP_PICKER!=='—')sM[p]=(sM[p]||0)+N(parseFloat(r.ORDENES));});
+  afterCan.forEach(r=>{const p=normNm(r.TOP_PICKER);if(p&&r.TOP_PICKER!=='—')cM[p]=(cM[p]||0)+N(parseFloat(r.ORDENES));});
+
+  const pickerMap={};
+  afterPick.forEach(r=>{const nm=r.PICKER_NAME||r.FULLNAME||'';if(!nm)return;if(!pickerMap[nm])pickerMap[nm]=[];pickerMap[nm].push(r);});
+  const avgPkA=N(wavg(afterPick,'AVG_PICKING')),avgCyA=N(wavgCy(afterPick));
+  const top10=Object.entries(pickerMap).map(([nm,rows])=>{
+    const key=normNm(nm);const ord=N(sumF(rows,'ORDENES'));
+    const pkT=N(wavg(rows,'AVG_PICKING'));const cy=N(wavgCy(rows));
+    return{nm,ord,
+      def:N(dM[key]),defR:ord?N(dM[key])/ord:0,
+      so:N(sM[key]),soR:ord?N(sM[key])/ord:0,
+      can:N(cM[key]),canR:ord?N(cM[key])/ord:0,
+      pkT,pkD:avgPkA?Math.round((pkT/avgPkA-1)*100):0,
+      cy,cyD:avgCyA?Math.round((cy/avgCyA-1)*100):0
+    };
+  }).sort((a,b)=>b.defR-a.defR).slice(0,10);
+
+  return{bHC,prevHC,thisHC,bOrd,bDefRate,bSORate,bCanRate,bCy,bProd,
+         aOrd,aDefRate,aSORate,aCanRate,aCy,aProd,weekly,hcDaily,top10};
+}
+
+// ── UI helpers ────────────────────────────────────────────────
+function chip(val,good,neutral){
+  const cls=val===0||neutral?'chip-neu':good?'chip-ok':'chip-bad';
+  const sign=val>0?'+':'';
+  return`<span class="chip ${cls}">${sign}${f0(val)} personas</span>`;
+}
+function chipPct(after,before,lessIsBetter){
+  if(!before)return'<span class="chip chip-neu">—</span>';
+  const d=(after-before)/before;
+  const bad=(lessIsBetter&&d>0.02)||(!lessIsBetter&&d<-0.02);
+  const good=(lessIsBetter&&d<-0.02)||(!lessIsBetter&&d>0.02);
+  const cls=Math.abs(d)<0.02?'chip-neu':good?'chip-ok':bad?'chip-bad':'chip-warn';
+  return`<span class="chip ${cls}">${d>=0?'+':''}${(d*100).toFixed(1)}%</span>`;
+}
+function kbadge(after,before,lessIsBetter){
+  if(!before)return'<span class="kbadge kneu">—</span>';
+  const d=(after-before)/before;
+  const bad=(lessIsBetter&&d>0.02)||(!lessIsBetter&&d<-0.02);
+  const good=(lessIsBetter&&d<-0.02)||(!lessIsBetter&&d>0.02);
+  return`<span class="kbadge ${good?'kok':bad?'kbad':'kneu'}">${d>=0?'+':''}${(d*100).toFixed(1)}%</span>`;
+}
+function mpCls(v,b,li=true){
+  if(!b||Math.abs(v-b)/b<0.02)return'mpn';
+  const bad=(li&&v>b)||(!li&&v<b);
+  return Math.abs(v-b)/b>=0.2?(bad?'mph':'mpl'):bad?'mpw':'mpn';
+}
+function mpD(v,b){if(!b)return'';const d=(v-b)/b;return`${d>=0?'+':''}${(d*100).toFixed(1)}%`;}
+
+// ── HC chart ──────────────────────────────────────────────────
+function renderChart(id,hcDaily,bPickers,targetHC){
+  const el=document.getElementById(id);if(!el)return;
+  if(!hcDaily.length){el.innerHTML='<div class="nodata">Sin datos HC en el período</div>';return;}
+  const maxV=Math.max(...hcDaily.map(d=>d.total),N(bPickers)*1.3,targetHC*1.2,1)*1.1;
+  const refPct=N(bPickers)/maxV*100;
+  const tgtPct=N(targetHC)/maxV*100;
+  const bars=hcDaily.map(d=>{
+    const hSl=Math.max(0,N(d.sl)/maxV*100);
+    const hPk=Math.max(2,N(d.pk)/maxV*100);
+    const dow=DOW[dowOf(d.date)];
+    return`<div style="flex:1;display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:3px">
+      ${hSl>0?`<div style="height:${hSl}%;background:#FF9800;border-radius:2px 2px 0 0" title="${dow} ${fmtDate(d.date)}: ${f1(d.sl)} SL"></div>`:''}
+      <div style="height:${hPk}%;background:#378ADD;border-radius:${hSl>0?'0':'2px 2px'} 0 0" title="${dow} ${fmtDate(d.date)}: ${f1(d.pk)} Pickers · Total: ${f1(d.total)}"></div>
+    </div>`;
+  }).join('');
+  const lbls=hcDaily.map(d=>`<span style="flex:1;font-size:8px;color:#bbb;text-align:center;min-width:3px;overflow:hidden">${dowOf(d.date)===1?DOW[1]:''}</span>`).join('');
+  el.innerHTML=`
+    <div class="chart-bars">
+      <div class="chart-ref"  style="bottom:calc(${refPct.toFixed(1)}%*0.88+2px)"></div>
+      <div class="chart-ref2" style="bottom:calc(${tgtPct.toFixed(1)}%*0.88+2px)"></div>
+      ${bars}
+    </div>
+    <div class="chart-lbl-row">${lbls}</div>
+    <div class="chart-leg">
+      <div class="chart-leg-i"><div class="chart-leg-dot" style="background:#378ADD"></div>Pickers</div>
+      <div class="chart-leg-i"><div class="chart-leg-dot" style="background:#FF9800"></div>Store Lead</div>
+      <div class="chart-leg-i"><div style="width:12px;height:0;border-top:1.5px dashed #2196F3"></div>Prom. antes (${f1(bPickers)})</div>
+      <div class="chart-leg-i"><div style="width:12px;height:0;border-top:1.5px dotted #E65100"></div>Target (${targetHC})</div>
+    </div>`;
+}
+
+// ── Build store card ──────────────────────────────────────────
+function buildCard(store,data){
+  const{bHC,prevHC,thisHC,bOrd,bDefRate,bSORate,bCanRate,bCy,bProd,
+        aOrd,aDefRate,aSORate,aCanRate,aCy,aProd,weekly,hcDaily,top10}=data;
+  const tgt=store.targetHC;
+
+  // Delta vs target (this week)
+  const deltaVsTarget = thisHC.total - tgt;
+  const deltaVsPrev   = thisHC.total - prevHC.total;
+
+  // Weekly table
+  const wHTML=weekly.length?weekly.map(w=>`
+    <tr${w.partial?' class="partial"':''}>
+      <td>${fmtDate(w.sem)}${w.partial?' <span style="font-size:9px;color:#bbb">(cursando)</span>':''}</td>
+      <td>${w.hcTot?f1(w.hcTot):'—'}</td>
+      <td style="font-weight:700;color:${w.hcTot&&Math.abs(w.hcTot-tgt)>1?(w.hcTot>tgt?'#C62828':'#2E7D32'):'#111'}">${w.hcTot?(w.hcTot>tgt?'+':'')+f0(w.hcTot-tgt):'—'}</td>
+      <td>${w.ord||'—'}</td>
+      <td>${w.prod?f1(w.prod):'—'}</td>
+      <td><span class="mn">${w.defN}</span> <span class="mp ${mpCls(w.defR,bDefRate)}">${pct(w.defR)}</span></td>
+      <td><span class="mp ${mpCls(w.defR,bDefRate)}">${mpD(w.defR,bDefRate)}</span></td>
+      <td><span class="mn">${w.soN}</span> <span class="mp ${mpCls(w.soR,bSORate)}">${pct(w.soR)}</span></td>
+      <td><span class="mp ${mpCls(w.soR,bSORate)}">${mpD(w.soR,bSORate)}</span></td>
+      <td><span class="mn">${w.canN}</span> <span class="mp ${mpCls(w.canR,bCanRate)}">${pct(w.canR)}</span></td>
+      <td><span class="mp ${mpCls(w.canR,bCanRate)}">${mpD(w.canR,bCanRate)}</span></td>
+      <td>${f2(w.cy)} <span class="mp ${mpCls(w.cy,bCy)}">${mpD(w.cy,bCy)}</span></td>
+    </tr>`).join('')
+    :'<tr><td colspan="12" class="nodata" style="padding:8px">Sin semanas completas aún</td></tr>';
+
+  // Top 10
+  const pkHTML=top10.length?top10.map((p,i)=>`
+    <tr>
+      <td><span class="prank">${i+1}</span>${p.nm||'—'}</td>
+      <td><span class="mn">${p.ord}</span></td>
+      <td><span class="mn">${p.def}</span> <span class="mp ${p.def>0?'mph':'mpn'}">${pct(p.defR)}</span></td>
+      <td><span class="mn">${p.so}</span> <span class="mp ${p.so>0?'mpw':'mpn'}">${pct(p.soR)}</span></td>
+      <td><span class="mn">${p.can}</span> <span class="mp ${p.can>0?'mpw':'mpn'}">${pct(p.canR)}</span></td>
+      <td><span class="mn">${f2(p.pkT)}</span> <span class="mp ${p.pkD>15?'mph':p.pkD<-15?'mpl':'mpn'}">${p.pkD>0?'+':''}${p.pkD}%</span></td>
+      <td><span class="mn">${f2(p.cy)}</span> <span class="mp ${p.cyD>15?'mph':p.cyD<-15?'mpl':'mpn'}">${p.cyD>0?'+':''}${p.cyD}%</span></td>
+    </tr>`).join('')
+    :'<tr><td colspan="7" class="nodata" style="padding:8px">Sin datos</td></tr>';
+
+  const div=document.createElement('div');
+  div.className='scard';
+  div.style.setProperty('--cc',store.cc);
+  div.innerHTML=`
+    <div class="scard-hdr">
+      <span class="scard-name">${store.name}</span>
+      <span style="font-size:10px;font-weight:700;background:#F5F4F0;color:#888;padding:2px 8px;border-radius:8px">${store.country}</span>
+    </div>
+    <div class="scard-body">
+
+      <div class="slbl">HC — Headcount conectado</div>
+      <div class="hc-panel">
+
+        <!-- Target row -->
+        <div class="hc-target-row">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px">Target aprobado experimento</div>
+            <div style="font-size:22px;font-weight:700;margin-top:2px">${tgt} <span style="font-size:13px;color:#888;font-weight:500">personas</span></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:#aaa;margin-bottom:4px">Esta semana vs target</div>
+            ${chip(deltaVsTarget, deltaVsTarget<=0, false)}
+          </div>
+        </div>
+
+        <!-- 3 columns: Antes / Sem anterior / Esta semana -->
+        <div class="hc-cmp-grid">
+          <div class="hc-col">
+            <div class="hc-col-lbl">Antes (4 sem prom)</div>
+            <div class="hc-col-val">${f1(bHC.total)}</div>
+            <div class="hc-col-sub">HC total/día</div>
+          </div>
+          <div class="hc-col">
+            <div class="hc-col-lbl">Sem anterior</div>
+            <div class="hc-col-val">${prevHC.total?f1(prevHC.total):'—'}</div>
+            <div class="hc-col-sub">HC total/día</div>
+          </div>
+          <div class="hc-col">
+            <div class="hc-col-lbl">Esta semana</div>
+            <div class="hc-col-val">${thisHC.total?f1(thisHC.total):'—'}</div>
+            <div class="hc-col-sub">HC total/día</div>
+          </div>
+        </div>
+
+        <!-- Delta chips -->
+        <div class="hc-delta-row" style="margin-top:8px">
+          <div style="font-size:10px;color:#aaa;display:flex;align-items:center;gap:6px">
+            vs sem anterior: ${thisHC.total&&prevHC.total?chip(thisHC.total-prevHC.total,thisHC.total<=prevHC.total,false):'<span class="chip chip-neu">—</span>'}
+          </div>
+          <div style="font-size:10px;color:#aaa;display:flex;align-items:center;gap:6px">
+            vs antes: ${chipPct(thisHC.total,bHC.total,false)}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="slbl">Métricas operacionales + Productividad — Antes vs Experimento total</div>
+      <div class="kgrid">
+        <div class="kba"><div class="kba-lbl">Defectos / Órdenes</div>
+          <div class="kba-row"><span class="kba-b">${pct(bDefRate)}</span><span class="kba-arr">→</span><span class="kba-a">${pct(aDefRate)}</span>${kbadge(aDefRate,bDefRate,true)}</div></div>
+        <div class="kba"><div class="kba-lbl">Stockouts / Órdenes</div>
+          <div class="kba-row"><span class="kba-b">${pct(bSORate)}</span><span class="kba-arr">→</span><span class="kba-a">${pct(aSORate)}</span>${kbadge(aSORate,bSORate,true)}</div></div>
+        <div class="kba"><div class="kba-lbl">Cancelaciones / Órdenes</div>
+          <div class="kba-row"><span class="kba-b">${pct(bCanRate)}</span><span class="kba-arr">→</span><span class="kba-a">${pct(aCanRate)}</span>${kbadge(aCanRate,bCanRate,true)}</div></div>
+        <div class="kba"><div class="kba-lbl">Cycle Time</div>
+          <div class="kba-row"><span class="kba-b">${f2(bCy)} min</span><span class="kba-arr">→</span><span class="kba-a">${f2(aCy)} min</span>${kbadge(aCy,bCy,true)}</div></div>
+      </div>
+      <!-- Productividad: full width -->
+      <div class="kba" style="margin-top:6px">
+        <div class="kba-lbl">⚡ Productividad (órdenes / picker-día)</div>
+        <div class="kba-row"><span class="kba-b">${f1(bProd)} órd/picker</span><span class="kba-arr">→</span><span class="kba-a">${f1(aProd)} órd/picker</span>${kbadge(aProd,bProd,false)}</div>
+      </div>
+
+      <div class="slbl">HC diario — experimento <span style="font-size:10px;color:#bbb;font-weight:400;text-transform:none">(azul = prom antes · naranja = target)</span></div>
+      <div id="hc-${store.id}"></div>
+
+      <div class="slbl">Cierre semanal</div>
+      <div style="overflow-x:auto">
+        <table class="wtbl">
+          <thead><tr>
+            <th>Semana</th><th>HC</th><th>Δ Target</th><th>Órdenes</th><th>Prod.</th>
+            <th>Defectos</th><th>Δ Def</th><th>SO</th><th>Δ SO</th>
+            <th>Cancel</th><th>Δ Can</th><th>Cycle T</th>
+          </tr></thead>
+          <tbody>${wHTML}</tbody>
+        </table>
+      </div>
+
+      <div class="slbl" style="margin-top:14px">Top 10 pickers más críticos <span style="font-size:10px;color:#bbb;font-weight:400;text-transform:none">(% = sobre órdenes del picker · Δ% = vs prom tienda)</span></div>
+      <div class="ptbl-wrap">
+        <table class="ptbl">
+          <thead><tr><th>Picker</th><th>Órdenes</th><th>Defectos</th><th>SO</th><th>Cancel</th><th>Picking</th><th>Cycle T</th></tr></thead>
+          <tbody>${pkHTML}</tbody>
+        </table>
+      </div>
+
+    </div>`;
+  return div;
+}
+
+// ── Render all ────────────────────────────────────────────────
+function renderAll(){
+  const byC={PE:[],AR:[],BR:[]};
+  EXP_STORES.forEach(s=>byC[s.country].push(s));
+  Object.entries(byC).forEach(([c,stores])=>{
+    const grid=document.getElementById(`grid-${c}`);grid.innerHTML='';
+    stores.forEach(store=>{
+      let data;
+      try{data=computeStore(store);}catch(e){
+        console.error(store.name,e);
+        data={bHC:{pk:0,sl:0,total:0},prevHC:{pk:0,sl:0,total:0},thisHC:{pk:0,sl:0,total:0},
+              bOrd:0,bDefRate:0,bSORate:0,bCanRate:0,bCy:0,bProd:0,
+              aOrd:0,aDefRate:0,aSORate:0,aCanRate:0,aCy:0,aProd:0,
+              weekly:[],hcDaily:[],top10:[]};
+      }
+      const card=buildCard(store,data);
+      grid.appendChild(card);
+      renderChart(`hc-${store.id}`,data.hcDaily,data.bHC.pk,store.targetHC);
+    });
+  });
+}
+
+function showC(c,tab){
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('on'));tab.classList.add('on');
+  document.querySelectorAll('.csec').forEach(s=>s.classList.toggle('on',c==='all'||s.id===`sec-${c}`));
+}
+
+loadAll();
+</script>
+</body>
+</html>
