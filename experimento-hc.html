@@ -285,8 +285,6 @@ function buildCard(store,data){
         '<div style="font-size:20px;font-weight:700">'+(twProd?f1(twProd):'-')+' <span style="font-size:11px;color:#aaa;font-weight:400">ord/HC</span>'+(twProd&&pwProd?'<span class="kbadge '+(twProd>=pwProd?'kok':'kbad')+'" style="font-size:11px">'+(twProd>=pwProd?'+':'')+((twProd-pwProd)/pwProd*100).toFixed(1)+'%</span>':'')+'</div>'+
       '</div>'+
     '</div>'+
-    '<div class="slbl">HC diario esta semana</div>'+
-    '<div id="hc-'+store.id+'"></div>'+
     '<div class="slbl">Top 10 pickers mas criticos</div>'+
     '<div class="ptbl-wrap"><table class="ptbl"><thead><tr><th>Picker</th><th>Ordenes</th><th>Defectos</th><th>SO</th><th>Cancel</th><th>Picking</th><th>Cycle T</th></tr></thead><tbody>'+pkHTML+'</tbody></table></div>'+
     '</div>';
