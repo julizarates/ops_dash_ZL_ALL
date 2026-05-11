@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff POST · CO WH12 · Live</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f8f9fb;--surface:#fff;--border:#e2e8f0;--text:#1a202c;--muted:#718096;
+    --red:#e53e3e;--green:#38a169;--orange:#dd6b20;--blue:#3182ce;
+    --purple:#805ad5;--teal:#2c7a7b;--pink:#d53f8c;--amber:#d69e2e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;padding:24px;max-width:1200px;margin:0 auto;}
+
+  /* HEADER */
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .header-left{border-left:4px solid var(--blue);padding-left:14px;}
+  .header h1{font-size:17px;font-weight:700;}
+  .header p{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:3px;}
+  .refresh-btn{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .refresh-btn:hover{background:#2b6cb0;}
+  .refresh-btn:disabled{background:#a0aec0;cursor:not-allowed;}
+
+  /* LOADING */
+  .loading{text-align:center;padding:60px 20px;color:var(--muted);}
+  .spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .error-box{background:#fff5f5;border:1px solid #fed7d7;border-radius:8px;padding:16px;color:var(--red);font-size:13px;margin:20px 0;}
+
+  /* TABS */
+  .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab{padding:7px 16px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'IBM Plex Mono',monospace;transition:all .15s;}
+  .tab.active{background:#ebf8ff;border-color:var(--blue);color:var(--blue);}
+  .tab.active-res{background:#fffaf0;border-color:var(--orange);color:var(--orange);}
+  .tab.active-sem{background:#f0fff4;border-color:var(--green);color:var(--green);}
+  .tab.active-hora{background:#faf5ff;border-color:var(--purple);color:var(--purple);}
+
+  /* KPIs */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;border-top:3px solid var(--blue);}
+  .kpi.red{border-top-color:var(--red);} .kpi.green{border-top-color:var(--green);}
+  .kpi.orange{border-top-color:var(--orange);} .kpi.purple{border-top-color:var(--purple);}
+  .kpi-label{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+  .kpi-val{font-size:24px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+  .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  .kpi-delta{font-size:12px;margin-top:5px;font-weight:600;}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  .ctitle{font-size:11px;font-weight:700;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;}
+  .lg{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+  .ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle;}
+  .lt{font-size:11px;color:var(--muted);}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace;}
+  th{padding:9px 12px;text-align:right;color:var(--muted);font-size:10px;border-bottom:2px solid var(--border);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+  th:first-child{text-align:left;}
+  td{padding:8px 12px;text-align:right;border-bottom:1px solid #f1f5f9;}
+  td:first-child{text-align:left;}
+  tr:hover td{background:#f8fafc;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;}
+  .b-s1{background:#fff5f5;color:var(--red);border:1px solid #fed7d7;}
+  .b-s2{background:#f0fff4;color:var(--green);border:1px solid #c6f6d5;}
+  .b-s3{background:#fffaf0;color:var(--orange);border:1px solid #feebc8;}
+  .b-s4{background:#faf5ff;color:var(--purple);border:1px solid #e9d8fd;}
+  .neg{color:var(--green);font-weight:600;} .pos{color:var(--red);font-weight:600;}
+
+  .panel{display:none;} .panel.active{display:block;}
+  .last-updated{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:4px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>HANDOFF POST · CO · Warehouse 12</h1>
+    <p id="subtitle">Cargando datos desde Google Sheets...</p>
+    <div class="last-updated" id="last-updated"></div>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadData()">
+    <span id="refresh-icon">↻</span> Actualizar
+  </button>
+</div>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <p>Leyendo datos desde <strong>Prueba_casilleros</strong>...</p>
+</div>
+<div id="error" class="error-box" style="display:none"></div>
+<div id="app" style="display:none">
+
+  <div class="tabs">
+    <div class="tab active-res" onclick="sw('res',this,'active-res')">📊 Resumen</div>
+    <div class="tab" onclick="sw('sem',this,'active-sem')">📅 Por semana</div>
+    <div class="tab" onclick="sw('dia',this,'active')">📆 Día a día</div>
+    <div class="tab" onclick="sw('hora',this,'active-hora')">🕐 Por hora</div>
+    <div class="tab" onclick="sw('queue',this,'active')">🔴 IN_QUEUE</div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="panel active" id="panel-res">
+    <div class="kpi-grid" id="kpi-container"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="ctitle">Evolución diaria · Avg HP</div>
+        <div class="lg">
+          <span id="leg-hp" class="lt"></span>
+          <span class="lt" style="font-size:10px;color:#a0aec0">— baseline</span>
+        </div>
+        <canvas id="chart-daily-hp" height="120"></canvas>
+      </div>
+      <div class="card">
+        <div class="ctitle">Órdenes por día</div>
+        <canvas id="chart-daily-ord" height="120"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Tabla resumen diario</div>
+      <table>
+        <thead><tr><th>Fecha</th><th>Semana</th><th>Órdenes</th><th>Avg HP (min)</th><th>IN_QUEUE %</th><th>Δ vs Baseline</th></tr></thead>
+        <tbody id="tbl-daily"></tbody>
+        <tfoot id="tbl-daily-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- POR SEMANA -->
+  <div class="panel" id="panel-sem">
+    <div class="grid2">
+      <div class="card">
+        <div class="ctitle">Avg HP por semana</div>
+        <canvas id="chart-sem-hp" height="180"></canvas>
+      </div>
+      <div class="card">
+        <div class="ctitle">Órdenes por semana</div>
+        <canvas id="chart-sem-ord" height="180"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Tabla semanal</div>
+      <table>
+        <thead><tr><th>Semana</th><th>Días</th><th>Órdenes</th><th>Avg HP</th><th>Avg HP IN_QUEUE</th><th>Δ vs Sem 1</th></tr></thead>
+        <tbody id="tbl-sem"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DÍA A DÍA -->
+  <div class="panel" id="panel-dia">
+    <div class="card">
+      <div class="ctitle">Seleccioná un día para ver el detalle por hora</div>
+      <div id="day-selector" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
+    </div>
+    <div id="day-detail" style="display:none">
+      <div class="grid2">
+        <div class="card">
+          <div class="ctitle" id="day-hp-title">HP por hora</div>
+          <canvas id="chart-day-hp" height="160"></canvas>
+        </div>
+        <div class="card">
+          <div class="ctitle" id="day-ord-title">Órdenes por hora</div>
+          <canvas id="chart-day-ord" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POR HORA -->
+  <div class="panel" id="panel-hora">
+    <div class="card">
+      <div class="ctitle">Avg HP por franja horaria · Todas las semanas</div>
+      <canvas id="chart-hora-hp" height="120"></canvas>
+    </div>
+    <div class="card">
+      <div class="ctitle">Órdenes por franja horaria · Todas las semanas</div>
+      <canvas id="chart-hora-ord" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- IN_QUEUE -->
+  <div class="panel" id="panel-queue">
+    <div class="grid2">
+      <div class="card">
+        <div class="ctitle">Avg HP · IN_QUEUE = TRUE por día</div>
+        <canvas id="chart-q-hp" height="160"></canvas>
+      </div>
+      <div class="card">
+        <div class="ctitle">Órdenes IN_QUEUE por día</div>
+        <canvas id="chart-q-ord" height="160"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">IN_QUEUE vs Total por día</div>
+      <canvas id="chart-q-ratio" height="100"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== SHARED STATE =====
+let DATA = [];
+let chartInstances = {};
+
+// ===== TAB SWITCH =====
+function sw(tab, el, cls) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active','active-res','active-sem','active-hora'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  el.classList.add(cls);
+}
+
+// ===== LOAD DATA VIA ANTHROPIC API + GOOGLE DRIVE MCP =====
+async function loadData() {
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  btn.disabled = true;
+  icon.style.animation = 'spin .6s linear infinite';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('error').style.display = 'none';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        system: `You are a data extraction assistant. The user will ask you to read a Google Sheet. 
+Extract ALL rows from the sheet tab "Prueba_casilleros" from the spreadsheet with ID 1V2gV4YgV4FRwIAsNf6p-kv3Uy2wx5H7O3rInwZPTFsE.
+The columns are: HORA (integer 0-23), FECHA (date YYYY-MM-DD), RT_TIENDA (boolean true/false), ORDENES (integer), AVG_HANDOFF_POST_MIN (decimal).
+Data starts at row 2 (row 1 is headers). Column 1 is HORA.
+Return ONLY a JSON array of objects like:
+[{"hora":14,"fecha":"2026-04-17","rt_tienda":false,"ordenes":60,"hp":0.58}, ...]
+No markdown, no explanation, just the JSON array.`,
+        messages: [{ role: 'user', content: 'Read all data from the sheet Prueba_casilleros in spreadsheet 1V2gV4YgV4FRwIAsNf6p-kv3Uy2wx5H7O3rInwZPTFsE and return it as JSON.' }],
+        mcp_servers: [{
+          type: 'url',
+          url: 'https://drivemcp.googleapis.com/mcp/v1',
+          name: 'google-drive'
+        }]
+      })
+    });
+
+    const json = await res.json();
+    if (json.error) throw new Error(json.error.message || 'API error');
+
+    // Extract text from response
+    const textBlock = json.content?.find(b => b.type === 'text');
+    if (!textBlock) throw new Error('No text response from API');
+
+    // Parse JSON (strip any markdown fences)
+    let raw = textBlock.text.trim().replace(/^```json?\s*/,'').replace(/\s*```$/,'');
+    DATA = JSON.parse(raw);
+
+    if (!Array.isArray(DATA) || DATA.length === 0) throw new Error('No data found in sheet');
+
+    renderDashboard();
+
+  } catch (err) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error').innerHTML = `
+      <strong>Error al cargar datos:</strong> ${err.message}<br>
+      <small style="color:#718096;margin-top:4px;display:block">Verificá que el Sheet sea accesible y que Google Drive esté conectado.</small>`;
+  } finally {
+    btn.disabled = false;
+    icon.style.animation = '';
+  }
+}
+
+// ===== CHART FACTORY =====
+const GC = '#e2e8f0', TC = '#718096';
+const TIP = {
+  backgroundColor:'#fff', borderColor:'#e2e8f0', borderWidth:1,
+  titleColor:'#1a202c', bodyColor:'#4a5568',
+  titleFont:{family:'IBM Plex Mono',size:11}, bodyFont:{family:'IBM Plex Mono',size:11}
+};
+function scaleOpts(ymax, ylabel) {
+  return {
+    x: {grid:{color:GC}, ticks:{color:TC,font:{size:11,family:'IBM Plex Mono'}}},
+    y: {grid:{color:GC}, ticks:{color:TC,font:{size:11,family:'IBM Plex Mono'}}, suggestedMax:ymax||undefined, min:0,
+        title:{display:!!ylabel,text:ylabel||'',color:TC,font:{family:'IBM Plex Mono',size:10}}}
+  };
+}
+function mkChart(id, type, labels, datasets, opts) {
+  if (chartInstances[id]) chartInstances[id].destroy();
+  chartInstances[id] = new Chart(document.getElementById(id), {
+    type, data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:TIP,...(opts?.plugins||{})},
+      scales: opts?.scales || scaleOpts(),
+      ...opts}
+  });
+}
+
+// ===== COLOUR HELPERS =====
+const WEEK_COLORS = ['#e53e3e','#38a169','#dd6b20','#805ad5','#2c7a7b','#d53f8c','#d69e2e'];
+const WEEK_BG     = ['rgba(229,62,62,.7)','rgba(56,161,105,.7)','rgba(221,107,32,.7)','rgba(128,90,213,.7)','rgba(44,122,123,.7)','rgba(213,63,140,.7)','rgba(214,158,46,.7)'];
+const BADGE_CLS   = ['b-s1','b-s2','b-s3','b-s4','b-s1','b-s2','b-s3'];
+
+function weekNum(dateStr) {
+  // assign week numbers based on Monday boundaries
+  const d = new Date(dateStr);
+  const base = new Date('2026-04-13'); // Monday before first data point
+  const diff = Math.floor((d - base) / (7 * 86400000));
+  return diff + 1;
+}
+
+function avg(arr) { return arr.length ? arr.reduce((s,v)=>s+v,0)/arr.length : 0; }
+function sum(arr) { return arr.reduce((s,v)=>s+v,0); }
+function fmt(n, dec=2) { return (+n).toFixed(dec); }
+
+// ===== RENDER =====
+function renderDashboard() {
+  // Group by date
+  const byDate = {};
+  DATA.forEach(row => {
+    if (!byDate[row.fecha]) byDate[row.fecha] = {all:[],queue:[],nonqueue:[]};
+    byDate[row.fecha].all.push(row);
+    if (row.rt_tienda === true || row.rt_tienda === 'true') byDate[row.fecha].queue.push(row);
+    else byDate[row.fecha].nonqueue.push(row);
+  });
+
+  const dates = Object.keys(byDate).sort();
+  const baseline = avg(byDate[dates[0]]?.all.map(r=>r.hp) || []);
+
+  // Assign week numbers
+  const weekOf = {};
+  dates.forEach(d => { weekOf[d] = weekNum(d); });
+  const weeks = [...new Set(Object.values(weekOf))].sort((a,b)=>a-b);
+
+  // Group by week
+  const byWeek = {};
+  weeks.forEach(w => { byWeek[w] = []; });
+  dates.forEach(d => byWeek[weekOf[d]].push(d));
+
+  // Update subtitle
+  document.getElementById('subtitle').textContent =
+    `CO WH12 · Desde 14:00 · ${dates[0]} → ${dates[dates.length-1]} · ${DATA.length} registros`;
+  document.getElementById('last-updated').textContent =
+    'Última actualización: ' + new Date().toLocaleString('es-CO');
+
+  // Per-day summaries
+  const dayHP = dates.map(d => +fmt(avg(byDate[d].all.map(r=>r.hp))));
+  const dayOrd = dates.map(d => sum(byDate[d].all.map(r=>r.ordenes)));
+  const dayQOrd = dates.map(d => sum(byDate[d].queue.map(r=>r.ordenes)));
+  const dayQHP = dates.map(d => byDate[d].queue.length ? +fmt(avg(byDate[d].queue.map(r=>r.hp))) : null);
+  const dayWk = dates.map(d => weekOf[d]);
+  const dayColors = dates.map(d => WEEK_COLORS[(weekOf[d]-1)%WEEK_COLORS.length]+'cc');
+  const dayBorders = dates.map(d => WEEK_COLORS[(weekOf[d]-1)%WEEK_COLORS.length]);
+
+  // KPIs
+  const totalOrd = sum(dayOrd);
+  const overallHP = +fmt(avg(DATA.map(r=>r.hp)));
+  const queueRows = DATA.filter(r=>r.rt_tienda===true||r.rt_tienda==='true');
+  const queueHP = queueRows.length ? +fmt(avg(queueRows.map(r=>r.hp))) : 0;
+  const latestWkHP = +fmt(avg(byWeek[weeks[weeks.length-1]].flatMap(d=>byDate[d].all.map(r=>r.hp))));
+  const pctVsBase = Math.round(((latestWkHP-baseline)/baseline)*100);
+
+  document.getElementById('kpi-container').innerHTML = `
+    <div class="kpi red"><div class="kpi-label">Baseline · Sem 1</div><div class="kpi-val" style="color:var(--red)">${fmt(baseline)} min</div><div class="kpi-sub">${dates[0]}</div></div>
+    <div class="kpi green"><div class="kpi-label">Avg HP · Sem ${weeks[weeks.length-1]}</div><div class="kpi-val" style="color:var(--green)">${latestWkHP} min</div><div class="kpi-sub">Última semana</div><div class="kpi-delta ${pctVsBase<=0?'neg':'pos'}">${pctVsBase>0?'+':''}${pctVsBase}% vs baseline</div></div>
+    <div class="kpi orange"><div class="kpi-label">Avg HP IN_QUEUE</div><div class="kpi-val" style="color:var(--orange)">${queueHP} min</div><div class="kpi-sub">RT acepta pero no llega</div></div>
+    <div class="kpi purple"><div class="kpi-label">Total órdenes</div><div class="kpi-val" style="color:var(--purple)">${totalOrd.toLocaleString()}</div><div class="kpi-sub">${dates.length} días medidos</div></div>
+  `;
+
+  // ===== RESUMEN CHARTS =====
+  const dlabels = dates.map(d => d.slice(5)); // MM-DD
+  mkChart('chart-daily-hp','bar',dlabels,[
+    {label:'Avg HP',data:dayHP,backgroundColor:dayColors,borderColor:dayBorders,borderWidth:1,borderRadius:3},
+    {label:'Baseline',data:Array(dates.length).fill(+fmt(baseline)),type:'line',borderColor:'rgba(229,62,62,.45)',borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}
+  ],{scales:scaleOpts(null,'Avg HP (min)')});
+
+  // Legend for HP chart
+  document.getElementById('leg-hp').innerHTML = weeks.map(w =>
+    `<span class="lt"><span class="ld" style="background:${WEEK_COLORS[(w-1)%WEEK_COLORS.length]}"></span>Sem ${w}</span>`
+  ).join(' ');
+
+  mkChart('chart-daily-ord','bar',dlabels,[
+    {label:'Órdenes',data:dayOrd,backgroundColor:dayColors,borderColor:dayBorders,borderWidth:1,borderRadius:3}
+  ],{scales:scaleOpts(null,'Órdenes')});
+
+  // Daily table
+  let tblHtml='', footHtml='';
+  dates.forEach((d,i) => {
+    const w = weekOf[d], cls = BADGE_CLS[(w-1)%BADGE_CLS.length];
+    const pct = Math.round(((dayHP[i]-baseline)/baseline)*100);
+    const qRatio = dayOrd[i] ? Math.round(dayQOrd[i]/dayOrd[i]*100) : 0;
+    tblHtml += `<tr>
+      <td><strong>${d}</strong></td>
+      <td><span class="badge ${cls}">Sem ${w}</span></td>
+      <td>${dayOrd[i].toLocaleString()}</td>
+      <td style="color:${WEEK_COLORS[(w-1)%WEEK_COLORS.length]};font-weight:600">${dayHP[i]}</td>
+      <td>${qRatio}%</td>
+      <td class="${pct<=0?'neg':'pos'}">${pct>0?'+':''}${pct}%</td>
+    </tr>`;
+  });
+  // Weekly subtotals
+  weeks.forEach(w => {
+    const wDates = byWeek[w];
+    const wOrd = sum(wDates.flatMap(d=>byDate[d].all.map(r=>r.ordenes)));
+    const wHP = +fmt(avg(wDates.flatMap(d=>byDate[d].all.map(r=>r.hp))));
+    const wQOrd = sum(wDates.flatMap(d=>byDate[d].queue.map(r=>r.ordenes)));
+    const wQRatio = wOrd ? Math.round(wQOrd/wOrd*100) : 0;
+    const pct = Math.round(((wHP-baseline)/baseline)*100);
+    const cls = BADGE_CLS[(w-1)%BADGE_CLS.length];
+    footHtml += `<tr style="background:#f8fafc;font-weight:700;">
+      <td colspan="1" style="color:${WEEK_COLORS[(w-1)%WEEK_COLORS.length]}">Total Sem ${w}</td>
+      <td><span class="badge ${cls}">Sem ${w}</span></td>
+      <td>${wOrd.toLocaleString()}</td>
+      <td style="color:${WEEK_COLORS[(w-1)%WEEK_COLORS.length]}">${wHP}</td>
+      <td>${wQRatio}%</td>
+      <td class="${pct<=0?'neg':'pos'}">${pct>0?'+':''}${pct}%</td>
+    </tr>`;
+  });
+  document.getElementById('tbl-daily').innerHTML = tblHtml;
+  document.getElementById('tbl-daily-foot').innerHTML = footHtml;
+
+  // ===== SEMANAL =====
+  const semLabels = weeks.map(w => 'Sem '+w+'\n'+byWeek[w][0]+'→'+byWeek[w][byWeek[w].length-1]);
+  const semHP = weeks.map(w => +fmt(avg(byWeek[w].flatMap(d=>byDate[d].all.map(r=>r.hp)))));
+  const semOrd = weeks.map(w => sum(byWeek[w].flatMap(d=>byDate[d].all.map(r=>r.ordenes))));
+  const semColors = weeks.map(w => WEEK_BG[(w-1)%WEEK_BG.length]);
+  const semBorders = weeks.map(w => WEEK_COLORS[(w-1)%WEEK_COLORS.length]);
+
+  mkChart('chart-sem-hp','bar',semLabels,[
+    {label:'Avg HP',data:semHP,backgroundColor:semColors,borderColor:semBorders,borderWidth:1,borderRadius:5},
+    {label:'Baseline',data:Array(weeks.length).fill(+fmt(baseline)),type:'line',borderColor:'rgba(229,62,62,.4)',borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}
+  ],{scales:scaleOpts(null,'Avg HP (min)')});
+
+  mkChart('chart-sem-ord','bar',semLabels,[
+    {label:'Órdenes',data:semOrd,backgroundColor:semColors,borderColor:semBorders,borderWidth:1,borderRadius:5}
+  ],{scales:scaleOpts(null,'Órdenes')});
+
+  // Sem table
+  let semTbl='';
+  weeks.forEach(w => {
+    const wDates = byWeek[w];
+    const wHP = +fmt(avg(wDates.flatMap(d=>byDate[d].all.map(r=>r.hp))));
+    const wQHP = queueRows.length ? +fmt(avg(wDates.flatMap(d=>byDate[d].queue.map(r=>r.hp)))) : '—';
+    const wOrd = sum(wDates.flatMap(d=>byDate[d].all.map(r=>r.ordenes)));
+    const pct = Math.round(((wHP-baseline)/baseline)*100);
+    const cls = BADGE_CLS[(w-1)%BADGE_CLS.length];
+    semTbl += `<tr>
+      <td><span class="badge ${cls}">Sem ${w}</span></td>
+      <td>${wDates.length}</td>
+      <td>${wOrd.toLocaleString()}</td>
+      <td style="color:${WEEK_COLORS[(w-1)%WEEK_COLORS.length]};font-weight:600">${wHP} min</td>
+      <td>${wQHP} min</td>
+      <td class="${pct<=0?'neg':'pos'}">${pct>0?'+':''}${pct}%</td>
+    </tr>`;
+  });
+  document.getElementById('tbl-sem').innerHTML = semTbl;
+
+  // ===== DÍA A DÍA selector =====
+  const sel = document.getElementById('day-selector');
+  sel.innerHTML = dates.map(d => {
+    const w = weekOf[d];
+    return `<button onclick="showDay('${d}')" style="padding:6px 12px;border-radius:6px;border:1px solid ${WEEK_COLORS[(w-1)%WEEK_COLORS.length]};background:#fff;color:${WEEK_COLORS[(w-1)%WEEK_COLORS.length]};font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;font-weight:600;">${d}</button>`;
+  }).join('');
+
+  function showDay(d) {
+    const rows = byDate[d].all;
+    const horas = [...new Set(rows.map(r=>r.hora))].sort((a,b)=>a-b);
+    document.getElementById('day-hp-title').textContent = 'HP por hora · '+d;
+    document.getElementById('day-ord-title').textContent = 'Órdenes por hora · '+d;
+    const w = weekOf[d];
+    const col = WEEK_COLORS[(w-1)%WEEK_COLORS.length];
+    const qRows = byDate[d].queue;
+    const hpData = horas.map(h => {
+      const hr = rows.filter(r=>r.hora===h);
+      return +fmt(avg(hr.map(r=>r.hp)));
+    });
+    const qhpData = horas.map(h => {
+      const hr = qRows.filter(r=>r.hora===h);
+      return hr.length ? +fmt(avg(hr.map(r=>r.hp))) : null;
+    });
+    const ordData = horas.map(h => sum(rows.filter(r=>r.hora===h).map(r=>r.ordenes)));
+    const qOrdData = horas.map(h => sum(qRows.filter(r=>r.hora===h).map(r=>r.ordenes)));
+    mkChart('chart-day-hp','bar',horas.map(h=>h+':00'),[
+      {label:'HP Todas',data:hpData,backgroundColor:col+'99',borderColor:col,borderWidth:1,borderRadius:3},
+      {label:'HP IN_QUEUE',data:qhpData,backgroundColor:'rgba(221,107,32,.6)',borderColor:'#dd6b20',borderWidth:1,borderRadius:3}
+    ],{scales:scaleOpts(null,'Avg HP (min)')});
+    mkChart('chart-day-ord','bar',horas.map(h=>h+':00'),[
+      {label:'Todas',data:ordData,backgroundColor:col+'80',borderColor:col,borderWidth:1,borderRadius:3},
+      {label:'IN_QUEUE',data:qOrdData,backgroundColor:'rgba(221,107,32,.5)',borderColor:'#dd6b20',borderWidth:1,borderRadius:3}
+    ],{scales:scaleOpts(null,'Órdenes')});
+    document.getElementById('day-detail').style.display='block';
+  }
+  window.showDay = showDay;
+
+  // ===== POR HORA (global) =====
+  const allHoras = [...new Set(DATA.map(r=>r.hora))].sort((a,b)=>a-b);
+  const horaHP = allHoras.map(h => +fmt(avg(DATA.filter(r=>r.hora===h).map(r=>r.hp))));
+  const horaOrd = allHoras.map(h => sum(DATA.filter(r=>r.hora===h).map(r=>r.ordenes)));
+  mkChart('chart-hora-hp','bar',allHoras.map(h=>h+':00'),[
+    {label:'Avg HP',data:horaHP,backgroundColor:'rgba(49,130,206,.7)',borderColor:'#3182ce',borderWidth:1,borderRadius:3}
+  ],{scales:scaleOpts(null,'Avg HP (min)')});
+  mkChart('chart-hora-ord','bar',allHoras.map(h=>h+':00'),[
+    {label:'Órdenes',data:horaOrd,backgroundColor:'rgba(56,161,105,.7)',borderColor:'#38a169',borderWidth:1,borderRadius:3}
+  ],{scales:scaleOpts(null,'Órdenes')});
+
+  // ===== IN_QUEUE =====
+  mkChart('chart-q-hp','bar',dlabels,[
+    {label:'HP IN_QUEUE',data:dayQHP,backgroundColor:'rgba(221,107,32,.7)',borderColor:'#dd6b20',borderWidth:1,borderRadius:3},
+    {label:'HP Todas',data:dayHP,backgroundColor:'rgba(49,130,206,.3)',borderColor:'#3182ce',borderWidth:1,borderRadius:3}
+  ],{scales:scaleOpts(null,'Avg HP (min)')});
+  mkChart('chart-q-ord','bar',dlabels,[
+    {label:'IN_QUEUE',data:dayQOrd,backgroundColor:'rgba(221,107,32,.7)',borderColor:'#dd6b20',borderWidth:1,borderRadius:3}
+  ],{scales:scaleOpts(null,'Órdenes')});
+  const qRatios = dates.map((_,i) => dayOrd[i] ? Math.round(dayQOrd[i]/dayOrd[i]*100) : 0);
+  mkChart('chart-q-ratio','bar',dlabels,[
+    {label:'% IN_QUEUE',data:qRatios,backgroundColor:'rgba(128,90,213,.6)',borderColor:'#805ad5',borderWidth:1,borderRadius:3}
+  ],{scales:scaleOpts(100,'% del total')});
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+// Auto-load on start
+loadData();
+</script>
+</body>
+</html>
