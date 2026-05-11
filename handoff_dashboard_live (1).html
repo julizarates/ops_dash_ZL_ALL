@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handoff POST · CO WH12</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F0EFEB;color:#111;font-family:'Figtree',sans-serif;font-size:15px;line-height:1.4;min-height:100vh}
+
+.hdr{background:#fff;border-bottom:2px solid #E5E4DF;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:24px;font-weight:900;letter-spacing:-.5px}.logo b{color:#E24B4A}
+.htag{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#FFF0F0;color:#A32D2D;border:1px solid #F7C1C1;padding:3px 10px;border-radius:8px;margin-left:10px}
+.ctag{font-size:11px;font-weight:700;text-transform:uppercase;background:#FFF8E1;color:#E65100;border:1px solid #FFE082;padding:3px 10px;border-radius:8px;margin-left:7px}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.live{display:flex;align-items:center;gap:6px;font-size:13px;color:#999}
+.dot{width:9px;height:9px;border-radius:50%;background:#ccc}.dot.ok{background:#4CAF50}
+.btn{font-size:13px;font-weight:700;padding:7px 16px;border:1.5px solid #DDD;border-radius:8px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}.btn:hover{background:#F5F4F0}
+
+.tabs{background:#fff;border-bottom:2px solid #E5E4DF;padding:0 28px;display:flex;gap:0;position:sticky;top:62px;z-index:49;overflow-x:auto}
+.tab{font-size:13px;font-weight:700;padding:14px 20px;cursor:pointer;border-bottom:3px solid transparent;color:#aaa;white-space:nowrap;transition:all .15s}
+.tab:hover{color:#555}
+.tab.active{color:#111;border-bottom-color:#111}
+
+.wrap{padding:20px 28px 40px;max-width:1300px;margin:0 auto}
+
+.ld{display:flex;align-items:center;justify-content:center;gap:12px;padding:80px;color:#aaa;font-size:18px}
+.sp{width:22px;height:22px;border:3px solid #E0DFD9;border-top-color:#E24B4A;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:#FFF5F5;border:2px solid #F7C1C1;border-radius:12px;padding:16px 20px;color:#A32D2D;font-weight:600;margin:20px 28px}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:2px solid #E5E4DF;border-radius:14px;padding:16px 20px;border-top:5px solid var(--c,#ccc)}
+.kpi-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:6px}
+.kpi-val{font-size:36px;font-weight:900;letter-spacing:-1px;line-height:1;margin-bottom:6px}
+.kpi-sub{font-size:13px;color:#888}
+.kpi-delta{font-size:13px;font-weight:700;margin-top:4px}
+.neg{color:#2E7D32}.pos{color:#A32D2D}
+
+/* CARD */
+.card{background:#fff;border:2px solid #E5E4DF;border-radius:14px;padding:18px 22px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:14px}
+.leg{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.ld2{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+.lt{font-size:12px;color:#888}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 12px;text-align:right;color:#aaa;font-size:11px;border-bottom:2px solid #E5E4DF;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+th:first-child{text-align:left}
+td{padding:8px 12px;text-align:right;border-bottom:1px solid #F0EFEB;font-weight:600}
+td:first-child{text-align:left;font-weight:700}
+tr:hover td{background:#FAFAF8}
+tfoot tr td{background:#F5F4F0;font-weight:800;border-top:2px solid #E5E4DF}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.b1{background:#FFF0F0;color:#A32D2D;border:1px solid #F7C1C1}
+.b2{background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9}
+.b3{background:#FFF8E1;color:#E65100;border:1px solid #FFE082}
+.b4{background:#EDE7F6;color:#512DA8;border:1px solid #D1C4E9}
+.b5{background:#E3F2FD;color:#1565C0;border:1px solid #BBDEFB}
+
+/* DAY SELECTOR */
+.day-btns{display:flex;gap:8px;flex-wrap:wrap}
+.dbtn{padding:6px 14px;border-radius:8px;font-size:12px;font-family:'Figtree',sans-serif;cursor:pointer;font-weight:700;border:2px solid;background:#fff;transition:all .1s}
+.dbtn:hover{opacity:.8}
+.dbtn.sel{color:#fff!important;border-color:transparent!important}
+
+.panel{display:none}.panel.active{display:block}
+.dim{color:#aaa;font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="htag">Handoff POST</span>
+    <span class="ctag">🇨🇴 CO · WH 12</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="sw('res',this)">📊 Resumen</div>
+  <div class="tab" onclick="sw('sem',this)">📅 Por semana</div>
+  <div class="tab" onclick="sw('dia',this)">📆 Día a día</div>
+  <div class="tab" onclick="sw('hora',this)">🕐 Por hora</div>
+  <div class="tab" onclick="sw('queue',this)">🔴 IN_QUEUE</div>
+</div>
+
+<div class="ld" id="gld"><div class="sp"></div>Leyendo Prueba_casilleros...</div>
+<div class="err" id="err" style="display:none"></div>
+
+<div class="wrap" id="app" style="display:none">
+
+  <!-- RESUMEN -->
+  <div class="panel active" id="panel-res">
+    <div class="kpi-row" id="kpis"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Evolución diaria · Avg HP</div>
+        <div class="leg" id="leg-hp"></div>
+        <canvas id="c-dhp" height="130"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">Órdenes por día</div>
+        <div class="leg" id="leg-ord"></div>
+        <canvas id="c-dord" height="130"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tabla diaria</div>
+      <table>
+        <thead><tr><th>Fecha</th><th>Sem</th><th>Órdenes</th><th>Avg HP (min)</th><th>% IN_QUEUE</th><th>Δ baseline</th></tr></thead>
+        <tbody id="t-daily"></tbody>
+        <tfoot id="t-daily-f"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- SEMANAL -->
+  <div class="panel" id="panel-sem">
+    <div class="g2">
+      <div class="card"><div class="card-title">Avg HP por semana</div><canvas id="c-shp" height="200"></canvas></div>
+      <div class="card"><div class="card-title">Órdenes por semana</div><canvas id="c-sord" height="200"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Detalle semanal</div>
+      <table>
+        <thead><tr><th>Semana</th><th>Días</th><th>Órdenes</th><th>Avg HP</th><th>Avg HP IN_QUEUE</th><th>Δ vs Sem 1</th></tr></thead>
+        <tbody id="t-sem"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DÍA A DÍA -->
+  <div class="panel" id="panel-dia">
+    <div class="card">
+      <div class="card-title">Seleccioná un día</div>
+      <div class="day-btns" id="day-btns"></div>
+    </div>
+    <div id="day-detail" style="display:none">
+      <div class="g2">
+        <div class="card"><div class="card-title" id="day-hp-title">HP por hora</div><canvas id="c-day-hp" height="180"></canvas></div>
+        <div class="card"><div class="card-title" id="day-ord-title">Órdenes por hora</div><canvas id="c-day-ord" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POR HORA -->
+  <div class="panel" id="panel-hora">
+    <div class="card"><div class="card-title">Avg HP por hora · Promedio global</div><canvas id="c-hhp" height="120"></canvas></div>
+    <div class="card"><div class="card-title">Órdenes por hora · Total acumulado</div><canvas id="c-hord" height="120"></canvas></div>
+  </div>
+
+  <!-- IN_QUEUE -->
+  <div class="panel" id="panel-queue">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Avg HP · IN_QUEUE vs Todas</div>
+        <div class="leg">
+          <span class="lt"><span class="ld2" style="background:#E24B4A"></span>IN_QUEUE</span>
+          <span class="lt"><span class="ld2" style="background:#90CAF9"></span>Todas</span>
+        </div>
+        <canvas id="c-qhp" height="150"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">Órdenes IN_QUEUE por día</div>
+        <canvas id="c-qord" height="150"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">% IN_QUEUE sobre total por día</div>
+      <canvas id="c-qrat" height="100"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SID  = '1V2gV4YgV4FRwIAsNf6p-kv3Uy2wx5H7O3rInwZPTFsE';
+const AKEY = 'AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEET = 'Prueba_casilleros';
+const BASELINE_DATE = null; // auto: first date in data
+
+let charts = {};
+
+// ── FETCH ──────────────────────────────────────────────
+async function fetchSheet(name) {
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(name)}?key=${AKEY}`);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const json = await r.json();
+  const rows = json.values || [];
+  // Find header row dynamically (same pattern as QA tracker)
+  let hi = rows.findIndex(row =>
+    row.some(c => ['HORA','FECHA','RT_TIENDA','ORDENES','AVG_HANDOFF_POST_MIN']
+      .includes((c||'').toString().trim().toUpperCase()))
+  );
+  if (hi === -1) hi = 0;
+  const hdrs = rows[hi];
+  return rows.slice(hi + 1)
+    .filter(row => row.some(c => c && c.toString().trim()))
+    .map(row => {
+      const o = {};
+      hdrs.forEach((h, i) => { o[h.trim().toUpperCase()] = (row[i]||'').toString().trim(); });
+      return o;
+    });
+}
+
+// ── HELPERS ────────────────────────────────────────────
+const pf = v => { const n = parseFloat((v||'').toString().replace(',','.')); return isNaN(n) ? 0 : n; };
+const avg = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 0;
+const sum = a => a.reduce((s,v)=>s+v,0);
+const fmt = (n,d=2) => (+n).toFixed(d);
+
+const WK_COL  = ['#E24B4A','#38a169','#dd6b20','#805ad5','#2c7a7b','#d69e2e','#d53f8c'];
+const WK_BG   = ['rgba(226,75,74,.7)','rgba(56,161,105,.7)','rgba(221,107,32,.7)','rgba(128,90,213,.7)','rgba(44,122,123,.7)','rgba(214,158,46,.7)','rgba(213,63,140,.7)'];
+const BADGE   = ['b1','b2','b3','b4','b5','b1','b2'];
+
+function weekNum(dateStr, dates) {
+  // assign week by calendar week (Mon-Sun)
+  const d = new Date(dateStr + 'T00:00:00');
+  const base = new Date(dates[0] + 'T00:00:00');
+  // round base to Monday
+  const baseDay = base.getDay() || 7;
+  base.setDate(base.getDate() - (baseDay - 1));
+  return Math.floor((d - base) / (7 * 86400000)) + 1;
+}
+
+// ── CHARTS ─────────────────────────────────────────────
+const GC = '#E5E4DF', TC = '#aaa';
+const TIP = {
+  backgroundColor:'#fff',borderColor:'#E5E4DF',borderWidth:1,
+  titleColor:'#111',bodyColor:'#555',
+  titleFont:{family:'Figtree',size:12,weight:'bold'},bodyFont:{family:'Figtree',size:12}
+};
+function sc(ymax, ylabel) {
+  return {
+    x: {grid:{color:GC},ticks:{color:TC,font:{size:12,family:'Figtree'}}},
+    y: {grid:{color:GC},ticks:{color:TC,font:{size:12,family:'Figtree'}},
+        suggestedMax:ymax||undefined,min:0,
+        title:{display:!!ylabel,text:ylabel||'',color:TC,font:{family:'Figtree',size:11}}}
+  };
+}
+function mk(id, type, labels, datasets, extra) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type, data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:TIP,...(extra?.plugins||{})},
+      scales: extra?.scales || sc(), ...(extra||{})}
+  });
+}
+
+// ── TABS ───────────────────────────────────────────────
+function sw(tab, el) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── RENDER ─────────────────────────────────────────────
+function render(raw) {
+  // Parse rows
+  const data = raw.map(r => ({
+    hora:   parseInt(r.HORA),
+    fecha:  r.FECHA.split(' ')[0].split('T')[0],
+    queue:  r.RT_TIENDA.toLowerCase() === 'true',
+    ord:    parseInt(r.ORDENES) || 0,
+    hp:     pf(r.AVG_HANDOFF_POST_MIN)
+  })).filter(r => r.fecha && !isNaN(r.hora));
+
+  const dates = [...new Set(data.map(r=>r.fecha))].sort();
+  const baseline = avg(data.filter(r=>r.fecha===dates[0]).map(r=>r.hp));
+
+  // Group by date
+  const byDate = {};
+  dates.forEach(d => {
+    byDate[d] = {
+      all:   data.filter(r=>r.fecha===d),
+      queue: data.filter(r=>r.fecha===d && r.queue),
+    };
+  });
+
+  // Week assignment
+  const weekOf = {};
+  dates.forEach(d => { weekOf[d] = weekNum(d, dates); });
+  const weeks = [...new Set(Object.values(weekOf))].sort((a,b)=>a-b);
+  const byWeek = {};
+  weeks.forEach(w => { byWeek[w] = dates.filter(d=>weekOf[d]===w); });
+
+  // Per-day summaries
+  const dayHP   = dates.map(d => +fmt(avg(byDate[d].all.map(r=>r.hp))));
+  const dayOrd  = dates.map(d => sum(byDate[d].all.map(r=>r.ord)));
+  const dayQHP  = dates.map(d => byDate[d].queue.length ? +fmt(avg(byDate[d].queue.map(r=>r.hp))) : null);
+  const dayQOrd = dates.map(d => sum(byDate[d].queue.map(r=>r.ord)));
+  const dayCol  = dates.map(d => WK_COL[(weekOf[d]-1)%WK_COL.length]+'cc');
+  const dayBrd  = dates.map(d => WK_COL[(weekOf[d]-1)%WK_COL.length]);
+
+  // ── KPIs ──
+  const latestWk = weeks[weeks.length-1];
+  const latestHP = +fmt(avg(byWeek[latestWk].flatMap(d=>byDate[d].all.map(r=>r.hp))));
+  const pct = Math.round(((latestHP-baseline)/baseline)*100);
+  const totalOrd = sum(dayOrd);
+  const queueHP  = data.filter(r=>r.queue).length ? +fmt(avg(data.filter(r=>r.queue).map(r=>r.hp))) : 0;
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi" style="--c:#E24B4A">
+      <div class="kpi-lbl">Baseline · Sem 1</div>
+      <div class="kpi-val" style="color:#E24B4A">${fmt(baseline)}</div>
+      <div class="kpi-sub">min promedio · ${dates[0]}</div>
+    </div>
+    <div class="kpi" style="--c:#38a169">
+      <div class="kpi-lbl">Avg HP · Sem ${latestWk} (última)</div>
+      <div class="kpi-val" style="color:#38a169">${latestHP}</div>
+      <div class="kpi-sub">min promedio</div>
+      <div class="kpi-delta ${pct<=0?'neg':'pos'}">${pct>0?'▲':'▼'} ${Math.abs(pct)}% vs baseline</div>
+    </div>
+    <div class="kpi" style="--c:#dd6b20">
+      <div class="kpi-lbl">Avg HP IN_QUEUE</div>
+      <div class="kpi-val" style="color:#dd6b20">${queueHP}</div>
+      <div class="kpi-sub">RT acepta pero no llega</div>
+    </div>
+    <div class="kpi" style="--c:#805ad5">
+      <div class="kpi-lbl">Total órdenes</div>
+      <div class="kpi-val" style="color:#805ad5">${totalOrd.toLocaleString('es')}</div>
+      <div class="kpi-sub">${dates.length} días · ${weeks.length} semanas</div>
+    </div>`;
+
+  // Legend
+  document.getElementById('leg-hp').innerHTML  =
+  document.getElementById('leg-ord').innerHTML =
+    weeks.map(w=>`<span class="lt"><span class="ld2" style="background:${WK_COL[(w-1)%WK_COL.length]}"></span>Sem ${w}</span>`).join('');
+
+  // ── RESUMEN CHARTS ──
+  const dlabels = dates.map(d=>d.slice(5));
+  mk('c-dhp','bar',dlabels,[
+    {label:'Avg HP',data:dayHP,backgroundColor:dayCol,borderColor:dayBrd,borderWidth:1,borderRadius:4},
+    {label:'Baseline',data:Array(dates.length).fill(+fmt(baseline)),type:'line',
+     borderColor:'rgba(226,75,74,.4)',borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}
+  ],{scales:sc(null,'Avg HP (min)')});
+
+  mk('c-dord','bar',dlabels,[
+    {label:'Órdenes',data:dayOrd,backgroundColor:dayCol,borderColor:dayBrd,borderWidth:1,borderRadius:4}
+  ],{scales:sc(null,'Órdenes')});
+
+  // ── TABLA DIARIA ──
+  let tHtml='', fHtml='';
+  dates.forEach((d,i)=>{
+    const w=weekOf[d],bc=BADGE[(w-1)%BADGE.length];
+    const p=Math.round(((dayHP[i]-baseline)/baseline)*100);
+    const qr=dayOrd[i]?Math.round(dayQOrd[i]/dayOrd[i]*100):0;
+    tHtml+=`<tr>
+      <td>${d}</td>
+      <td><span class="badge ${bc}">Sem ${w}</span></td>
+      <td>${dayOrd[i].toLocaleString('es')}</td>
+      <td style="color:${WK_COL[(w-1)%WK_COL.length]}">${dayHP[i]}</td>
+      <td>${qr}%</td>
+      <td class="${p<=0?'neg':'pos'}">${p>0?'▲':'▼'} ${Math.abs(p)}%</td>
+    </tr>`;
+  });
+  weeks.forEach(w=>{
+    const wD=byWeek[w],wHP=+fmt(avg(wD.flatMap(d=>byDate[d].all.map(r=>r.hp))));
+    const wOrd=sum(wD.flatMap(d=>byDate[d].all.map(r=>r.ord)));
+    const wQOrd=sum(wD.flatMap(d=>byDate[d].queue.map(r=>r.ord)));
+    const p=Math.round(((wHP-baseline)/baseline)*100),bc=BADGE[(w-1)%BADGE.length];
+    fHtml+=`<tr>
+      <td colspan="1" style="color:${WK_COL[(w-1)%WK_COL.length]}">Total Sem ${w}</td>
+      <td><span class="badge ${bc}">Sem ${w}</span></td>
+      <td>${wOrd.toLocaleString('es')}</td>
+      <td style="color:${WK_COL[(w-1)%WK_COL.length]}">${wHP}</td>
+      <td>${wOrd?Math.round(wQOrd/wOrd*100):0}%</td>
+      <td class="${p<=0?'neg':'pos'}">${p>0?'▲':'▼'} ${Math.abs(p)}%</td>
+    </tr>`;
+  });
+  document.getElementById('t-daily').innerHTML=tHtml;
+  document.getElementById('t-daily-f').innerHTML=fHtml;
+
+  // ── SEMANAL ──
+  const sLabels=weeks.map(w=>`Sem ${w}\n${byWeek[w][0].slice(5)}→${byWeek[w][byWeek[w].length-1].slice(5)}`);
+  const sHP=weeks.map(w=>+fmt(avg(byWeek[w].flatMap(d=>byDate[d].all.map(r=>r.hp)))));
+  const sOrd=weeks.map(w=>sum(byWeek[w].flatMap(d=>byDate[d].all.map(r=>r.ord))));
+  mk('c-shp','bar',sLabels,[
+    {label:'Avg HP',data:sHP,backgroundColor:WK_BG.slice(0,weeks.length),borderColor:WK_COL.slice(0,weeks.length),borderWidth:1,borderRadius:5},
+    {label:'Baseline',data:Array(weeks.length).fill(+fmt(baseline)),type:'line',borderColor:'rgba(226,75,74,.4)',borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}
+  ],{scales:sc(null,'Avg HP (min)')});
+  mk('c-sord','bar',sLabels,[
+    {label:'Órdenes',data:sOrd,backgroundColor:WK_BG.slice(0,weeks.length),borderColor:WK_COL.slice(0,weeks.length),borderWidth:1,borderRadius:5}
+  ],{scales:sc(null,'Órdenes')});
+
+  let sTbl='';
+  weeks.forEach(w=>{
+    const wD=byWeek[w];
+    const wHP=+fmt(avg(wD.flatMap(d=>byDate[d].all.map(r=>r.hp))));
+    const wQHP=wD.flatMap(d=>byDate[d].queue).length?+fmt(avg(wD.flatMap(d=>byDate[d].queue.map(r=>r.hp)))):null;
+    const wOrd=sum(wD.flatMap(d=>byDate[d].all.map(r=>r.ord)));
+    const p=Math.round(((wHP-baseline)/baseline)*100),bc=BADGE[(w-1)%BADGE.length];
+    sTbl+=`<tr>
+      <td><span class="badge ${bc}">Sem ${w}</span></td>
+      <td>${wD.length}</td>
+      <td>${wOrd.toLocaleString('es')}</td>
+      <td style="color:${WK_COL[(w-1)%WK_COL.length]};font-weight:800">${wHP} min</td>
+      <td>${wQHP!==null?wQHP+' min':'—'}</td>
+      <td class="${p<=0?'neg':'pos'}">${p>0?'▲':'▼'} ${Math.abs(p)}%</td>
+    </tr>`;
+  });
+  document.getElementById('t-sem').innerHTML=sTbl;
+
+  // ── DÍA A DÍA ──
+  const btnsCont=document.getElementById('day-btns');
+  btnsCont.innerHTML=dates.map(d=>{
+    const w=weekOf[d],c=WK_COL[(w-1)%WK_COL.length];
+    return`<button class="dbtn" style="color:${c};border-color:${c}" onclick="showDay('${d}',this)">${d.slice(5)}</button>`;
+  }).join('');
+
+  window.showDay = function(d, btn) {
+    document.querySelectorAll('.dbtn').forEach(b=>{ b.classList.remove('sel'); b.style.background='#fff'; });
+    const w=weekOf[d],c=WK_COL[(w-1)%WK_COL.length];
+    btn.classList.add('sel'); btn.style.background=c;
+    const rows=byDate[d].all, qrows=byDate[d].queue;
+    const horas=[...new Set(rows.map(r=>r.hora))].sort((a,b)=>a-b);
+    document.getElementById('day-hp-title').textContent='HP por hora · '+d;
+    document.getElementById('day-ord-title').textContent='Órdenes por hora · '+d;
+    const hpD=horas.map(h=>+fmt(avg(rows.filter(r=>r.hora===h).map(r=>r.hp))));
+    const qhpD=horas.map(h=>{const f=qrows.filter(r=>r.hora===h);return f.length?+fmt(avg(f.map(r=>r.hp))):null;});
+    const ordD=horas.map(h=>sum(rows.filter(r=>r.hora===h).map(r=>r.ord)));
+    const qordD=horas.map(h=>sum(qrows.filter(r=>r.hora===h).map(r=>r.ord)));
+    mk('c-day-hp','bar',horas.map(h=>h+':00'),[
+      {label:'HP Todas',data:hpD,backgroundColor:c+'99',borderColor:c,borderWidth:1,borderRadius:3},
+      {label:'HP IN_QUEUE',data:qhpD,backgroundColor:'rgba(226,75,74,.6)',borderColor:'#E24B4A',borderWidth:1,borderRadius:3}
+    ],{scales:sc(null,'Avg HP (min)')});
+    mk('c-day-ord','bar',horas.map(h=>h+':00'),[
+      {label:'Todas',data:ordD,backgroundColor:c+'80',borderColor:c,borderWidth:1,borderRadius:3},
+      {label:'IN_QUEUE',data:qordD,backgroundColor:'rgba(226,75,74,.5)',borderColor:'#E24B4A',borderWidth:1,borderRadius:3}
+    ],{scales:sc(null,'Órdenes')});
+    document.getElementById('day-detail').style.display='block';
+  };
+
+  // ── POR HORA ──
+  const allH=[...new Set(data.map(r=>r.hora))].sort((a,b)=>a-b);
+  mk('c-hhp','bar',allH.map(h=>h+':00'),[
+    {label:'Avg HP',data:allH.map(h=>+fmt(avg(data.filter(r=>r.hora===h).map(r=>r.hp)))),
+     backgroundColor:'rgba(49,130,206,.7)',borderColor:'#3182ce',borderWidth:1,borderRadius:3}
+  ],{scales:sc(null,'Avg HP (min)')});
+  mk('c-hord','bar',allH.map(h=>h+':00'),[
+    {label:'Órdenes',data:allH.map(h=>sum(data.filter(r=>r.hora===h).map(r=>r.ord))),
+     backgroundColor:'rgba(56,161,105,.7)',borderColor:'#38a169',borderWidth:1,borderRadius:3}
+  ],{scales:sc(null,'Órdenes')});
+
+  // ── IN_QUEUE ──
+  mk('c-qhp','bar',dlabels,[
+    {label:'IN_QUEUE',data:dayQHP,backgroundColor:'rgba(226,75,74,.7)',borderColor:'#E24B4A',borderWidth:1,borderRadius:3},
+    {label:'Todas',data:dayHP,backgroundColor:'rgba(144,202,249,.5)',borderColor:'#90CAF9',borderWidth:1,borderRadius:3}
+  ],{scales:sc(null,'Avg HP (min)')});
+  mk('c-qord','bar',dlabels,[
+    {label:'IN_QUEUE',data:dayQOrd,backgroundColor:'rgba(226,75,74,.7)',borderColor:'#E24B4A',borderWidth:1,borderRadius:3}
+  ],{scales:sc(null,'Órdenes')});
+  const qRat=dates.map((_,i)=>dayOrd[i]?Math.round(dayQOrd[i]/dayOrd[i]*100):0);
+  mk('c-qrat','bar',dlabels,[
+    {label:'% IN_QUEUE',data:qRat,backgroundColor:'rgba(128,90,213,.6)',borderColor:'#805ad5',borderWidth:1,borderRadius:3}
+  ],{scales:sc(100,'% del total')});
+
+  document.getElementById('gld').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('dot').className='dot ok';
+  document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── LOAD ───────────────────────────────────────────────
+async function loadAll() {
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('err').style.display='none';
+  try {
+    const rows = await fetchSheet(SHEET);
+    render(rows);
+  } catch(e) {
+    document.getElementById('gld').style.display='none';
+    document.getElementById('err').style.display='block';
+    document.getElementById('err').textContent='Error: '+e.message;
+  }
+}
+loadAll();
+</script>
+</body>
+</html>
