@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zonas Picking en Cero — TurboOps</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'DM Sans',sans-serif;font-size:13px}
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}.logo span{color:#FF6B35}
+.badge{background:#111;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px}
+.main{padding:20px 28px;display:flex;flex-direction:column;gap:16px}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.card{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:14px 16px;border-top:3px solid var(--ac)}
+.card-country{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:4px}
+.card-total{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;line-height:1;color:var(--ac);margin-bottom:6px}
+.card-meta{display:flex;flex-direction:column;gap:2px}
+.card-meta span{font-size:11px;color:#888}
+.card-meta b{color:#111}
+.global-section{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:16px 20px}
+.global-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:14px}
+.g-bar-item{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.g-bar-name{font-size:12px;min-width:32px;font-weight:700;color:#555}
+.g-bar-bg{flex:1;height:12px;background:#F0EFEB;border-radius:6px}
+.g-bar-fill{height:12px;border-radius:6px}
+.g-bar-vals{font-size:11px;color:#888;min-width:200px;text-align:right;font-family:'DM Mono',monospace}
+.sections{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.section{background:#fff;border:1px solid #E5E4DF;border-radius:10px;overflow:hidden}
+.sec-hdr{padding:12px 20px;border-bottom:1px solid #E5E4DF;display:flex;align-items:center;justify-content:space-between}
+.sec-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sec-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sec-total{font-family:'DM Mono',monospace;font-size:12px;font-weight:600}
+.bar-list{padding:12px 20px;display:flex;flex-direction:column;gap:6px}
+.bar-item{display:flex;align-items:center;gap:8px}
+.bar-rank{font-size:11px;font-weight:700;color:#bbb;min-width:14px;text-align:right}
+.bar-name{font-size:12px;font-weight:500;min-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-bg{flex:1;height:7px;background:#F0EFEB;border-radius:4px}
+.bar-fill{height:7px;border-radius:4px}
+.bar-val{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;min-width:32px;text-align:right}
+.grand{background:#111;color:#fff;border-radius:10px;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.grand-lbl{font-size:12px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px}
+.grand-val{font-family:'DM Mono',monospace;font-size:36px;font-weight:500;color:#FF6B35}
+.grand-sub{font-size:12px;color:rgba(255,255,255,.4)}
+@media(max-width:900px){.cards{grid-template-columns:repeat(3,1fr)}.sections{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">Turbo<span>Ops</span></div>
+    <div style="width:1px;height:20px;background:#E5E4DF"></div>
+    <span style="font-size:13px;color:#888;font-weight:500">Zonas de Picking en Cero</span>
+  </div>
+  <span class="badge">12 May 2026</span>
+</div>
+
+<div class="main">
+
+  <div class="grand">
+    <div>
+      <div class="grand-lbl">Total zonas en cero</div>
+      <div class="grand-val">11,524</div>
+    </div>
+    <div style="text-align:right">
+      <div class="grand-sub">255 tiendas · 6 países</div>
+      <div class="grand-sub" style="margin-top:4px">SKUs en zona picking sin stock hoy</div>
+    </div>
+  </div>
+
+  <div class="cards"><div class="card" style="--ac:#FF6B35">
+      <div class="card-country">MX</div>
+      <div class="card-total">5,030</div>
+      <div class="card-meta">
+        <span><b>76</b> tiendas</span>
+        <span>Avg <b>66.2</b> / tienda</span>
+        <span>Max <b>243</b> (Manitoba)</span>
+      </div>
+    </div><div class="card" style="--ac:#9C27B0">
+      <div class="card-country">PE</div>
+      <div class="card-total">2,208</div>
+      <div class="card-meta">
+        <span><b>26</b> tiendas</span>
+        <span>Avg <b>84.9</b> / tienda</span>
+        <span>Max <b>428</b> (Manuel Villarán)</span>
+      </div>
+    </div><div class="card" style="--ac:#E24B4A">
+      <div class="card-country">CO</div>
+      <div class="card-total">1,852</div>
+      <div class="card-meta">
+        <span><b>61</b> tiendas</span>
+        <span>Avg <b>30.4</b> / tienda</span>
+        <span>Max <b>97</b> (Barrancas)</span>
+      </div>
+    </div><div class="card" style="--ac:#2196F3">
+      <div class="card-country">BR</div>
+      <div class="card-total">1,459</div>
+      <div class="card-meta">
+        <span><b>49</b> tiendas</span>
+        <span>Avg <b>29.8</b> / tienda</span>
+        <span>Max <b>602</b> (Alto Do Ipirang)</span>
+      </div>
+    </div><div class="card" style="--ac:#FF9800">
+      <div class="card-country">AR</div>
+      <div class="card-total">862</div>
+      <div class="card-meta">
+        <span><b>30</b> tiendas</span>
+        <span>Avg <b>28.7</b> / tienda</span>
+        <span>Max <b>112</b> (Forest)</span>
+      </div>
+    </div><div class="card" style="--ac:#4CAF50">
+      <div class="card-country">CL</div>
+      <div class="card-total">113</div>
+      <div class="card-meta">
+        <span><b>13</b> tiendas</span>
+        <span>Avg <b>8.7</b> / tienda</span>
+        <span>Max <b>21</b> (Turbo, Reñaca)</span>
+      </div>
+    </div></div>
+
+  <div class="global-section">
+    <div class="global-title">Comparación por país — total zonas en cero</div>
+    <div class="g-bar-item">
+      <span class="g-bar-name">MX</span>
+      <div class="g-bar-bg"><div class="g-bar-fill" style="width:100%;background:#FF6B35"></div></div>
+      <span class="g-bar-vals">5,030 · avg 66.2/tienda · 76 tiendas</span>
+    </div><div class="g-bar-item">
+      <span class="g-bar-name">PE</span>
+      <div class="g-bar-bg"><div class="g-bar-fill" style="width:44%;background:#9C27B0"></div></div>
+      <span class="g-bar-vals">2,208 · avg 84.9/tienda · 26 tiendas</span>
+    </div><div class="g-bar-item">
+      <span class="g-bar-name">CO</span>
+      <div class="g-bar-bg"><div class="g-bar-fill" style="width:37%;background:#E24B4A"></div></div>
+      <span class="g-bar-vals">1,852 · avg 30.4/tienda · 61 tiendas</span>
+    </div><div class="g-bar-item">
+      <span class="g-bar-name">BR</span>
+      <div class="g-bar-bg"><div class="g-bar-fill" style="width:29%;background:#2196F3"></div></div>
+      <span class="g-bar-vals">1,459 · avg 29.8/tienda · 49 tiendas</span>
+    </div><div class="g-bar-item">
+      <span class="g-bar-name">AR</span>
+      <div class="g-bar-bg"><div class="g-bar-fill" style="width:17%;background:#FF9800"></div></div>
+      <span class="g-bar-vals">862 · avg 28.7/tienda · 30 tiendas</span>
+    </div><div class="g-bar-item">
+      <span class="g-bar-name">CL</span>
+      <div class="g-bar-bg"><div class="g-bar-fill" style="width:2%;background:#4CAF50"></div></div>
+      <span class="g-bar-vals">113 · avg 8.7/tienda · 13 tiendas</span>
+    </div>
+  </div>
+
+  <div class="sections"><div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title"><div class="sec-dot" style="background:#FF6B35"></div>MX — Top tiendas</div>
+        <span class="sec-total" style="color:#FF6B35">5,030 total</span>
+      </div>
+      <div class="bar-list"><div class="bar-item">
+      <span class="bar-rank">1</span>
+      <span class="bar-name" title="Manitoba">Manitoba</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">243</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">2</span>
+      <span class="bar-name" title="Toriello Guerra">Toriello Guerra</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:89%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">216</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">3</span>
+      <span class="bar-name" title="Carso">Carso</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:65%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">159</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">4</span>
+      <span class="bar-name" title="Ajusco">Ajusco</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:65%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">158</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">5</span>
+      <span class="bar-name" title="Cd Anzures - Cerrado">Cd Anzures - Cerrado</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:65%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">158</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">6</span>
+      <span class="bar-name" title="Atizapan">Atizapan</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:62%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">150</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">7</span>
+      <span class="bar-name" title="Turbo, Oasis">Turbo, Oasis</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:58%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">142</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">8</span>
+      <span class="bar-name" title="Ángel De Independencia">Ángel De Independencia</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:58%;background:#FF6B35"></div></div>
+      <span class="bar-val" style="color:#FF6B35">140</span>
+    </div></div>
+    </div><div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title"><div class="sec-dot" style="background:#9C27B0"></div>PE — Top tiendas</div>
+        <span class="sec-total" style="color:#9C27B0">2,208 total</span>
+      </div>
+      <div class="bar-list"><div class="bar-item">
+      <span class="bar-rank">1</span>
+      <span class="bar-name" title="Manuel Villarán">Manuel Villarán</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">428</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">2</span>
+      <span class="bar-name" title="Juan Valer">Juan Valer</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:47%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">203</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">3</span>
+      <span class="bar-name" title="Caminos Del Inca">Caminos Del Inca</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:37%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">157</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">4</span>
+      <span class="bar-name" title="Los Jilgueros">Los Jilgueros</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:29%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">124</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">5</span>
+      <span class="bar-name" title="Sucre">Sucre</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:28%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">119</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">6</span>
+      <span class="bar-name" title="Petit Thouars">Petit Thouars</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:28%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">119</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">7</span>
+      <span class="bar-name" title="Primavera">Primavera</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:26%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">113</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">8</span>
+      <span class="bar-name" title="Jorge Chavez">Jorge Chavez</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:26%;background:#9C27B0"></div></div>
+      <span class="bar-val" style="color:#9C27B0">111</span>
+    </div></div>
+    </div><div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title"><div class="sec-dot" style="background:#E24B4A"></div>CO — Top tiendas</div>
+        <span class="sec-total" style="color:#E24B4A">1,852 total</span>
+      </div>
+      <div class="bar-list"><div class="bar-item">
+      <span class="bar-rank">1</span>
+      <span class="bar-name" title="Barrancas">Barrancas</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">97</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">2</span>
+      <span class="bar-name" title="Palermo">Palermo</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:64%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">62</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">3</span>
+      <span class="bar-name" title="Titán">Titán</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:64%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">62</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">4</span>
+      <span class="bar-name" title="Cedritos">Cedritos</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:62%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">60</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">5</span>
+      <span class="bar-name" title="Iserra 100">Iserra 100</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:58%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">56</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">6</span>
+      <span class="bar-name" title="Quinta Camacho">Quinta Camacho</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:57%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">55</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">7</span>
+      <span class="bar-name" title="Turbo, Polo">Turbo, Polo</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:56%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">54</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">8</span>
+      <span class="bar-name" title="Chapinero">Chapinero</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:51%;background:#E24B4A"></div></div>
+      <span class="bar-val" style="color:#E24B4A">49</span>
+    </div></div>
+    </div><div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title"><div class="sec-dot" style="background:#2196F3"></div>BR — Top tiendas</div>
+        <span class="sec-total" style="color:#2196F3">1,459 total</span>
+      </div>
+      <div class="bar-list"><div class="bar-item">
+      <span class="bar-rank">1</span>
+      <span class="bar-name" title="Alto Do Ipiranga">Alto Do Ipiranga</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">602</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">2</span>
+      <span class="bar-name" title="Vila Olimpia">Vila Olimpia</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:18%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">110</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">3</span>
+      <span class="bar-name" title="Bela Vista">Bela Vista</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:8%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">49</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">4</span>
+      <span class="bar-name" title="Vila Mascote">Vila Mascote</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:8%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">46</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">5</span>
+      <span class="bar-name" title="Lapa">Lapa</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:7%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">40</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">6</span>
+      <span class="bar-name" title=""></span>
+      <div class="bar-bg"><div class="bar-fill" style="width:7%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">40</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">7</span>
+      <span class="bar-name" title="Vila Prudente">Vila Prudente</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:5%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">31</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">8</span>
+      <span class="bar-name" title="Moema">Moema</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:5%;background:#2196F3"></div></div>
+      <span class="bar-val" style="color:#2196F3">31</span>
+    </div></div>
+    </div><div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title"><div class="sec-dot" style="background:#FF9800"></div>AR — Top tiendas</div>
+        <span class="sec-total" style="color:#FF9800">862 total</span>
+      </div>
+      <div class="bar-list"><div class="bar-item">
+      <span class="bar-rank">1</span>
+      <span class="bar-name" title="Forest">Forest</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">112</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">2</span>
+      <span class="bar-name" title="Rivadavia">Rivadavia</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:49%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">55</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">3</span>
+      <span class="bar-name" title="Baez">Baez</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:47%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">53</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">4</span>
+      <span class="bar-name" title="Villa Martelli">Villa Martelli</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:44%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">49</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">5</span>
+      <span class="bar-name" title="San Martin">San Martin</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:35%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">39</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">6</span>
+      <span class="bar-name" title="Beccar">Beccar</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:35%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">39</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">7</span>
+      <span class="bar-name" title="La Plata">La Plata</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:34%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">38</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">8</span>
+      <span class="bar-name" title="Cordoba">Cordoba</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:33%;background:#FF9800"></div></div>
+      <span class="bar-val" style="color:#FF9800">37</span>
+    </div></div>
+    </div><div class="section">
+      <div class="sec-hdr">
+        <div class="sec-title"><div class="sec-dot" style="background:#4CAF50"></div>CL — Top tiendas</div>
+        <span class="sec-total" style="color:#4CAF50">113 total</span>
+      </div>
+      <div class="bar-list"><div class="bar-item">
+      <span class="bar-rank">1</span>
+      <span class="bar-name" title="Turbo, Reñaca">Turbo, Reñaca</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">21</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">2</span>
+      <span class="bar-name" title="Turbo, Estacion Central">Turbo, Estacion Central</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:67%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">14</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">3</span>
+      <span class="bar-name" title="Turbo, Bustamante">Turbo, Bustamante</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:52%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">11</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">4</span>
+      <span class="bar-name" title="Turbo, Roger De Flor">Turbo, Roger De Flor</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:52%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">11</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">5</span>
+      <span class="bar-name" title="Turbo, Consistorial">Turbo, Consistorial</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:48%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">10</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">6</span>
+      <span class="bar-name" title="Turbo, La Dehesa">Turbo, La Dehesa</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:38%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">8</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">7</span>
+      <span class="bar-name" title="Turbo, La Florida">Turbo, La Florida</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:38%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">8</span>
+    </div><div class="bar-item">
+      <span class="bar-rank">8</span>
+      <span class="bar-name" title=""></span>
+      <div class="bar-bg"><div class="bar-fill" style="width:38%;background:#4CAF50"></div></div>
+      <span class="bar-val" style="color:#4CAF50">8</span>
+    </div></div>
+    </div></div>
+
+</div>
+</body>
+</html>
