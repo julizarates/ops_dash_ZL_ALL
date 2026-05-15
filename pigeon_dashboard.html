@@ -122,18 +122,18 @@ tr.exp-row td:first-child{border-left:3px solid #4CAF50}
     <div class="kpi-row" id="kpis"></div>
     <div class="g2">
       <div class="card">
-        <div class="card-title">HDP Avg por tienda <span class="exp-pill">🟢 horas experimento</span></div>
-        <canvas id="c-res-hdp" height="160"></canvas>
+        <div class="card-title">HODP Avg por tienda <span class="exp-pill">🟢 horas experimento</span></div>
+        <canvas id="c-res-HDOP" height="160"></canvas>
       </div>
       <div class="card">
-        <div class="card-title">Variación HDP (experimento − baseline)</div>
+        <div class="card-title">Variación HDOP (experimento − baseline)</div>
         <div class="lt" style="margin-bottom:10px">Verde = mejoró · Rojo = empeoró</div>
         <canvas id="c-res-var" height="160"></canvas>
       </div>
     </div>
     <div class="g2">
       <div class="card">
-        <div class="card-title">HDP promedio — Horas EXP vs No-EXP</div>
+        <div class="card-title">HDOP promedio — Horas EXP vs No-EXP</div>
         <canvas id="c-res-comp" height="160"></canvas>
       </div>
       <div class="card">
@@ -154,7 +154,7 @@ tr.exp-row td:first-child{border-left:3px solid #4CAF50}
     <div class="card">
       <div class="card-title">Todos los registros · Filas verdes = horas de experimento</div>
       <table>
-        <thead><tr><th>Tienda</th><th>País</th><th>Fecha</th><th>Hora</th><th>Exp</th><th>Órdenes</th><th>Avg HDP</th><th>HDP IN_QUEUE</th></tr></thead>
+        <thead><tr><th>Tienda</th><th>País</th><th>Fecha</th><th>Hora</th><th>Exp</th><th>Órdenes</th><th>Avg HDOP</th><th>HDOP IN_QUEUE</th></tr></thead>
         <tbody id="t-full"></tbody>
       </table>
     </div>
@@ -247,7 +247,7 @@ async function fetchSheet(name) {
   const json = await r.json();
   const rows = json.values || [];
   let hi = rows.findIndex(row =>
-    row.some(c => ['HORA','FECHA','COUNTRY','WAREHOUSEID','WAREHOUSE_NAME','CANT_ORDENES','AVG_HANDOFF_POST','AVG_HDP_QUEUE']
+    row.some(c => ['HORA','FECHA','COUNTRY','WAREHOUSEID','WAREHOUSE_NAME','CANT_ORDENES','AVG_HANDOFF_POST','AVG_HDOP_QUEUE']
       .includes((c||'').toString().trim().toUpperCase()))
   );
   if (hi === -1) hi = 0;
@@ -297,8 +297,8 @@ function render(raw) {
     wh:     r.WAREHOUSEID||'',
     name:   r.WAREHOUSE_NAME || STORE_META[r.WAREHOUSEID]?.name || r.WAREHOUSEID,
     ord:    parseInt(r.CANT_ORDENES)||0,
-    hdp:    pf(r.AVG_HANDOFF_POST),
-    hdpQ:   pf(r.AVG_HDP_QUEUE),
+    HDOP:    pf(r.AVG_HANDOFF_POST),
+    HDOPQ:   pf(r.AVG_HDOP_QUEUE),
   })).filter(r=>r.fecha && r.wh);
 
   // Tag each row
@@ -309,21 +309,21 @@ function render(raw) {
   // ── KPIs ──
   const expRows    = data.filter(r=>r.exp);
   const noExpRows  = data.filter(r=>!r.exp);
-  const expHDP     = avg(expRows.map(r=>r.hdp));
-  const baseHDP    = avg(noExpRows.map(r=>r.hdp));
-  const delta      = expHDP!==null&&baseHDP!==null ? expHDP-baseHDP : null;
-  const pct        = baseHDP ? Math.round(((expHDP-baseHDP)/baseHDP)*100) : null;
+  const expHDOP     = avg(expRows.map(r=>r.HDOP));
+  const baseHDOP    = avg(noExpRows.map(r=>r.HDOP));
+  const delta      = expHDOP!==null&&baseHDOP!==null ? expHDOP-baseHDOP : null;
+  const pct        = baseHDOP ? Math.round(((expHDOP-baseHDOP)/baseHDOP)*100) : null;
   const totalOrd   = sum(data.map(r=>r.ord));
 
   document.getElementById('kpis').innerHTML = `
     <div class="kpi" style="--c:#E24B4A">
-      <div class="kpi-lbl">HDP Baseline (pre-exp)</div>
-      <div class="kpi-val" style="color:#E24B4A">${fmt(baseHDP)}</div>
+      <div class="kpi-lbl">HDOP Baseline (pre-exp)</div>
+      <div class="kpi-val" style="color:#E24B4A">${fmt(baseHDOP)}</div>
       <div class="kpi-sub">min · horas fuera del experimento</div>
     </div>
     <div class="kpi" style="--c:#4CAF50">
-      <div class="kpi-lbl">HDP Experimento</div>
-      <div class="kpi-val" style="color:#4CAF50">${fmt(expHDP)}</div>
+      <div class="kpi-lbl">HDOP Experimento</div>
+      <div class="kpi-val" style="color:#4CAF50">${fmt(expHDOP)}</div>
       <div class="kpi-sub">min · horas dentro del experimento</div>
       ${delta!==null?`<div class="kpi-delta ${delta<=0?'neg':'pos'}">${delta>0?'▲':'▼'} ${fmt(Math.abs(delta),2)} min (${pct>0?'+':''}${pct}%)</div>`:''}
     </div>
@@ -346,28 +346,28 @@ function render(raw) {
   // ── RESUMEN POR TIENDA ──
   const storeNames  = whs.map(w => data.find(r=>r.wh===w)?.name || w);
   const storeColors = whs.map(w => STORE_META[w]?.color || '#999');
-  const storeExpHDP = whs.map(w => avg(data.filter(r=>r.wh===w&&r.exp).map(r=>r.hdp)));
-  const storeBaseHDP= whs.map(w => avg(data.filter(r=>r.wh===w&&!r.exp).map(r=>r.hdp)));
-  const storeVar    = whs.map((w,i) => storeExpHDP[i]!==null&&storeBaseHDP[i]!==null ? +(storeExpHDP[i]-storeBaseHDP[i]).toFixed(2) : null);
+  const storeExpHDOP = whs.map(w => avg(data.filter(r=>r.wh===w&&r.exp).map(r=>r.HDOP)));
+  const storeBaseHDOP= whs.map(w => avg(data.filter(r=>r.wh===w&&!r.exp).map(r=>r.HDOP)));
+  const storeVar    = whs.map((w,i) => storeExpHDOP[i]!==null&&storeBaseHDOP[i]!==null ? +(storeExpHDOP[i]-storeBaseHDOP[i]).toFixed(2) : null);
   const storeOrd    = whs.map(w => sum(data.filter(r=>r.wh===w).map(r=>r.ord)));
 
-  mk('c-res-hdp','bar',storeNames,[
-    {label:'Baseline',data:storeBaseHDP,backgroundColor:storeColors.map(c=>c+'44'),borderColor:storeColors,borderWidth:2,borderRadius:4},
-    {label:'Experimento',data:storeExpHDP,backgroundColor:storeColors.map(c=>c+'cc'),borderColor:storeColors,borderWidth:1,borderRadius:4},
-  ],{scales:sc(null,'Avg HDP (min)'),plugins:{legend:{display:true,labels:{font:{family:'Figtree',size:12},color:'#555'}},tooltip:TIP}});
+  mk('c-res-HDOP','bar',storeNames,[
+    {label:'Baseline',data:storeBaseHDOP,backgroundColor:storeColors.map(c=>c+'44'),borderColor:storeColors,borderWidth:2,borderRadius:4},
+    {label:'Experimento',data:storeExpHDOP,backgroundColor:storeColors.map(c=>c+'cc'),borderColor:storeColors,borderWidth:1,borderRadius:4},
+  ],{scales:sc(null,'Avg HDOP (min)'),plugins:{legend:{display:true,labels:{font:{family:'Figtree',size:12},color:'#555'}},tooltip:TIP}});
 
   mk('c-res-var','bar',storeNames,[
-    {label:'Δ HDP',data:storeVar,
+    {label:'Δ HDOP',data:storeVar,
      backgroundColor:storeVar.map(v=>v===null?'#ccc':v<=0?'rgba(46,125,50,.7)':'rgba(162,45,45,.7)'),
      borderColor:storeVar.map(v=>v===null?'#ccc':v<=0?'#2E7D32':'#A32D2D'),
      borderWidth:1,borderRadius:4}
   ],{scales:sc(null,'Δ min')});
 
   mk('c-res-comp','bar',['No Exp','Experimento'],[
-    {label:'HDP promedio',data:[baseHDP, expHDP],
+    {label:'HDOP promedio',data:[baseHDOP, expHDOP],
      backgroundColor:['rgba(162,45,45,.7)','rgba(46,125,50,.7)'],
      borderColor:['#A32D2D','#2E7D32'],borderWidth:1,borderRadius:6}
-  ],{scales:sc(null,'Avg HDP (min)')});
+  ],{scales:sc(null,'Avg HDOP (min)')});
 
   mk('c-res-ord','bar',storeNames,[
     {label:'Órdenes',data:storeOrd,backgroundColor:storeColors.map(c=>c+'99'),borderColor:storeColors,borderWidth:1,borderRadius:4}
@@ -405,19 +405,19 @@ function render(raw) {
     panel.className='sp-panel';panel.id='sp-'+wh;
     panel.style.display=idx===0?'block':'none';
 
-    const expBase = avg(sRows.filter(r=>!r.exp).map(r=>r.hdp));
-    const expAvg  = avg(sRows.filter(r=>r.exp).map(r=>r.hdp));
+    const expBase = avg(sRows.filter(r=>!r.exp).map(r=>r.HDOP));
+    const expAvg  = avg(sRows.filter(r=>r.exp).map(r=>r.HDOP));
     const expDelta= expAvg!==null&&expBase!==null?+(expAvg-expBase).toFixed(2):null;
 
     panel.innerHTML=`
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px">
         <div class="kpi" style="--c:${meta.color}">
-          <div class="kpi-lbl">HDP Baseline</div>
+          <div class="kpi-lbl">HDOP Baseline</div>
           <div class="kpi-val" style="color:${meta.color}">${fmt(expBase)}</div>
           <div class="kpi-sub">horas fuera del experimento</div>
         </div>
         <div class="kpi" style="--c:#4CAF50">
-          <div class="kpi-lbl">HDP Experimento</div>
+          <div class="kpi-lbl">HDOP Experimento</div>
           <div class="kpi-val" style="color:#4CAF50">${fmt(expAvg)}</div>
           <div class="kpi-sub">horas dentro del experimento</div>
           ${expDelta!==null?`<div class="kpi-delta ${expDelta<=0?'neg':'pos'}">${expDelta>0?'▲':'▼'} ${fmt(Math.abs(expDelta))} min</div>`:''}
@@ -430,8 +430,8 @@ function render(raw) {
       </div>
       <div class="g2">
         <div class="card">
-          <div class="card-title">HDP por hora — <span class="exp-pill">🟢 exp</span> vs <span class="no-pill">sin exp</span></div>
-          <canvas id="sc-hdp-${wh}" height="180"></canvas>
+          <div class="card-title">HDOP por hora — <span class="exp-pill">🟢 exp</span> vs <span class="no-pill">sin exp</span></div>
+          <canvas id="sc-HDOP-${wh}" height="180"></canvas>
         </div>
         <div class="card">
           <div class="card-title">Órdenes por hora</div>
@@ -442,7 +442,7 @@ function render(raw) {
         <div class="card-title">Tabla hora × fecha · <span class="exp-pill">🟢 verde = horas experimento</span></div>
         <table>
           <thead><tr><th>Hora</th>${dates.map(d=>`<th colspan="2">${d.slice(5)}</th>`).join('')}</tr>
-          <tr><th></th>${dates.map(()=>'<th>Órd</th><th>HDP</th>').join('')}</tr></thead>
+          <tr><th></th>${dates.map(()=>'<th>Órd</th><th>HDOP</th>').join('')}</tr></thead>
           <tbody id="st-${wh}"></tbody>
         </table>
       </div>`;
@@ -463,8 +463,8 @@ function render(raw) {
       <td>${r.hora}:00</td>
       <td>${r.exp?'<span class="exp-pill">🟢 Exp</span>':'<span class="no-pill">—</span>'}</td>
       <td>${r.ord}</td>
-      <td>${fmt(r.hdp)}</td>
-      <td>${fmt(r.hdpQ)}</td>
+      <td>${fmt(r.HDOP)}</td>
+      <td>${fmt(r.HDOPQ)}</td>
     </tr>`;
   }).join('');
 
@@ -502,19 +502,19 @@ function render(raw) {
 }
 
 function renderStoreCharts(wh, sRows, hours, dates, meta) {
-  const hdpByHour = hours.map(h=>{
+  const HDOPByHour = hours.map(h=>{
     const r=sRows.filter(x=>x.hora===h);
-    return avg(r.map(x=>x.hdp));
+    return avg(r.map(x=>x.HDOP));
   });
   const ordByHour = hours.map(h=>sum(sRows.filter(x=>x.hora===h).map(x=>x.ord)));
   const isExpHour = hours.map(h=>sRows.some(r=>r.hora===h&&r.exp));
 
-  mk('sc-hdp-'+wh,'bar',hours.map(h=>h+':00'),[
-    {label:'HDP',data:hdpByHour,
+  mk('sc-HDOP-'+wh,'bar',hours.map(h=>h+':00'),[
+    {label:'HDOP',data:HDOPByHour,
      backgroundColor:isExpHour.map(e=>e?'rgba(46,125,50,.75)':meta.color+'55'),
      borderColor:isExpHour.map(e=>e?'#2E7D32':meta.color),
      borderWidth:1,borderRadius:3}
-  ],{scales:sc(null,'Avg HDP (min)')});
+  ],{scales:sc(null,'Avg HDOP (min)')});
 
   mk('sc-ord-'+wh,'bar',hours.map(h=>h+':00'),[
     {label:'Órdenes',data:ordByHour,
@@ -533,7 +533,7 @@ function buildStoreTable(wh, sRows, hours, dates) {
       const r=sRows.find(x=>x.fecha===d&&x.hora===h);
       const e=isExp(wh,d,h);
       row+=r
-        ?`<td>${r.ord}</td><td style="color:${e?'#2E7D32':'#555'};font-weight:${e?800:600}">${fmt(r.hdp)}</td>`
+        ?`<td>${r.ord}</td><td style="color:${e?'#2E7D32':'#555'};font-weight:${e?800:600}">${fmt(r.HDOP)}</td>`
         :'<td>—</td><td>—</td>';
     });
     return row+'</tr>';
