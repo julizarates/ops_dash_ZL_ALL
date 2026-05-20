@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piloto Cíclicos</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F5F4F0;color:#111;font-family:'Figtree',sans-serif;font-size:13px;line-height:1.5;overflow-x:hidden}
+
+.hdr{background:#fff;border-bottom:1px solid #E5E4DF;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:17px;font-weight:700;letter-spacing:-.4px}.logo b{color:#1976D2}
+.rtag{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:#E3F2FD;color:#0D47A1;border:1px solid #BBDEFB;padding:2px 8px;border-radius:10px;margin-left:8px}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#999}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc;transition:background .3s}
+.dot.ok{background:#4CAF50}
+.btn{font-size:11px;font-weight:600;padding:5px 14px;border:1px solid #DDD;border-radius:6px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}
+.btn:hover{background:#F5F4F0}
+
+/* FILTER BAR */
+.fbar{background:#fff;border-bottom:1px solid #E5E4DF;padding:10px 24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.fl{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+.fsel{padding:5px 12px;border:1.5px solid #E0DFD9;border-radius:8px;font-size:12px;font-weight:500;color:#111;background:#fff;font-family:'Figtree',sans-serif;cursor:pointer;outline:none}
+.fsel:focus{border-color:#1976D2}
+.sbtns{display:flex;gap:6px;flex-wrap:wrap}
+.sb{padding:5px 14px;border:1.5px solid #E0DFD9;border-radius:20px;font-size:12px;font-weight:500;color:#666;cursor:pointer;background:#fff;font-family:'Figtree',sans-serif;transition:all .15s}
+.sb:hover{border-color:#888;color:#111}
+.sb.on{background:#111;color:#fff;border-color:#111}
+
+/* WEEK STRIP */
+.wstrip{background:#111;color:#fff;padding:8px 24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.wi{display:flex;flex-direction:column}
+.wi-l{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#666}
+.wi-v{font-size:13px;font-weight:600;margin-top:1px}
+.wsep{width:1px;height:22px;background:#333}
+
+/* MAIN */
+.main{padding:20px 24px}
+.stitle{font-size:13px;font-weight:700;margin-bottom:12px;color:#111}
+.stitle-sub{font-size:11px;font-weight:400;color:#999;margin-left:6px}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:22px}
+.kpi{background:#fff;border:1px solid #E5E4DF;border-radius:10px;padding:16px 18px;border-left:3px solid var(--c,#1976D2)}
+.kpi-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:8px}
+.kpi-v{font-size:28px;font-weight:700;letter-spacing:-.6px;line-height:1;margin-bottom:6px}
+.kpi-compare{display:flex;align-items:center;gap:8px}
+.kpi-prev{font-size:12px;color:#999}
+.delta{font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px}
+.delta.up{background:#FCEAE8;color:#D13C2B}
+.delta.dn{background:#E6F4EC;color:#2A7A4A}
+.delta.eq{background:#F0EFEB;color:#999}
+
+/* META TIENDA */
+.meta-section{background:#fff;border:1px solid #E5E4DF;border-radius:12px;padding:18px 20px;margin-bottom:22px}
+.meta-top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.meta-kpi{background:#F5F4F0;border-radius:8px;padding:14px 16px;border-left:3px solid var(--mc,#1976D2)}
+.meta-kpi-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:6px}
+.meta-kpi-v{font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.meta-kpi-sub{font-size:11px;color:#999;margin-top:4px}
+
+.seg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.seg-card{background:#F5F4F0;border-radius:8px;padding:12px 14px}
+.seg-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.seg-name.critical{color:#E53935}
+.seg-name.essential{color:#FF9800}
+.seg-name.routine{color:#1976D2}
+.seg-name.complementary{color:#00897B}
+.seg-nums{display:flex;gap:12px;margin-bottom:8px}
+.seg-num{display:flex;flex-direction:column}
+.seg-num-v{font-size:18px;font-weight:700;line-height:1}
+.seg-num-l{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
+.prog-bg{background:#E0DFD9;border-radius:3px;height:5px;margin-top:4px}
+.prog-fill{height:5px;border-radius:3px;transition:width .4s}
+.seg-pct{font-size:11px;font-weight:600;margin-top:4px}
+
+/* CHART */
+.chart-wrap{position:relative;height:160px;margin-top:4px}
+.chart-svg{width:100%;height:100%}
+.chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#aaa;margin-bottom:8px}
+
+/* TIENDAS */
+.tienda-list{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
+.trow{background:#fff;border:1px solid #E5E4DF;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.trow-name{font-size:13px;font-weight:700;min-width:130px}
+.origen{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px}
+.piloto{background:#E3F2FD;color:#0D47A1}
+.anterior{background:#F3E5F5;color:#6A1B9A}
+.trow-metrics{display:flex;gap:20px;flex:1;flex-wrap:wrap}
+.tm{display:flex;flex-direction:column;gap:1px;min-width:60px}
+.tm-v{font-size:15px;font-weight:700;line-height:1}
+.tm-l{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:.5px}
+.trow-deltas{display:flex;gap:8px;flex-wrap:wrap}
+
+/* DAY TABLE */
+.day-wrap{background:#fff;border:1px solid #E5E4DF;border-radius:10px;overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:#F5F4F0;border-bottom:1px solid #E5E4DF}
+th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap}
+th.r{text-align:right}
+tbody tr{border-bottom:1px solid #F5F4F0;transition:background .1s}
+tbody tr:hover{background:#FAFAF8}
+tbody tr:last-child{border-bottom:none}
+td{padding:10px 14px;vertical-align:middle;white-space:nowrap}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+.day-name{font-weight:700;font-size:13px}
+.store-pill{font-size:10px;background:#F0EFEB;color:#555;padding:1px 6px;border-radius:4px;font-weight:500}
+.pup{background:#FCEAE8;color:#D13C2B;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.pdn{background:#E6F4EC;color:#2A7A4A;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.peq{background:#F0EFEB;color:#999;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+
+.country-row{background:#fff;border:1px solid #E5E4DF;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-left:3px solid var(--cc,#1976D2)}
+.ld{display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;color:#aaa}
+.sp{width:16px;height:16px;border:2px solid #E0DFD9;border-top-color:#1976D2;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:700px){
+  .hdr,.fbar,.main{padding-left:14px;padding-right:14px}
+  .wstrip{padding:8px 14px;gap:12px}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .meta-top{grid-template-columns:repeat(2,1fr)}
+  .seg-grid{grid-template-columns:repeat(2,1fr)}
+  .trow{flex-direction:column;align-items:flex-start;gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <span class="rtag">Piloto Cíclicos</span>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="fbar">
+  <span class="fl">País</span>
+  <select class="fsel" id="country-sel" onchange="onCountryChange()">
+    <option value="all">🌎 Todos</option>
+    <option value="AR">🇦🇷 AR</option>
+    <option value="BR">🇧🇷 BR</option>
+    <option value="CO">🇨🇴 CO</option>
+    <option value="MX">🇲🇽 MX</option>
+    <option value="CL">🇨🇱 CL</option>
+    <option value="PE">🇵🇪 PE</option>
+  </select>
+  <div style="width:1px;height:20px;background:#E5E4DF;margin:0 4px"></div>
+  <span class="fl">Tienda</span>
+  <select class="fsel" id="store-sel" onchange="onStoreChange()">
+    <option value="all">Todas las tiendas</option>
+  </select>
+</div>
+
+<div class="ld" id="gld"><div class="sp"></div>Cargando datos...</div>
+
+<div id="app" style="display:none">
+
+  <div class="wstrip" id="wstrip">
+    <div class="wi"><div class="wi-l">Sem. terminada (W-1)</div><div class="wi-v" id="w-cur">—</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Sem. anterior (W-2)</div><div class="wi-v" id="w-prev">—</div></div>
+    <div class="wsep"></div>
+    <div class="wi"><div class="wi-l">Vista</div><div class="wi-v" id="w-vista">General</div></div>
+  </div>
+
+  <div class="main">
+
+    <!-- META TIENDA -->
+    <div class="stitle">Meta Tienda <span class="stitle-sub" id="meta-sub">semana en curso</span></div>
+    <div class="meta-section">
+
+      <!-- KPIs top -->
+      <div class="meta-top">
+        <div class="meta-kpi" style="--mc:#1976D2">
+          <div class="meta-kpi-l">Total asignadas</div>
+          <div class="meta-kpi-v" id="mt-assigned">—</div>
+          <div class="meta-kpi-sub">misiones programadas</div>
+        </div>
+        <div class="meta-kpi" style="--mc:#4CAF50">
+          <div class="meta-kpi-l">Total contadas</div>
+          <div class="meta-kpi-v" id="mt-counted">—</div>
+          <div class="meta-kpi-sub">misiones realizadas</div>
+        </div>
+        <div class="meta-kpi" style="--mc:#FF9800">
+          <div class="meta-kpi-l">% Avance</div>
+          <div class="meta-kpi-v" id="mt-pct">—</div>
+          <div class="meta-kpi-sub">cumplimiento semana</div>
+        </div>
+      </div>
+
+      <!-- Por segmento -->
+      <div class="chart-title">Por segmento</div>
+      <div class="seg-grid">
+        <div class="seg-card">
+          <div class="seg-name critical">🔴 Critical</div>
+          <div class="seg-nums">
+            <div class="seg-num"><div class="seg-num-v" id="sc-tot">—</div><div class="seg-num-l">Total</div></div>
+            <div class="seg-num"><div class="seg-num-v" style="color:#4CAF50" id="sc-done">—</div><div class="seg-num-l">Hechas</div></div>
+          </div>
+          <div class="prog-bg"><div class="prog-fill" id="sc-bar" style="background:#E53935;width:0%"></div></div>
+          <div class="seg-pct" style="color:#E53935" id="sc-pct">—</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-name essential">🟠 Essential</div>
+          <div class="seg-nums">
+            <div class="seg-num"><div class="seg-num-v" id="se-tot">—</div><div class="seg-num-l">Total</div></div>
+            <div class="seg-num"><div class="seg-num-v" style="color:#4CAF50" id="se-done">—</div><div class="seg-num-l">Hechas</div></div>
+          </div>
+          <div class="prog-bg"><div class="prog-fill" id="se-bar" style="background:#FF9800;width:0%"></div></div>
+          <div class="seg-pct" style="color:#FF9800" id="se-pct">—</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-name routine">🔵 Routine</div>
+          <div class="seg-nums">
+            <div class="seg-num"><div class="seg-num-v" id="sr-tot">—</div><div class="seg-num-l">Total</div></div>
+            <div class="seg-num"><div class="seg-num-v" style="color:#4CAF50" id="sr-done">—</div><div class="seg-num-l">Hechas</div></div>
+          </div>
+          <div class="prog-bg"><div class="prog-fill" id="sr-bar" style="background:#1976D2;width:0%"></div></div>
+          <div class="seg-pct" style="color:#1976D2" id="sr-pct">—</div>
+        </div>
+        <div class="seg-card">
+          <div class="seg-name complementary">🟢 Complementary</div>
+          <div class="seg-nums">
+            <div class="seg-num"><div class="seg-num-v" id="sco-tot">—</div><div class="seg-num-l">Total</div></div>
+            <div class="seg-num"><div class="seg-num-v" style="color:#4CAF50" id="sco-done">—</div><div class="seg-num-l">Hechas</div></div>
+          </div>
+          <div class="prog-bg"><div class="prog-fill" id="sco-bar" style="background:#00897B;width:0%"></div></div>
+          <div class="seg-pct" style="color:#00897B" id="sco-pct">—</div>
+        </div>
+      </div>
+
+      <!-- Evolución semanal -->
+      <div class="chart-title">Evolución semanal — % avance Meta Tienda</div>
+      <div class="chart-wrap">
+        <svg class="chart-svg" id="evo-chart" viewBox="0 0 800 140" preserveAspectRatio="none"></svg>
+      </div>
+
+    </div>
+
+    <!-- KPIs misiones correctivas -->
+    <div class="stitle">Misiones correctivas <span class="stitle-sub" id="kpi-sub">semana actual vs anterior</span></div>
+    <div class="kpi-row">
+      <div class="kpi" style="--c:#1976D2">
+        <div class="kpi-l">Misiones (CC)</div>
+        <div class="kpi-v" id="kv-cc">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-cc">ant: —</span><span class="delta" id="kd-cc">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#4CAF50">
+        <div class="kpi-l">Unidades contadas</div>
+        <div class="kpi-v" id="kv-un">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-un">ant: —</span><span class="delta" id="kd-un">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#FF9800">
+        <div class="kpi-l">% Finalizadas</div>
+        <div class="kpi-v" id="kv-pct">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-pct">ant: —</span><span class="delta" id="kd-pct">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#E53935">
+        <div class="kpi-l">% Tiempo en cíclicos ★</div>
+        <div class="kpi-v" id="kv-tpct">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-tpct">ant: —</span><span class="delta" id="kd-tpct">—</span></div>
+      </div>
+      <div class="kpi" style="--c:#00897B">
+        <div class="kpi-l">SKUs por min cíclico</div>
+        <div class="kpi-v" id="kv-sku">—</div>
+        <div class="kpi-compare"><span class="kpi-prev" id="kp-sku">ant: —</span><span class="delta" id="kd-sku">—</span></div>
+      </div>
+    </div>
+
+    <!-- POR PAÍS -->
+    <div class="stitle" id="country-sec-title" style="display:none">Por país <span class="stitle-sub">semana terminada vs anterior</span></div>
+    <div class="tienda-list" id="country-list" style="display:none"></div>
+
+    <div class="stitle">Por tienda</div>
+    <div class="tienda-list" id="tienda-list"></div>
+
+    <!-- SEMANA A SEMANA -->
+    <div class="stitle" style="margin-bottom:12px">Semana a semana <span class="stitle-sub">últimas 8 semanas · <span id="dia-sub">general</span></span></div>
+    <div class="day-wrap">
+      <table>
+        <thead><tr>
+          <th>Semana</th>
+          <th class="r">CC</th>
+          <th class="r">Unid contadas</th>
+          <th class="r">% Finalizadas</th>
+          <th class="r">% T.Cíclico ★</th>
+          <th class="r">SKUs/min</th>
+        </tr></thead>
+        <tbody id="day-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SID='1pBN7BLWDnDko0mRCIg8GUGYYEZvEEdYwcEB0iipqKnU';
+const API_KEY='AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+let dataSem=[],dataDia=[],dataMeta=[];
+let allStores=[],selStore='all';
+let selCountry='all';
+
+const FLAGS={AR:'🇦🇷',BR:'🇧🇷',CO:'🇨🇴',MX:'🇲🇽',CL:'🇨🇱',PE:'🇵🇪'};
+const COUNTRY_COLORS={AR:'#1976D2',BR:'#F5A623',CO:'#E53935',MX:'#4CAF50',CL:'#E53935',PE:'#E53935'};
+
+async function fetchSheet(name){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(name)}?key=${API_KEY}`;
+  const r=await fetch(url);
+  if(!r.ok)throw new Error('HTTP '+r.status+' ('+name+')');
+  const json=await r.json();
+  const rows=json.values||[];
+  const known=['COUNTRY','SEMANA','KEYWH','WAREHOUSENAME','WAREHOUSE_NAME','TOTAL_CC_SEMANA','TOTAL_CC_DIA','FECHA','DIA','SEMANA_INICIO'];
+  let hi=rows.findIndex(row=>row.some(c=>known.includes((c||'').toString().trim().toUpperCase())));
+  if(hi===-1)hi=0;
+  const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={};
+    hdrs.forEach((h,i)=>o[h.trim().toUpperCase()]=(row[i]||'').toString().trim());
+    // normalize dates
+    ['SEMANA','FECHA','SEMANA_INICIO'].forEach(k=>{if(o[k])o[k]=o[k].split(' ')[0].split('T')[0];});
+    // normalize warehouse name
+    if(o.WAREHOUSE_NAME&&!o.WAREHOUSENAME)o.WAREHOUSENAME=o.WAREHOUSE_NAME;
+    return o;
+  });
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('app').style.display='none';
+  try{
+    [dataSem,dataDia,dataMeta]=await Promise.all([
+      fetchSheet('Resumen_KPIS'),
+      fetchSheet('DETALLE'),
+      fetchSheet('metatienda')
+    ]);
+    buildStores();
+    document.getElementById('gld').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('gld').innerHTML=`<span style="color:#D13C2B">Error: ${e.message}</span>`;
+  }
+}
+
+function getSems(data){
+  const now=new Date();
+  const day=now.getDay()||7;
+  const thisMon=new Date(now);thisMon.setDate(now.getDate()-(day-1));thisMon.setHours(0,0,0,0);
+  const thisMonStr=thisMon.toISOString().split('T')[0];
+  const all=[...new Set(data.map(r=>r.SEMANA||r.SEMANA_INICIO).filter(Boolean))]
+    .filter(s=>s<thisMonStr).sort().reverse();
+  return all;
+}
+
+function fmtW(w){
+  if(!w)return'—';
+  const d=new Date(w);if(isNaN(d))return w;
+  return d.toLocaleDateString('es',{day:'numeric',month:'short'});
+}
+function fmt(v,dec=0){
+  const n=parseFloat(v);if(isNaN(n)||n===0)return'—';
+  return dec>0?n.toFixed(dec):Math.round(n).toLocaleString('es');
+}
+function delta(cur,prev,lessIsBetter=false){
+  const c=parseFloat(cur)||0,p=parseFloat(prev)||0;
+  if(!p)return{cls:'eq',txt:'—'};
+  const diff=c-p,pct=Math.round(Math.abs(diff)/p*100);
+  const better=(lessIsBetter&&diff<0)||(!lessIsBetter&&diff>0);
+  const cls=diff===0?'eq':better?'dn':'up';
+  const arrow=diff===0?'→':diff>0?'↑':'↓';
+  return{cls,txt:`${arrow} ${pct}%`};
+}
+function pill(cur,prev,lessIsBetter=false){
+  const d=delta(cur,prev,lessIsBetter);
+  return`<span class="p${d.cls}">${d.txt}</span>`;
+}
+function sum(arr,col){return arr.reduce((s,r)=>s+(parseFloat(r[col])||0),0);}
+function wavg(arr,col){
+  const v=arr.map(r=>parseFloat(r[col])||0).filter(x=>x>0);
+  return v.length?v.reduce((a,b)=>a+b,0)/v.length:0;
+}
+function setDelta(id,cur,prev,lessIsBetter){
+  const d=delta(cur,prev,lessIsBetter);
+  const el=document.getElementById(id);
+  el.className='delta '+d.cls;el.textContent=d.txt;
+}
+function setSeg(totId,doneId,barId,pctId,tot,done){
+  document.getElementById(totId).textContent=tot||'—';
+  document.getElementById(doneId).textContent=done||'—';
+  const pct=tot>0?Math.round(done/tot*100):0;
+  document.getElementById(barId).style.width=pct+'%';
+  document.getElementById(pctId).textContent=pct+'%';
+}
+
+function onCountryChange(){
+  selCountry=document.getElementById('country-sel').value;
+  buildStores();
+}
+
+function buildStores(){
+  const srcSem=selCountry==='all'?dataSem:dataSem.filter(r=>r.COUNTRY===selCountry);
+  allStores=[...new Set(srcSem.map(r=>r.WAREHOUSENAME).filter(Boolean))].sort();
+  const c=document.getElementById('sbtns');
+  c.innerHTML='<button class="sb on" id="btn-all" onclick="setSel(\'all\',this)">Todas</button>';
+  allStores.forEach(s=>{
+    const b=document.createElement('button');
+    b.className='sb';b.textContent=s;b.onclick=()=>setSel(s,b);c.appendChild(b);
+  });
+  selStore='all';
+  render();
+}
+
+function setSel(s,btn){
+  selStore=s;
+  document.querySelectorAll('#sbtns .sb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  render();
+}
+
+// ── CHART ────────────────────────────────────────────────────────────────────
+function drawEvoChart(weeksData){
+  // weeksData = [{sem:'2026-04-14', pct:72.3}, ...]  sorted asc
+  const svg=document.getElementById('evo-chart');
+  if(!weeksData.length){svg.innerHTML='<text x="400" y="70" text-anchor="middle" fill="#ccc" font-size="12">Sin datos suficientes</text>';return;}
+
+  const W=800,H=140,padL=40,padR=20,padT=14,padB=28;
+  const iW=W-padL-padR,iH=H-padT-padB;
+  const maxV=Math.max(...weeksData.map(d=>d.pct),100);
+  const n=weeksData.length;
+  const xStep=n>1?iW/(n-1):0;
+  const yScale=v=>(iH-(v/maxV)*iH)+padT;
+
+  let html='';
+  // grid lines
+  [0,25,50,75,100].forEach(v=>{
+    const y=yScale(v);
+    html+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#F0EFEB" stroke-width="1"/>`;
+    html+=`<text x="${padL-4}" y="${y+4}" text-anchor="end" fill="#bbb" font-size="9">${v}%</text>`;
+  });
+
+  // area fill
+  if(n>1){
+    const pts=weeksData.map((d,i)=>`${padL+i*xStep},${yScale(d.pct)}`).join(' ');
+    const first=`${padL},${yScale(weeksData[0].pct)}`;
+    const last=`${padL+(n-1)*xStep},${yScale(weeksData[n-1].pct)}`;
+    html+=`<polygon points="${pts} ${last},${H-padB} ${padL},${H-padB}" fill="rgba(25,118,210,0.08)"/>`;
+    // line
+    html+=`<polyline points="${pts}" fill="none" stroke="#1976D2" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+
+  // dots + labels
+  weeksData.forEach((d,i)=>{
+    const x=padL+i*xStep,y=yScale(d.pct);
+    html+=`<circle cx="${x}" cy="${y}" r="4" fill="#1976D2"/>`;
+    html+=`<text x="${x}" y="${y-8}" text-anchor="middle" fill="#1976D2" font-size="9" font-weight="700">${d.pct.toFixed(1)}%</text>`;
+    html+=`<text x="${x}" y="${H-padB+14}" text-anchor="middle" fill="#aaa" font-size="8">${fmtW(d.sem)}</text>`;
+  });
+
+  svg.innerHTML=html;
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function render(){
+  const sems=getSems(dataSem);
+  const curW=sems[0]||'',prevW=sems[1]||'';
+  const isSingle=selStore!=='all';
+
+  document.getElementById('w-cur').textContent='Sem. '+fmtW(curW);
+  document.getElementById('w-prev').textContent='Sem. '+fmtW(prevW);
+  document.getElementById('w-vista').textContent=isSingle?selStore:'General';
+  document.getElementById('dia-sub').textContent=isSingle?selStore:'todas las tiendas';
+
+  const byCountry=arr=>selCountry==='all'?arr:arr.filter(r=>r.COUNTRY===selCountry);
+  const filterSem=w=>{
+    const base=byCountry(dataSem).filter(r=>r.SEMANA===w);
+    return isSingle?base.filter(r=>r.WAREHOUSENAME===selStore):base;
+  };
+  const filterDia=w=>{
+    const base=byCountry(dataDia).filter(r=>r.SEMANA===w);
+    return isSingle?base.filter(r=>r.WAREHOUSENAME===selStore):base;
+  };
+
+  // ── META TIENDA ──────────────────────────────────────────────────────────
+  // Use all semanas from metatienda, filtered by country
+  const metaFiltered=byCountry(dataMeta).filter(r=>!isSingle||r.WAREHOUSENAME===selStore);
+
+  // Current week = latest SEMANA_INICIO in metatienda
+  const metaSems=[...new Set(metaFiltered.map(r=>r.SEMANA_INICIO).filter(Boolean))].sort().reverse();
+  const metaCurW=metaSems[0]||'';
+  const metaCur=metaFiltered.filter(r=>r.SEMANA_INICIO===metaCurW);
+
+  document.getElementById('meta-sub').textContent=metaCurW?'semana '+fmtW(metaCurW):'sin datos';
+
+  const mtAssigned=sum(metaCur,'TOTAL_ASSIGNED');
+  const mtCounted=sum(metaCur,'TOTAL_COUNTED');
+  const mtPct=mtAssigned>0?(mtCounted/mtAssigned*100):0;
+  document.getElementById('mt-assigned').textContent=mtAssigned||'—';
+  document.getElementById('mt-counted').textContent=mtCounted||'—';
+  document.getElementById('mt-pct').textContent=mtPct>0?mtPct.toFixed(1)+'%':'—';
+
+  setSeg('sc-tot','sc-done','sc-bar','sc-pct',sum(metaCur,'CRITICAL_TOTAL'),sum(metaCur,'CRITICAL_DONE'));
+  setSeg('se-tot','se-done','se-bar','se-pct',sum(metaCur,'ESSENTIAL_TOTAL'),sum(metaCur,'ESSENTIAL_DONE'));
+  setSeg('sr-tot','sr-done','sr-bar','sr-pct',sum(metaCur,'ROUTINE_TOTAL'),sum(metaCur,'ROUTINE_DONE'));
+  setSeg('sco-tot','sco-done','sco-bar','sco-pct',sum(metaCur,'COMPLEMENTARY_TOTAL'),sum(metaCur,'COMPLEMENTARY_DONE'));
+
+  // Evolución semanal
+  const evoData=metaSems.slice(0,8).reverse().map(sem=>{
+    const rows=metaFiltered.filter(r=>r.SEMANA_INICIO===sem);
+    const tot=sum(rows,'TOTAL_ASSIGNED'),cnt=sum(rows,'TOTAL_COUNTED');
+    const pct=tot>0?(cnt/tot*100):parseFloat(rows[0]?.PERCENT_AVANCE||0);
+    return{sem,pct};
+  }).filter(d=>d.pct>0);
+  drawEvoChart(evoData);
+
+  // ── MISIONES CORRECTIVAS KPIs ────────────────────────────────────────────
+  const semC=filterSem(curW),semP=filterSem(prevW);
+  const cCC=sum(semC,'TOTAL_CC_SEMANA'),pCC=sum(semP,'TOTAL_CC_SEMANA');
+  const cUN=sum(semC,'TOTAL_UNIDADES_CONTADAS'),pUN=sum(semP,'TOTAL_UNIDADES_CONTADAS');
+  const cPCT=wavg(semC,'PCT_FINALIZADAS'),pPCT=wavg(semP,'PCT_FINALIZADAS');
+  const cTPCT=wavg(semC,'PCT_TIEMPO_CICLICO'),pTPCT=wavg(semP,'PCT_TIEMPO_CICLICO');
+  const cSKU=wavg(semC,'SKUS_POR_MIN_CICLICO'),pSKU=wavg(semP,'SKUS_POR_MIN_CICLICO');
+
+  document.getElementById('kv-cc').textContent=fmt(cCC);
+  document.getElementById('kp-cc').textContent='ant: '+fmt(pCC);
+  setDelta('kd-cc',cCC,pCC,true);
+  document.getElementById('kv-un').textContent=fmt(cUN);
+  document.getElementById('kp-un').textContent='ant: '+fmt(pUN);
+  setDelta('kd-un',cUN,pUN,true);
+  document.getElementById('kv-pct').textContent=cPCT>0?cPCT.toFixed(1)+'%':'—';
+  document.getElementById('kp-pct').textContent='ant: '+(pPCT>0?pPCT.toFixed(1)+'%':'—');
+  setDelta('kd-pct',cPCT,pPCT,false);
+  document.getElementById('kv-tpct').textContent=cTPCT>0?cTPCT.toFixed(1)+'%':'—';
+  document.getElementById('kp-tpct').textContent='ant: '+(pTPCT>0?pTPCT.toFixed(1)+'%':'—');
+  setDelta('kd-tpct',cTPCT,pTPCT,true);
+  document.getElementById('kv-sku').textContent=cSKU>0?cSKU.toFixed(2):'—';
+  document.getElementById('kp-sku').textContent='ant: '+(pSKU>0?pSKU.toFixed(2):'—');
+  setDelta('kd-sku',cSKU,pSKU,false);
+
+  // ── POR TIENDA ───────────────────────────────────────────────────────────
+  const storesToShow=isSingle?[selStore]:allStores;
+  document.getElementById('tienda-list').innerHTML=storesToShow.map(store=>{
+    const cR=dataSem.filter(r=>r.SEMANA===curW&&r.WAREHOUSENAME===store);
+    const pR=dataSem.filter(r=>r.SEMANA===prevW&&r.WAREHOUSENAME===store);
+    const cc=sum(cR,'TOTAL_CC_SEMANA'),pc=sum(pR,'TOTAL_CC_SEMANA');
+    const cu=sum(cR,'TOTAL_UNIDADES_CONTADAS'),pu=sum(pR,'TOTAL_UNIDADES_CONTADAS');
+    const cpct=wavg(cR,'PCT_FINALIZADAS'),ctpct=wavg(cR,'PCT_TIEMPO_CICLICO'),csku=wavg(cR,'SKUS_POR_MIN_CICLICO');
+    const origen=cR[0]?.ORIGEN_MISION||pR[0]?.ORIGEN_MISION||'';
+    const oCls=origen==='Piloto'?'piloto':'anterior';
+    return`<div class="trow">
+      <div class="trow-name">${store}${origen?` <span class="origen ${oCls}">${origen}</span>`:''}</div>
+      <div class="trow-metrics">
+        <div class="tm"><div class="tm-v" style="color:#1976D2">${fmt(cc)}</div><div class="tm-l">CC act</div></div>
+        <div class="tm"><div class="tm-v">${fmt(pc)}</div><div class="tm-l">CC ant</div></div>
+        <div class="tm"><div class="tm-v" style="color:#4CAF50">${fmt(cu)}</div><div class="tm-l">Unid act</div></div>
+        <div class="tm"><div class="tm-v" style="color:#FF9800">${cpct>0?cpct.toFixed(1)+'%':'—'}</div><div class="tm-l">% Final</div></div>
+        <div class="tm"><div class="tm-v" style="color:#E53935;font-size:16px">${ctpct>0?ctpct.toFixed(1)+'%':'—'}</div><div class="tm-l">% T. Cíclico ★</div></div>
+        <div class="tm"><div class="tm-v" style="color:#00897B">${csku>0?csku.toFixed(2):'—'}</div><div class="tm-l">SKUs/min</div></div>
+      </div>
+      <div class="trow-deltas">${pill(cc,pc,true)}${pill(cu,pu,true)}</div>
+    </div>`;
+  }).join('');
+
+  // ── RESUMEN POR PAÍS ─────────────────────────────────────────────────────
+  const countrySecTitle=document.getElementById('country-sec-title');
+  const countryList=document.getElementById('country-list');
+  if(selCountry==='all'){
+    countrySecTitle.style.display='';
+    countryList.style.display='';
+    const PAISES=['AR','BR','CO','MX','CL','PE'];
+    countryList.innerHTML=PAISES.map(c=>{
+      const cR=dataSem.filter(r=>r.SEMANA===curW&&r.COUNTRY===c);
+      const pR=dataSem.filter(r=>r.SEMANA===prevW&&r.COUNTRY===c);
+      if(!cR.length&&!pR.length)return'';
+      const cc=sum(cR,'TOTAL_CC_SEMANA'),pc=sum(pR,'TOTAL_CC_SEMANA');
+      const cu=sum(cR,'TOTAL_UNIDADES_CONTADAS'),pu=sum(pR,'TOTAL_UNIDADES_CONTADAS');
+      const cpct=wavg(cR,'PCT_FINALIZADAS'),ctpct=wavg(cR,'PCT_TIEMPO_CICLICO'),csku=wavg(cR,'SKUS_POR_MIN_CICLICO');
+      const color=COUNTRY_COLORS[c]||'#1976D2';
+      const stores=[...new Set(cR.map(r=>r.WAREHOUSENAME).filter(Boolean))].length||[...new Set(pR.map(r=>r.WAREHOUSENAME).filter(Boolean))].length;
+      return`<div class="trow country-row" style="--cc:${color}">
+        <div class="trow-name" style="color:${color};font-size:15px">${FLAGS[c]||''} ${c}</div>
+        <div class="trow-metrics">
+          <div class="tm"><div class="tm-v" style="color:#1976D2">${fmt(cc)}</div><div class="tm-l">CC act</div></div>
+          <div class="tm"><div class="tm-v">${fmt(pc)}</div><div class="tm-l">CC ant</div></div>
+          <div class="tm"><div class="tm-v" style="color:#4CAF50">${fmt(cu)}</div><div class="tm-l">Unid act</div></div>
+          <div class="tm"><div class="tm-v" style="color:#FF9800">${cpct>0?cpct.toFixed(1)+'%':'—'}</div><div class="tm-l">% Final</div></div>
+          <div class="tm"><div class="tm-v" style="color:#E53935;font-size:16px">${ctpct>0?ctpct.toFixed(1)+'%':'—'}</div><div class="tm-l">% T.Cíclico ★</div></div>
+          <div class="tm"><div class="tm-v" style="color:#00897B">${csku>0?csku.toFixed(2):'—'}</div><div class="tm-l">SKUs/min</div></div>
+          <div class="tm"><div class="tm-v" style="color:#888">${stores}</div><div class="tm-l">Tiendas</div></div>
+        </div>
+        <div class="trow-deltas">${pill(cc,pc,true)}${pill(cu,pu,true)}</div>
+      </div>`;
+    }).join('');
+  } else {
+    countrySecTitle.style.display='none';
+    countryList.style.display='none';
+  }
+
+  // ── SEMANA A SEMANA ──────────────────────────────────────────────────────
+  document.getElementById('dia-sub').textContent=isSingle?selStore:'todas las tiendas';
+
+  // Get last 8 completed weeks
+  const allSems=[...new Set(byCountry(dataSem).map(r=>r.SEMANA).filter(Boolean))].sort().reverse().slice(0,8).reverse();
+
+  const semRows=allSems.map(sem=>{
+    const base=byCountry(dataSem).filter(r=>r.SEMANA===sem);
+    const rows=isSingle?base.filter(r=>r.WAREHOUSENAME===selStore):base;
+    if(!rows.length)return null;
+    return{
+      sem,
+      cc:sum(rows,'TOTAL_CC_SEMANA'),
+      un:sum(rows,'TOTAL_UNIDADES_CONTADAS'),
+      pct:wavg(rows,'PCT_FINALIZADAS'),
+      tpct:wavg(rows,'PCT_TIEMPO_CICLICO'),
+      sku:wavg(rows,'SKUS_POR_MIN_CICLICO'),
+    };
+  }).filter(Boolean);
+
+  document.getElementById('day-body').innerHTML=semRows.map((r,i)=>{
+    const prev=semRows[i-1];
+    const isLast=i===semRows.length-1;
+    return`<tr style="${isLast?'background:#FAFAF8;font-weight:600':''}">
+      <td><span class="day-name" style="font-size:12px">${fmtW(r.sem)}</span><span style="font-size:10px;color:#bbb;margin-left:6px">${r.sem}</span></td>
+      <td class="r">${fmt(r.cc)}${prev?` ${pill(r.cc,prev.cc,true)}`:\'\''}</td>
+      <td class="r">${fmt(r.un)}</td>
+      <td class="r" style="color:${r.pct>80?\'#2A7A4A\':r.pct>50?\'#FF9800\':\'#D13C2B\'};font-weight:600">${r.pct>0?r.pct.toFixed(1)+'%':'—'}</td>
+      <td class="r" style="color:${r.tpct>0?\'#E53935\':\'#bbb\'};font-weight:${r.tpct>0?600:400}">${r.tpct>0?r.tpct.toFixed(1)+'%':'—'}</td>
+      <td class="r">${r.sku>0?r.sku.toFixed(2):'—'}</td>
+    </tr>`;
+  }).join(\'\')
+  ||`<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa">Sin datos para los filtros seleccionados</td></tr>`;
+}
+
+loadAll();
+</script>
+</body>
+</html>
