@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TurboOps | Disc Ops & Calidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E24B4A;
+  --red-bg: #FEF2F2;
+  --green: #10B981;
+  --green-bg: #ECFDF5;
+  --yellow: #F59E0B;
+  --yellow-bg: #FFFBEB;
+  --blue: #3B82F6;
+  --gray: #6B7280;
+  --border: #E5E7EB;
+  --surface: #F9FAFB;
+  --text: #111827;
+  --text-sm: #6B7280;
+  --gold-bg: #FEF3C7; --gold-text: #92400E; --gold-dot: #F59E0B;
+  --silver-bg: #F1F5F9; --silver-text: #475569; --silver-dot: #94A3B8;
+  --bronze-bg: #FFF7ED; --bronze-text: #9A3412; --bronze-dot: #FB923C;
+  --radius: 12px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Figtree', sans-serif; background: #F5F5F5; color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* HEADER */
+.header {
+  background: #fff;
+  border-bottom: 2.5px solid var(--red);
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+.logo em { font-style: normal; color: var(--red); }
+.header-info { flex: 1; }
+.header-title { font-size: 11px; font-weight: 600; color: var(--text-sm); letter-spacing: 0.3px; text-transform: uppercase; }
+.header-week { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+/* FILTERS */
+.filters {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  display: flex;
+  gap: 8px;
+}
+.filter-wrap { flex: 1; position: relative; min-width: 0; }
+.filter-wrap::after {
+  content: '▾';
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--gray); pointer-events: none;
+}
+select {
+  width: 100%; padding: 7px 22px 7px 9px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); font-family: inherit; font-size: 12px;
+  color: var(--text); appearance: none; cursor: pointer; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+select:focus { outline: none; border-color: var(--red); }
+
+/* LOADING */
+#loading {
+  text-align: center; padding: 48px 24px; color: var(--gray);
+  font-size: 13px; display: none;
+}
+.spinner {
+  width: 28px; height: 28px; border: 3px solid var(--border);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MAIN CONTENT */
+#store-list, #store-detail { display: none; }
+.content-area { padding: 10px; max-width: 540px; margin: 0 auto; }
+
+/* STORE LIST CARDS */
+.store-card {
+  background: #fff; border-radius: var(--radius); padding: 13px 14px;
+  margin-bottom: 8px; box-shadow: var(--shadow);
+  cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+  border: 1px solid var(--border);
+}
+.store-card:active { transform: scale(0.99); box-shadow: none; }
+.store-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.store-card-name { font-size: 14px; font-weight: 700; line-height: 1.3; flex: 1; min-width: 0; }
+.store-card-meta { font-size: 11px; color: var(--text-sm); margin-bottom: 10px; }
+.store-card-scores { display: flex; flex-direction: column; gap: 6px; }
+.score-row-item { display: flex; align-items: center; gap: 8px; }
+.score-row-label { font-size: 11px; color: var(--gray); font-weight: 600; width: 52px; flex-shrink: 0; }
+.score-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.score-row-num { font-size: 12px; font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
+
+/* CLUSTER BADGES */
+.cbadge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 700; padding: 2px 7px 2px 5px;
+  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+.cbadge.gold   { background: var(--gold-bg);   color: var(--gold-text); }
+.cbadge.silver { background: var(--silver-bg); color: var(--silver-text); }
+.cbadge.bronze { background: var(--bronze-bg); color: var(--bronze-text); }
+
+/* SECTION CARDS */
+.sec { background: #fff; border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.sec-header { padding: 12px 14px 0; }
+.sec-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.sec-sub { font-size: 11px; color: var(--text-sm); margin-top: 3px; }
+.sec-body { padding: 10px 14px 14px; }
+
+/* STORE DETAIL HEADER */
+.detail-header { padding: 14px; }
+.detail-name { font-size: 17px; font-weight: 800; line-height: 1.2; margin-bottom: 3px; }
+.detail-meta { font-size: 11px; color: var(--text-sm); margin-bottom: 12px; }
+.scores-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.score-big-card {
+  background: var(--surface); border-radius: 10px; padding: 10px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px;
+}
+.score-big-label { font-size: 10px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.3px; }
+.score-big-num { font-size: 26px; font-weight: 800; line-height: 1; }
+.score-big-hint { font-size: 10px; color: var(--gray); margin-top: 2px; }
+
+/* QA CRITIC LIST */
+.critic-list { display: flex; flex-direction: column; gap: 8px; }
+.critic-item { padding: 10px; background: var(--red-bg); border-radius: 8px; border-left: 3px solid var(--red); }
+.critic-item-name { font-size: 12px; font-weight: 700; color: var(--red); margin-bottom: 5px; }
+.critic-item-vals { display: flex; gap: 12px; font-size: 11px; }
+.critic-val-actual { color: var(--text); }
+.critic-val-target { color: var(--green); font-weight: 600; }
+.critic-val span { font-weight: 700; }
+.critic-score-bar { margin-top: 6px; height: 4px; background: rgba(226,75,74,0.2); border-radius: 2px; overflow: hidden; }
+.critic-score-fill { height: 100%; background: var(--red); border-radius: 2px; }
+
+/* METRIC ROWS */
+.metric-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.metric-row:last-child { border-bottom: none; }
+.metric-label { font-size: 12px; font-weight: 600; flex: 1; min-width: 0; }
+.metric-weight { font-size: 10px; color: var(--gray); font-weight: 400; margin-left: 3px; }
+.metric-bar-track { width: 80px; height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+.metric-bar-fill { height: 100%; border-radius: 4px; }
+.metric-pct { font-size: 12px; font-weight: 700; width: 36px; text-align: right; flex-shrink: 0; }
+
+/* OFF SKU */
+.off-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px;
+}
+.off-ok { background: var(--green-bg); color: #065F46; }
+.off-bad { background: var(--red-bg); color: #991B1B; }
+
+/* ZONAS BLOCK */
+.zonas-info {
+  margin-top: 10px; padding: 8px 10px; background: var(--surface);
+  border-radius: 8px; display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border);
+}
+.zonas-num { font-size: 22px; font-weight: 800; color: var(--red); }
+.zonas-desc { font-size: 11px; color: var(--gray); line-height: 1.3; }
+
+/* RECEPCION GRID */
+.recep-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.recep-item { text-align: center; padding: 8px 4px; background: var(--surface); border-radius: 8px; }
+.recep-num { font-size: 18px; font-weight: 800; line-height: 1; }
+.recep-lbl { font-size: 9px; color: var(--gray); font-weight: 600; text-transform: uppercase; margin-top: 3px; letter-spacing: 0.2px; }
+.recep-item.green .recep-num { color: var(--green); }
+.recep-item.red .recep-num { color: var(--red); }
+.recep-item.yellow .recep-num { color: var(--yellow); }
+.recep-item.blue .recep-num { color: var(--blue); }
+
+/* NEXT CLUSTER */
+.next-hint {
+  margin-top: 8px; padding: 8px 10px; background: var(--surface);
+  border-radius: 8px; font-size: 11px; color: var(--gray);
+  border: 1px dashed var(--border); text-align: center;
+}
+.next-hint strong { color: var(--text); }
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 24px; color: var(--gray); font-size: 13px; }
+
+/* TOTALS BAR */
+.totals-strip {
+  background: #111; color: #fff; padding: 8px 12px;
+  display: flex; gap: 12px; overflow-x: auto; font-size: 11px;
+  align-items: center; margin-bottom: 10px; border-radius: 10px;
+  scrollbar-width: none;
+}
+.totals-strip::-webkit-scrollbar { display: none; }
+.t-item { display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; flex-shrink: 0; }
+.t-num { font-size: 16px; font-weight: 800; }
+.t-label { font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.3px; }
+.t-sep { width: 1px; background: #333; height: 28px; flex-shrink: 0; }
+
+
+/* MODAL DETAIL ZONAS */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  z-index: 500; display: flex; align-items: flex-end;
+  animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+.modal-sheet {
+  background: #fff; width: 100%; max-height: 90vh;
+  border-radius: 18px 18px 0 0; overflow: hidden;
+  display: flex; flex-direction: column;
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { transform:translateY(60px);opacity:0 } to { transform:translateY(0);opacity:1 } }
+.modal-handle {
+  width: 36px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 10px auto 0;
+}
+.modal-header {
+  padding: 10px 16px 12px; border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 14px; font-weight: 800; }
+.modal-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.modal-close {
+  position: absolute; right: 14px; top: 14px;
+  background: var(--surface); border: none; border-radius: 50%;
+  width: 28px; height: 28px; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit; color: var(--gray);
+}
+.modal-body { overflow-y: auto; flex: 1; padding: 12px 14px 24px; }
+
+/* Zonas summary pills */
+.zona-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.zona-pill {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--surface); border-radius: 10px;
+  padding: 8px 12px; border: 1px solid var(--border); min-width: 70px;
+}
+.zona-pill-num { font-size: 20px; font-weight: 800; }
+.zona-pill-lbl { font-size: 9px; color: var(--gray); text-transform: uppercase;
+  letter-spacing: 0.3px; text-align: center; margin-top: 2px; }
+.zona-pill.urgent .zona-pill-num { color: var(--red); }
+.zona-pill.warn .zona-pill-num { color: var(--yellow); }
+
+/* Product rows */
+.prod-list { display: flex; flex-direction: column; gap: 6px; }
+.prod-item {
+  padding: 9px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: #fff;
+}
+.prod-item.urgent { border-left: 3px solid var(--red); background: var(--red-bg); }
+.prod-item.warn   { border-left: 3px solid var(--yellow); background: var(--yellow-bg); }
+.prod-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+.prod-name { font-size: 12px; font-weight: 600; flex: 1; line-height: 1.3; }
+.prod-stock { font-size: 11px; font-weight: 700; color: var(--green); white-space: nowrap; }
+.prod-meta { font-size: 10px; color: var(--gray); margin-top: 3px; }
+.prod-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+.prod-tag {
+  font-size: 9px; font-weight: 700; padding: 2px 6px;
+  border-radius: 4px; text-transform: uppercase; letter-spacing: 0.2px;
+}
+.tag-nopick  { background: #FEE2E2; color: #991B1B; }
+.tag-nostore { background: #FEF3C7; color: #92400E; }
+.tag-nozone  { background: #F3E8FF; color: #6B21A8; }
+.tag-stockout{ background: #FEE2E2; color: #991B1B; }
+.tag-subcat  { background: var(--surface); color: var(--gray); }
+
+/* Btn detalle */
+.btn-detalle {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; padding: 5px 10px;
+  border-radius: 8px; cursor: pointer; border: none;
+  background: #111; color: #fff; font-family: inherit;
+  margin-top: 8px;
+}
+.section-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 0 14px; }
+
+/* Back button */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; color: var(--red);
+  padding: 6px 10px 6px 6px; border-radius: 8px; cursor: pointer;
+  margin-bottom: 4px; background: var(--red-bg); border: none;
+  font-family: inherit;
+}
+
+@media (max-width: 360px) {
+  .scores-2col { grid-template-columns: 1fr; }
+  .recep-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QGKHDSSRV8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-QGKHDSSRV8');
+</script>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="header-info">
+    <div class="header-title">Disc Ops & Calidad</div>
+    <div class="header-week" id="header-week">Cargando semana...</div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="filter-wrap">
+    <select id="sel-pais"><option value="">🌎 País</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-zl"><option value="">👤 Zone Lead</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-tienda"><option value="">🏪 Tienda</option></select>
+  </div>
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  Cargando datos...
+</div>
+
+<div class="content-area">
+  <div id="store-list"></div>
+  <div id="store-detail"></div>
+</div>
+
+<script>
+// ===================== CONSTANTS =====================
+const PUB_ID = '2PACX-1vQnT4uViGiikmSNyKqTYcaQDcW5UUsxipbLFpETotIJm46MVdk8AwgQ0-M5IBE4sRZ6h8KJ0QGy3iXE';
+const GID = {
+  detalles:  '1138623282',
+  zl:        '258561144',
+  qa:        '1947598243',
+  recepcion: '1276901632',
+  zonas:     '1952195501',
+  detZonas:  '800059767'
+};
+const csvUrl = g => `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${g}&single=true&output=csv`;
+
+const QA_METRICS = [
+  '(Instore) Picking Time','Handoff Post','Cancel Rate Partner',
+  'SO Ops','SO System','Total Stockouts',
+  'Defect Rate','ONA','Total DR'
+];
+
+const KNOWN = ['COUNTRY_CODE','WH_ID','DIS_OPS','SEMANA','WAREHOUSENAME','PROGRESS_SURTIDO',
+               'COUNTRY','Zone Lead','Key','WH ID','QA Score','CLUSTER','PAIS','PAÍS','WAREHOUSE_ID'];
+
+// Normalize WH_ID: "38.0" -> "38", "009" -> "9"
+function normWH(wh) { const n = parseInt(parseFloat(wh)); return isNaN(n) ? wh : String(n); }
+// Normalize country: uppercase trim
+function normCC(cc) { return (cc||'').trim().toUpperCase(); }
+
+// ===================== STATE =====================
+let state = { pais:'', zl:'', tienda:'' };
+let storeMap  = {};  // key -> latest detalles row
+let zlMap     = {};  // key -> { lead, email, pais }
+let qaMap     = {};  // key -> latest QA parsed
+let recepMap  = {};  // key -> recepcion row
+let zonasMap  = {};  // key -> zonas row
+let detZonasCache = null; // lazy loaded
+
+// ===================== CSV PARSER =====================
+function parseCSV(text) {
+  const lines = text.replace(/\r/g,'').split('\n');
+  return lines.map(line => {
+    const row = []; let cur = '', inQ = false;
+    for (let i = 0; i <= line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if ((c === ',' || c === undefined) && !inQ) { row.push(cur); cur = ''; }
+      else { cur += (c||''); }
+    }
+    return row;
+  }).filter(r => r.some(c => c !== ''));
+}
+
+function findHdr(rows) {
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+    if (rows[i].some(c => KNOWN.includes((c||'').trim()))) return i;
+  }
+  return 0;
+}
+
+function toObjs(rows, hIdx) {
+  const h = rows[hIdx].map(x => (x||'').trim());
+  return rows.slice(hIdx+1)
+    .filter(r => r.some(c => c))
+    .map(r => Object.fromEntries(h.map((k,i) => [k, (r[i]||'').trim()])));
+}
+
+// ===================== DATA PROCESSORS =====================
+function processDetalles(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows);
+  const objs = toObjs(rows, hIdx);
+  storeMap = {};
+  for (const r of objs) {
+    const cc = normCC(r.COUNTRY_CODE || r.COUNTRY || r.PAÍS || r.PAIS || '');
+    const wh = normWH(r.WH_ID || r.WAREHOUSE_ID || '');
+    if (!cc || !wh || wh==='NaN') continue;
+    const k = cc+'_'+wh;
+    r._cc = cc; r._wh = wh; r._k = k;
+    if (!storeMap[k] || (r.SEMANA||'') > (storeMap[k].SEMANA||'')) storeMap[k] = r;
+  }
+  // Set header week
+  const weeks = Object.values(storeMap).map(r => r.SEMANA||'').filter(Boolean).sort();
+  if (weeks.length) {
+    const latest = weeks[weeks.length-1].substring(0,10);
+    document.getElementById('header-week').textContent = 'Semana del '+latest;
+  }
+}
+
+function processZL(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows);
+  const objs = toObjs(rows, hIdx);
+  zlMap = {};
+  for (const r of objs) {
+    const key  = r['Key'] || r['KEY'] || '';
+    const lead = r['Zone Lead'] || r['ZL'] || r['ZONE_LEAD'] || r['lead'] || '';
+    const email= r['Email ZL'] || r['EMAIL'] || '';
+    const pais = r['PAÍS'] || r['PAIS'] || r['País'] || '';
+    if (!key) continue;
+    const stripped = key.replace(/N$/,'');
+    const cc = normCC(stripped.substring(0,2));
+    const wh = normWH(stripped.substring(2));
+    const k = cc+'_'+wh;
+    zlMap[k] = { lead: lead.trim(), email, pais: pais||cc, key };
+  }
+}
+
+function processQA(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return;
+
+  // Buscar header: fila donde la PRIMERA celda sea exactamente "Key" (case-insensitive)
+  let hdrIdx = -1;
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    if ((rows[i][0]||'').trim().toLowerCase() === 'key') { hdrIdx = i; break; }
+  }
+  // Fallback: buscar fila con 'qa score' o 'cluster' en cualquier celda
+  if (hdrIdx < 0) {
+    for (let i = 0; i < Math.min(rows.length, 10); i++) {
+      const r = rows[i].map(c => (c||'').trim().toLowerCase());
+      if (r.includes('qa score') || r.includes('cluster')) { hdrIdx = i; break; }
+    }
+  }
+  if (hdrIdx < 0) hdrIdx = 0;
+
+  const hdr = rows[hdrIdx].map(h => (h||'').trim().toLowerCase());
+  const ci  = name => hdr.indexOf(name.toLowerCase().trim());
+  const ciP = name => hdr.findIndex(h => h.includes(name.toLowerCase().trim()));
+
+  const iKey      = 0; // siempre primera columna en QA
+  const iEmailZL  = ciP('email zl') >= 0    ? ciP('email zl')    : 1;
+  const iWeek     = ciP('week') >= 0        ? ciP('week')        : 2;
+  const iPais     = ci('país') >= 0         ? ci('país')
+                  : ci('pais') >= 0         ? ci('pais')         : 3;
+  const iCity     = ci('city_name') >= 0    ? ci('city_name')    : 4;
+  const iWH       = ci('wh id') >= 0        ? ci('wh id')
+                  : ci('wh_id') >= 0        ? ci('wh_id')        : 5;
+  const iWHName   = ci('warehouse name') >= 0 ? ci('warehouse name') : 6;
+  const iQAScore  = ci('qa score') >= 0     ? ci('qa score')     : 7;
+  const iCluster  = ci('cluster') >= 0      ? ci('cluster')      : 8;
+  const iQuartile = ci('quartile qa') >= 0  ? ci('quartile qa')  : 9;
+
+  const metricsStart = iQuartile + 1;
+  const targetsStart = metricsStart + 18;
+  const criticsStart = targetsStart + 9;
+
+
+  // Parsear fechas: "30-Mar", "18-May", "5/18/2026", "2026-05-18"
+  const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,
+                  aug:7,sep:8,oct:9,nov:10,dec:11};
+  function parseWeekDate(str) {
+    if (!str) return null;
+    str = str.trim();
+    // "5/18/2026" M/D/YYYY
+    const slash = str.split('/');
+    if (slash.length === 3) {
+      const [m,d,y] = slash.map(Number);
+      if (!isNaN(m)&&!isNaN(d)&&!isNaN(y)) return new Date(y, m-1, d);
+    }
+    // "30-Mar" o "18-May" D-Mon (sin año → usar año actual 2026)
+    const dash = str.split('-');
+    if (dash.length === 2) {
+      const day = parseInt(dash[0]);
+      const mon = MONTHS[(dash[1]||'').toLowerCase().substring(0,3)];
+      if (!isNaN(day) && mon !== undefined) return new Date(2026, mon, day);
+    }
+    // "2026-05-18" ISO
+    const iso = new Date(str);
+    return isNaN(iso.getTime()) ? null : iso;
+  }
+
+  // Agrupar por tienda
+  const byStore = {};
+  for (const row of rows.slice(hdrIdx + 1)) {
+    const keyVal = (row[iKey]||'').trim();
+    if (!keyVal) continue;
+    const pais = normCC(row[iPais]||'');
+    const whId = normWH(row[iWH]||'');
+    if (!pais || !whId || whId === 'NaN') continue;
+    const k = pais + '_' + whId;
+    const weekDate = parseWeekDate(row[iWeek]||'');
+    if (!weekDate) continue;
+    if (!byStore[k]) byStore[k] = [];
+    byStore[k].push({ weekDate, row });
+  }
+
+  // Lunes pasado
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dow = today.getDay();
+  const daysBack = dow === 0 ? 6 : dow - 1;
+  const thisMonday = new Date(today); thisMonday.setDate(today.getDate() - daysBack);
+  const lastMonday = new Date(thisMonday); lastMonday.setDate(thisMonday.getDate() - 7);
+  const prevMonday = new Date(lastMonday);  prevMonday.setDate(lastMonday.getDate() - 7);
+  const dateStr = d => d.toISOString().substring(0,10);
+  const sameDay = (a,b) => dateStr(a) === dateStr(b);
+
+  qaMap = {};
+  for (const [k, entries] of Object.entries(byStore)) {
+    const past = entries.filter(e => e.weekDate <= lastMonday);
+    past.sort((a,b) => b.weekDate - a.weekDate);
+    if (!past.length) continue;
+
+    const thisEntry = past.find(e => sameDay(e.weekDate, lastMonday)) || past[0];
+    const prevEntry = past.find(e => sameDay(e.weekDate, prevMonday)) || past[1] || past[0];
+
+    const row     = thisEntry.row;
+    const rowPrev = prevEntry.row;
+    const pais    = normCC(row[iPais]||'');
+    const whId    = normWH(row[iWH]||'');
+    const rawScore = (row[iQAScore]||'').toString().replace(',','.');
+    const qaScore  = parseFloat(rawScore) || 0;
+
+    const metrics = QA_METRICS.map((name, i) => ({
+      name,
+      value:  (row[metricsStart + i*2]               || '').trim(),
+      score:  parseFloat(row[metricsStart + i*2 + 1]) || 0,
+      target: (row[targetsStart + i]                  || '').trim(),
+      critic: (row[criticsStart + i]                  || '').trim().toLowerCase() === 'critic'
+    }));
+
+    // Log selected week for first stores
+    if (Object.keys(qaMap).length < 5) {
+        '| thisWeek:', dateStr(thisEntry.weekDate),
+        '| rawScore:', row[iQAScore],
+        '| cluster:', rowPrev[iCluster],
+        '| past weeks:', past.map(e=>dateStr(e.weekDate)));
+    }
+    qaMap[k] = {
+      key:         (row[iKey]    ||'').trim(),
+      emailZL:     (row[iEmailZL]||'').trim(),
+      week:        dateStr(thisEntry.weekDate),
+      weekDate:    thisEntry.weekDate,
+      pais, whId,
+      city:        (row[iCity]   ||'').trim(),
+      whName:      (row[iWHName] ||'').trim(),
+      qaScore,
+      quartile:    (row[iQuartile]||'').trim(),
+      metrics,
+      cluster:     (rowPrev[iCluster]||'').trim(),
+      clusterWeek: dateStr(prevEntry.weekDate),
+    };
+  }
+}
+
+
+function processRecepcion(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows);
+  const objs = toObjs(rows, hIdx);
+  recepMap = {};
+  for (const r of objs) {
+    const pais = normCC(r['PAIS'] || r['PAÍS'] || r['País'] || r['COUNTRY'] || '');
+    const wh   = normWH(r['WAREHOUSE_ID'] || r['WH_ID'] || '');
+    if (!pais || !wh || wh==='NaN') continue;
+    recepMap[pais+'_'+wh] = r;
+  }
+}
+
+function processZonas(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows);
+  const objs = toObjs(rows, hIdx);
+  zonasMap = {};
+  for (const r of objs) {
+    const cc = normCC(r['COUNTRY'] || r['COUNTRY_CODE'] || r['PAIS'] || r['PAÍS'] || '');
+    const wh = normWH(r['WAREHOUSE_ID'] || r['WH_ID'] || '');
+    if (!cc || !wh || wh==='NaN') continue;
+    zonasMap[cc+'_'+wh] = r;
+  }
+}
+
+// ===================== HELPERS =====================
+function clusterDO(s) {
+  const n = parseFloat(s)||0;
+  if (n >= 0.9) return { label:'Gold',   emoji:'🥇', cls:'gold'   };
+  if (n >= 0.8) return { label:'Silver', emoji:'🥈', cls:'silver' };
+  return              { label:'Bronze', emoji:'🥉', cls:'bronze' };
+}
+function clusterQA(label) {
+  const l = (label||'').toLowerCase();
+  if (l === 'gold')   return { label:'Gold',   emoji:'🥇', cls:'gold'   };
+  if (l === 'silver') return { label:'Silver', emoji:'🥈', cls:'silver' };
+  return                    { label:'Bronze', emoji:'🥉', cls:'bronze' };
+}
+function scoreColor(s) {
+  const n = parseFloat(s)||0;
+  if (n >= 0.9) return 'var(--green)';
+  if (n >= 0.8) return 'var(--yellow)';
+  return 'var(--red)';
+}
+function qaColor(s) {
+  if (s >= 85) return 'var(--green)';
+  if (s >= 70) return 'var(--yellow)';
+  return 'var(--red)';
+}
+function storeName(r) {
+  return r.WAREHOUSENAME || r.WAREHOUSE_NAME || r.warehousename || r._k;
+}
+function nextHintDO(score) {
+  const n = parseFloat(score)||0;
+  if (n >= 0.9) return '🏆 ¡Mantén el Gold!';
+  if (n >= 0.8) return `📈 ${Math.ceil((0.9-n)*100)}% más para Gold`;
+  return `🎯 ${Math.ceil((0.8-n)*100)}% más para Silver`;
+}
+function nextHintQA(cluster, cnt) {
+  const l = (cluster||'').toLowerCase();
+  if (l === 'gold') return '🏆 ¡Mantén el Gold! ✓';
+  const dest = l === 'silver' ? 'Gold' : 'Silver';
+  return `📈 Mejora ${cnt} métrica${cnt!==1?'s':''} crítica${cnt!==1?'s':''} para ${dest}`;
+}
+function fmtPct(val) { return Math.round((parseFloat(val)||0)*100)+'%'; }
+
+// ===================== FILTERS =====================
+function filteredStores() {
+  return Object.values(storeMap).filter(r => {
+    const zl = zlMap[r._k];
+    if (!zl || !zl.lead) return false;
+    if (state.pais && r._cc !== state.pais) return false;
+    if (state.zl && zl.lead !== state.zl) return false;
+    return true;
+  }).sort((a,b) => (parseFloat(a.DIS_OPS)||0) - (parseFloat(b.DIS_OPS)||0));
+}
+
+function buildFilters() {
+  const stores = Object.values(storeMap).filter(r => { const z=zlMap[r._k]; return z&&z.lead; });
+  const countries = [...new Set(stores.map(r => r._cc))].sort();
+  const pSel = document.getElementById('sel-pais');
+  pSel.innerHTML = '<option value="">🌎 País</option>' +
+    countries.map(c => `<option value="${c}">${c}</option>`).join('');
+  rebuildZL(); rebuildTienda();
+}
+
+function rebuildZL() {
+  const cc = state.pais;
+  const stores = Object.values(storeMap).filter(r => {
+    if (cc && r._cc !== cc) return false;
+    const z = zlMap[r._k]; return z&&z.lead;
+  });
+  const leads = [...new Set(stores.map(r => zlMap[r._k]?.lead||''))].filter(Boolean).sort();
+  const zlSel = document.getElementById('sel-zl');
+  zlSel.innerHTML = '<option value="">👤 Zone Lead</option>' +
+    leads.map(l => `<option value="${l}">${l}</option>`).join('');
+  if (!leads.includes(state.zl)) state.zl = '';
+  zlSel.value = state.zl;
+}
+
+function rebuildTienda() {
+  const stores = filteredStores();
+  const tSel = document.getElementById('sel-tienda');
+  tSel.innerHTML = '<option value="">🏪 Tienda</option>' +
+    stores.map(r => `<option value="${r._k}">${storeName(r)} (${r._cc})</option>`).join('');
+  if (!stores.find(r => r._k === state.tienda)) state.tienda = '';
+  tSel.value = state.tienda;
+}
+
+// ===================== RENDER =====================
+function showLoading(v) { document.getElementById('loading').style.display = v ? 'block' : 'none'; }
+
+function renderView() {
+  showLoading(false);
+  if (state.tienda) renderDetail(state.tienda);
+  else renderList();
+}
+
+function renderList() {
+  const detail = document.getElementById('store-detail');
+  const list   = document.getElementById('store-list');
+  detail.style.display = 'none';
+  const stores = filteredStores();
+
+  if (!stores.length) {
+    list.innerHTML = '<div class="empty">No hay tiendas para este filtro.<br>Verifica que el sheet tenga datos publicados.</div>';
+    list.style.display = 'block'; return;
+  }
+
+  // Totals strip
+  const goldCount   = stores.filter(r => (parseFloat(r.DIS_OPS)||0) >= 0.9).length;
+  const silverCount = stores.filter(r => { const n=parseFloat(r.DIS_OPS)||0; return n>=0.8&&n<0.9; }).length;
+  const bronzeCount = stores.filter(r => (parseFloat(r.DIS_OPS)||0) < 0.8).length;
+  const avgDO = stores.reduce((s,r) => s+(parseFloat(r.DIS_OPS)||0),0)/stores.length;
+
+  const strip = `<div class="totals-strip">
+    <div class="t-item"><div class="t-num">${stores.length}</div><div class="t-label">Tiendas</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num">${fmtPct(avgDO)}</div><div class="t-label">Prom DO</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num" style="color:#F59E0B">${goldCount}</div><div class="t-label">🥇 Gold</div></div>
+    <div class="t-item"><div class="t-num" style="color:#94A3B8">${silverCount}</div><div class="t-label">🥈 Silver</div></div>
+    <div class="t-item"><div class="t-num" style="color:#FB923C">${bronzeCount}</div><div class="t-label">🥉 Bronze</div></div>
+  </div>`;
+
+  const cards = stores.map(r => {
+    const doScore = parseFloat(r.DIS_OPS)||0;
+    const doC = clusterDO(doScore);
+    const qa  = qaMap[r._k];
+    const zl  = zlMap[r._k];
+    const qaC = qa ? clusterQA(qa.cluster) : null;
+
+    return `<div class="store-card" onclick="selectStore('${r._k}')">
+      <div class="store-card-top">
+        <div class="store-card-name">${storeName(r)}</div>
+        <span class="cbadge ${doC.cls}">${doC.emoji} ${doC.label}</span>
+      </div>
+      <div class="store-card-meta">${r._cc}${zl?.lead ? ' · '+zl.lead : ''}</div>
+      <div class="store-card-scores">
+        <div class="score-row-item">
+          <div class="score-row-label">Disc Ops</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${Math.min(doScore*100,100)}%;background:${scoreColor(doScore)}"></div></div>
+          <div class="score-row-num" style="color:${scoreColor(doScore)}">${Math.round(doScore*100)}%</div>
+        </div>
+        ${qa ? `<div class="score-row-item">
+          <div class="score-row-label">QA ${qaC.emoji}</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${Math.min(qa.qaScore,100)}%;background:${qaColor(qa.qaScore)}"></div></div>
+          <div class="score-row-num" style="color:${qaColor(qa.qaScore)}">${qa.qaScore.toFixed(1)}</div>
+        </div>` : `<div class="score-row-item"><div class="score-row-label" style="color:#bbb">QA</div><div style="font-size:10px;color:#bbb">sin datos</div></div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  list.innerHTML = strip + cards;
+  list.style.display = 'block';
+}
+
+function selectStore(k) {
+  state.tienda = k;
+  document.getElementById('sel-tienda').value = k;
+  renderDetail(k);
+  window.scrollTo(0,0);
+}
+
+function goBack() {
+  state.tienda = '';
+  document.getElementById('sel-tienda').value = '';
+  renderList();
+  window.scrollTo(0,0);
+}
+
+function renderDetail(k) {
+  const list   = document.getElementById('store-list');
+  const detail = document.getElementById('store-detail');
+  list.style.display = 'none';
+
+  const r     = storeMap[k];
+  const qa    = qaMap[k];
+  const recep = recepMap[k];
+  const zonas = zonasMap[k];
+  const zl    = zlMap[k];
+
+  if (!r) { detail.innerHTML='<div class="empty">Tienda no encontrada.</div>'; detail.style.display='block'; return; }
+
+  const doScore = parseFloat(r.DIS_OPS)||0;
+  const doC = clusterDO(doScore);
+  const qaC = qa ? clusterQA(qa.cluster) : null;
+
+  let html = `<button class="back-btn" onclick="goBack()">← Volver</button>`;
+
+  // --- HEADER CARD ---
+  html += `<div class="sec">
+    <div class="detail-header">
+      <div class="detail-name">${storeName(r)}</div>
+      <div class="detail-meta">${r._cc}${r._wh?' · WH '+r._wh:''}${zl?.lead?' · '+zl.lead:''}${r.SEMANA?' · Sem '+r.SEMANA.substring(0,10):''}</div>
+      <div class="scores-2col">
+        <div class="score-big-card">
+          <div class="score-big-label">Disc Ops</div>
+          <div class="score-big-num" style="color:${scoreColor(doScore)}">${Math.round(doScore*100)}%</div>
+          <span class="cbadge ${doC.cls}">${doC.emoji} ${doC.label}</span>
+          <div class="score-big-hint">${nextHintDO(doScore)}</div>
+        </div>
+        ${qa ? `<div class="score-big-card">
+          <div class="score-big-label">QA Score · sem. ${qa.week ? qa.week.substring(0,10) : ''}</div>
+          <div class="score-big-num" style="color:${qaColor(qa.qaScore)}">${qa.qaScore.toFixed(1)}</div>
+          <span class="cbadge ${clusterQA(qa.cluster).cls}">${clusterQA(qa.cluster).emoji} ${qa.cluster} <span style="font-weight:400;opacity:0.7">sem. ${qa.clusterWeek ? qa.clusterWeek.substring(0,10) : ''}</span></span>
+          <div class="score-big-hint">${qa.quartile ? qa.quartile.replace(/Q(\d)/,'Cuartil $1') : ''}</div>
+        </div>` : `<div class="score-big-card" style="opacity:0.4">
+          <div class="score-big-label">QA Score</div>
+          <div class="score-big-num">—</div>
+          <div class="score-big-hint">Sin datos QA</div>
+        </div>`}
+      </div>
+    </div>
+  </div>`;
+
+  // --- QA CRÍTICAS ---
+  if (qa) {
+    const EXCL = ['SO System','ONA','Total Stockouts'];
+    const critics = qa.metrics.filter(m => m.critic && !EXCL.includes(m.name));
+    const nonCritics = qa.metrics.filter(m => !m.critic && !EXCL.includes(m.name));
+    html += `<div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">🔴 Métricas Críticas QA</div>
+        <div class="sec-sub">${nextHintQA(qa.cluster, critics.length)} · métricas sem. ${qa.week ? qa.week.substring(0,10) : ''}</div>
+      </div>
+      <div class="sec-body">`;
+
+    if (critics.length === 0) {
+      html += `<div style="padding:10px;text-align:center;color:var(--green);font-weight:700;font-size:13px">✅ Sin métricas críticas esta semana</div>`;
+    } else {
+      html += `<div class="critic-list">` +
+        critics.map(m => `<div class="critic-item">
+          <div class="critic-item-name">${m.name}</div>
+          <div class="critic-item-vals">
+            <span>Actual: <strong>${m.value}</strong></span>
+            <span style="color:var(--green)">Target: <strong>${m.target}</strong></span>
+          </div>
+          <div class="critic-score-bar"><div class="critic-score-fill" style="width:${Math.min(m.score,100)}%"></div></div>
+        </div>`).join('') + `</div>`;
+    }
+
+    if (nonCritics.length && critics.length) {
+      html += `<div style="margin-top:8px;font-size:10px;color:var(--gray)">✅ OK: ${nonCritics.map(m=>m.name).join(' · ')}</div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // --- DISC OPS BREAKDOWN ---
+  const metricsDO = [
+    { label:'Surtido',       val: parseFloat(r.PROGRESS_SURTIDO)||0,    weight:'40%' },
+    { label:'SO Cíclico',    val: parseFloat(r.PROGRESS_CYCLIC_SO)||0,  weight:'20%' },
+    { label:'Fruver / Saneo',val: parseFloat(r.DISC_FRUVER)||0,         weight:'20%' },
+    { label:'Cíclicos',      val: parseFloat(r.PROGRESS_CYCLICS)||0,    weight:'5%'  },
+  ];
+  const offSku = parseInt(r.OFF_SKU)||0;
+  const offOk  = offSku <= 5;
+  const zonasN  = zonas ? parseInt(zonas['ZONAS_PICKING_EN_CERO']||zonas['ZONAS PICKING EN CERO']||0)||0 : null;
+
+  html += `<div class="sec">
+    <div class="sec-header"><div class="sec-title">📦 Disciplina Operativa</div></div>
+    <div class="sec-body">
+      ${metricsDO.map(m => `<div class="metric-row">
+        <div class="metric-label">${m.label} <span class="metric-weight">${m.weight}</span></div>
+        <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${Math.min(m.val*100,100)}%;background:${scoreColor(m.val)}"></div></div>
+        <div class="metric-pct" style="color:${scoreColor(m.val)}">${Math.round(m.val*100)}%</div>
+      </div>`).join('')}
+      <div class="metric-row">
+        <div class="metric-label">Apagados <span class="metric-weight">15%</span></div>
+        <span class="off-pill ${offOk?'off-ok':'off-bad'}">${offOk?'✓':'✗'} ${offSku} SKUs apagados</span>
+      </div>
+      ${zonasN !== null ? `<div class="section-row" style="margin-top:10px">
+        <div class="zonas-info" style="flex:1;margin-top:0">
+          <div class="zonas-num">${zonasN}</div>
+          <div class="zonas-desc">zonas de picking en 0</div>
+        </div>
+        <button class="btn-detalle" onclick="openDetZonas('${k}')">
+          🔍 Ver detalle
+        </button>
+      </div>` : `<div style="margin-top:8px">
+        <button class="btn-detalle" onclick="openDetZonas('${k}')">
+          🔍 Ver detalle zonas
+        </button>
+      </div>`}
+    </div>
+  </div>`;
+
+  // --- RECEPCION ---
+  if (recep) {
+    const total   = recep['TOTAL_ORDENES'] || '0';
+    const cerradas= recep['CERRADAS'] || '0';
+    const vencidas= recep['VENCIDAS'] || '0';
+    const abiertas= recep['ABIERTAS'] || '0';
+    let pct = recep['PCT_CERRADAS'] || '—';
+    // format pct
+    const pctNum = parseFloat(pct);
+    if (!isNaN(pctNum)) {
+      pct = pctNum < 1 ? Math.round(pctNum*100)+'%' : Math.round(pctNum)+'%';
+    }
+
+    html += `<div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">📋 Recepción <span style="font-size:10px;color:var(--gray);font-weight:400;margin-left:4px">últimos 7 días</span></div>
+        <div class="sec-sub">Verificación de facturas con novedad</div>
+      </div>
+      <div class="sec-body">
+        <div class="recep-grid">
+          <div class="recep-item">
+            <div class="recep-num">${total}</div>
+            <div class="recep-lbl">Total</div>
+          </div>
+          <div class="recep-item green">
+            <div class="recep-num">${cerradas}</div>
+            <div class="recep-lbl">Cerradas</div>
+          </div>
+          <div class="recep-item red">
+            <div class="recep-num">${vencidas}</div>
+            <div class="recep-lbl">Vencidas</div>
+          </div>
+          <div class="recep-item yellow">
+            <div class="recep-num">${abiertas}</div>
+            <div class="recep-lbl">Abiertas</div>
+          </div>
+          <div class="recep-item blue">
+            <div class="recep-num">${pct}</div>
+            <div class="recep-lbl">% Cerradas</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div style="height:24px"></div>`;
+  detail.innerHTML = html;
+  detail.style.display = 'block';
+}
+
+// ===================== EVENTS =====================
+document.getElementById('sel-pais').addEventListener('change', e => {
+  state.pais = e.target.value; state.zl = ''; state.tienda = '';
+  rebuildZL(); rebuildTienda(); renderView();
+});
+document.getElementById('sel-zl').addEventListener('change', e => {
+  state.zl = e.target.value; state.tienda = '';
+  rebuildTienda(); renderView();
+});
+document.getElementById('sel-tienda').addEventListener('change', e => {
+  state.tienda = e.target.value; renderView();
+});
+
+
+
+// ===================== LOAD =====================
+async function loadAll() {
+  showLoading(true);
+  document.getElementById('store-list').style.display = 'none';
+  document.getElementById('store-detail').style.display = 'none';
+  try {
+    const [detTxt, zlTxt, qaTxt, recTxt, zonTxt] = await Promise.all([
+      fetch(csvUrl(GID.detalles)).then(r=>r.text()),
+      fetch(csvUrl(GID.zl)).then(r=>r.text()),
+      fetch(csvUrl(GID.qa)).then(r=>r.text()),
+      fetch(csvUrl(GID.recepcion)).then(r=>r.text()),
+      fetch(csvUrl(GID.zonas)).then(r=>r.text()),
+    ]);
+    processDetalles(detTxt);
+    processZL(zlTxt);
+    processQA(qaTxt);
+    processRecepcion(recTxt);
+    processZonas(zonTxt);
+    buildFilters();
+
+    // DEBUG: log key matches (remove after confirming)
+    const zlKeys = Object.keys(zlMap);
+    const detKeys = Object.keys(storeMap);
+    const matched = detKeys.filter(k => zlMap[k]?.lead);
+    const unmatched = detKeys.filter(k => !zlMap[k]?.lead);
+    console.log('[TurboOps] DETALLES keys:', detKeys.length, '| ZL keys:', zlKeys.length, '| Matched:', matched.length);
+    if (unmatched.length) console.log('[TurboOps] Sin ZL match (primeros 10):', unmatched.slice(0,10));
+    if (zlKeys.length) console.log('[TurboOps] ZL keys (primeros 10):', zlKeys.slice(0,10));
+    if (detKeys.length) console.log('[TurboOps] DETALLES keys (primeros 10):', detKeys.slice(0,10));
+
+    renderView();
+  } catch(e) {
+    showLoading(false);
+    const el = document.getElementById('loading');
+    el.style.display = 'block';
+    el.innerHTML = '<div style="font-size:24px;margin-bottom:8px">⚠️</div>Error al cargar los datos.<br>Verifica que el sheet esté publicado en todos los países.';
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
