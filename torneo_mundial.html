@@ -360,7 +360,8 @@ select option { background: var(--dark-mid); }
 <!-- CONTRASEÑA -->
 <div id="lock-screen" style="
   position:fixed;inset:0;background:#0d1b12;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
   z-index:9999;padding:24px;
 ">
   <div style="font-family:'Bebas Neue',cursive;font-size:36px;color:#FFD700;margin-bottom:8px">⚽ TurboOps</div>
@@ -382,9 +383,13 @@ select option { background: var(--dark-mid); }
 </div>
 
 <script>
-  const PASS = 'turbo2026'; // ← cambia esto por la que quieras
-  if (sessionStorage.getItem('turboAuth') === '1') {
-    document.getElementById('lock-screen').style.display = 'none';
+  // Corre inmediatamente — el div ya existe en el DOM porque está arriba
+  const PASS = 'turbo2026';
+  const lockEl = document.getElementById('lock-screen');
+  if (sessionStorage.getItem('turboAuth') !== '1') {
+    lockEl.style.display = 'flex';
+  } else {
+    lockEl.style.display = 'none';
   }
   function checkPwd() {
     if (document.getElementById('pwd-input').value === PASS) {
