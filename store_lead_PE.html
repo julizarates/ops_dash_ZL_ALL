@@ -99,6 +99,47 @@ select:focus{border-color:#999}
 </script>
 </head>
 <body>
+  <!-- CONTRASEÑA -->
+<div id="lock-screen" style="
+  position:fixed;inset:0;background:#F5F4F0;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;padding:24px;
+">
+  <div style="font-size:22px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px">Turbo<b style="color:#E24B4A">Ops</b></div>
+  <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#aaa;margin-bottom:28px">Store Lead Dashboard</div>
+  <input id="pwd-input" type="password" placeholder="Contraseña"
+    style="width:100%;max-width:280px;padding:10px 14px;border-radius:8px;
+    border:1px solid #DDD;background:#fff;color:#111;
+    font-size:15px;font-family:'Figtree',sans-serif;text-align:center;margin-bottom:10px;outline:none;"
+    onkeydown="if(event.key==='Enter')checkPwd()"
+  >
+  <button onclick="checkPwd()" style="
+    width:100%;max-width:280px;padding:10px;border-radius:8px;
+    background:#E24B4A;color:#fff;font-weight:700;font-size:14px;
+    border:none;cursor:pointer;font-family:'Figtree',sans-serif;
+  ">Entrar</button>
+  <div id="pwd-error" style="color:#E24B4A;font-size:12px;margin-top:10px;display:none">
+    Contraseña incorrecta
+  </div>
+</div>
+
+<script>
+  const PASS = 'turbo2026';
+  const lockEl = document.getElementById('lock-screen');
+  if (sessionStorage.getItem('turboAuth') !== '1') {
+    lockEl.style.display = 'flex';
+  }
+  function checkPwd() {
+    if (document.getElementById('pwd-input').value === PASS) {
+      sessionStorage.setItem('turboAuth', '1');
+      lockEl.style.display = 'none';
+    } else {
+      document.getElementById('pwd-error').style.display = 'block';
+      document.getElementById('pwd-input').value = '';
+    }
+  }
+</script>
 <div class="hdr">
   <div style="display:flex;align-items:center">
     <span class="logo">Turbo<b>Ops</b></span>
