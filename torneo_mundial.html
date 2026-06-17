@@ -357,7 +357,45 @@ select option { background: var(--dark-mid); }
 </script>
 </head>
 <body>
+<!-- CONTRASEÑA -->
+<div id="lock-screen" style="
+  position:fixed;inset:0;background:#0d1b12;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;padding:24px;
+">
+  <div style="font-family:'Bebas Neue',cursive;font-size:36px;color:#FFD700;margin-bottom:8px">⚽ TurboOps</div>
+  <div style="font-size:13px;color:#8aab8f;margin-bottom:24px">Copa de Tiendas 2026</div>
+  <input id="pwd-input" type="password" placeholder="Contraseña"
+    style="width:100%;max-width:280px;padding:10px 14px;border-radius:10px;
+    border:1px solid #2d4a33;background:#1c2e20;color:#fff;
+    font-size:15px;font-family:inherit;text-align:center;margin-bottom:10px;"
+    onkeydown="if(event.key==='Enter')checkPwd()"
+  >
+  <button onclick="checkPwd()" style="
+    width:100%;max-width:280px;padding:10px;border-radius:10px;
+    background:#FFD700;color:#000;font-weight:800;font-size:14px;
+    border:none;cursor:pointer;font-family:inherit;
+  ">Entrar</button>
+  <div id="pwd-error" style="color:#E24B4A;font-size:12px;margin-top:10px;display:none">
+    Contraseña incorrecta
+  </div>
+</div>
 
+<script>
+  const PASS = 'turbo2026'; // ← cambia esto por la que quieras
+  if (sessionStorage.getItem('turboAuth') === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+  }
+  function checkPwd() {
+    if (document.getElementById('pwd-input').value === PASS) {
+      sessionStorage.setItem('turboAuth','1');
+      document.getElementById('lock-screen').style.display = 'none';
+    } else {
+      document.getElementById('pwd-error').style.display = 'block';
+      document.getElementById('pwd-input').value = '';
+    }
+  }
+</script>
 <!-- HEADER -->
 <div class="header">
   <div class="header-inner">
