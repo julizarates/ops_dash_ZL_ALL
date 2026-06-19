@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TurboOps MX · Forecast vs Real</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0F1117;--sur:#181C26;--card:#1E2330;--bor:#2A3040;
+  --tx:#E8EAF0;--dim:#7A8299;--xs:#4E5670;
+  --gr:#22C55E;--grb:rgba(34,197,94,.10);
+  --ye:#F59E0B;--yeb:rgba(245,158,11,.10);
+  --re:#EF4444;--reb:rgba(239,68,68,.10);
+  --bl:#3B82F6;--blb:rgba(59,130,246,.10);
+  --or:#F97316;
+  --ac:#6366F1;--acb:rgba(99,102,241,.12);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Figtree',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;min-height:100vh}
+
+.hdr{background:var(--sur);border-bottom:1px solid var(--bor);padding:10px 14px;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.logo{font-size:18px;font-weight:900;letter-spacing:-.5px}
+.logo em{font-style:normal;color:var(--ac)}
+.hdr-r{flex:1;text-align:right}
+.hdr-lbl{font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+.hdr-dt{font-size:11px;color:var(--ac);font-weight:700;margin-top:1px}
+
+.pg{padding:10px 12px;max-width:640px;margin:0 auto}
+.spin-wrap{text-align:center;padding:48px 24px;color:var(--dim);font-size:13px}
+.spinner{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.fw{position:relative;margin-bottom:8px}
+.fw::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--dim);pointer-events:none}
+select{width:100%;padding:7px 22px 7px 9px;border:1px solid var(--bor);border-radius:8px;background:var(--card);font-family:inherit;font-size:12px;color:var(--tx);appearance:none;cursor:pointer;font-weight:600}
+select:focus{outline:none;border-color:var(--ac)}
+select option{background:var(--sur)}
+
+.strip{display:flex;background:var(--card);border:1px solid var(--bor);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.si{flex:1;padding:10px 6px;text-align:center;border-right:1px solid var(--bor)}
+.si:last-child{border-right:none}
+.sn{font-size:16px;font-weight:900;line-height:1}
+.sl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+
+.card{background:var(--card);border:1px solid var(--bor);border-radius:var(--r);margin-bottom:8px;overflow:hidden}
+
+.st{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;display:flex;align-items:center;gap:6px}
+.st::after{content:'';flex:1;height:1px;background:var(--bor)}
+
+/* day table */
+.day-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.day-tbl{border-collapse:collapse;min-width:100%}
+.day-tbl th{font-size:8px;color:var(--dim);padding:4px 5px;text-align:center;font-weight:700;white-space:nowrap;border-bottom:1px solid var(--bor);position:sticky;top:0;background:var(--card)}
+.day-tbl th.lbl{text-align:left;min-width:90px;padding-left:10px}
+.day-tbl td{padding:3px 5px;text-align:center;font-size:10px;font-weight:700;white-space:nowrap;border-bottom:1px solid rgba(42,48,64,.4)}
+.day-tbl td.lbl{text-align:left;font-size:9px;font-weight:700;color:var(--dim);padding-left:10px;text-transform:uppercase;letter-spacing:.3px}
+.day-tbl td.empty-h{background:rgba(255,255,255,.02);color:transparent}
+
+/* date header rows */
+.day-tbl tr.date-hdr td{background:rgba(99,102,241,.08);border-top:2px solid rgba(99,102,241,.3)}
+.day-tbl tr.date-hdr td.date-lbl{font-size:11px;font-weight:900;color:var(--ac);padding-left:10px;text-align:left}
+
+/* row tints */
+.row-fc  td:not(.lbl){color:var(--dim)}
+.row-real td:not(.lbl):not(.empty-h){color:var(--bl)}
+.row-pk  td:not(.lbl):not(.empty-h){color:var(--or)}
+.row-avg td:not(.lbl):not(.empty-h){color:var(--ye)}
+.row-ocp td:not(.lbl):not(.empty-h){color:var(--gr)}
+
+/* delta pill inline */
+.dp{display:inline-block;padding:1px 4px;border-radius:3px;font-size:9px;font-weight:800}
+.dp-g{background:rgba(34,197,94,.18);color:var(--gr)}
+.dp-r{background:rgba(239,68,68,.18);color:var(--re)}
+.dp-n{background:rgba(99,102,241,.18);color:var(--ac)}
+
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.ins{background:var(--card);border:1px solid var(--bor);border-radius:var(--r);padding:10px 12px}
+.ins-lbl{font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.ins-val{font-size:14px;font-weight:800;line-height:1.2}
+.ins-sub{font-size:10px;color:var(--dim);margin-top:3px}
+
+.empty{text-align:center;padding:32px;color:var(--dim);font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <span style="font-size:18px">🇲🇽</span>
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="hdr-r">
+    <div class="hdr-lbl">Forecast vs Real</div>
+    <div class="hdr-dt" id="hdt">—</div>
+  </div>
+</div>
+
+<div class="pg">
+  <div id="loading" class="spin-wrap"><div class="spinner"></div>Cargando datos...</div>
+  <div id="main" style="display:none"></div>
+</div>
+
+<script>
+const PUB = '2PACX-1vSjvn2pYoqZE7P3McgTyxBFVVwHJ4twsjYek6ozjErLjRqLbIbaRy7n8XUtL-05nynBmGwFpnQ-H45d';
+const GID = '1885728971';
+const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB}/pub?gid=${GID}&single=true&output=csv`;
+
+let D = [], fT = '';
+const safe = u => fetch(u).then(r => r.ok ? r.text() : '').catch(() => '');
+
+function parseCSV(txt) {
+  if (!txt) return [];
+  return txt.replace(/\r/g, '').split('\n').map(line => {
+    const row = []; let c = '', q = false;
+    for (let i = 0; i <= line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { q = !q; }
+      else if ((ch === ',' || ch === undefined) && !q) { row.push(c); c = ''; }
+      else c += (ch || '');
+    }
+    return row;
+  }).filter(r => r.some(x => x !== ''));
+}
+
+function parse(txt) {
+  const rows = parseCSV(txt);
+  if (rows.length < 2) return [];
+  const kw = ['warehouse','tienda','fecha','hora','predicted','ordenes','delta','pickers','avg'];
+  let hi = 0, bestScore = -1;
+  for (let i = 0; i < Math.min(rows.length, 25); i++) {
+    const r = rows[i].map(c => (c || '').trim().toLowerCase());
+    const nonEmpty = r.filter(c => c).length;
+    const hasKW = r.some(c => kw.some(k => c.includes(k)));
+    if (nonEmpty >= 3 && hasKW && nonEmpty > bestScore) { bestScore = nonEmpty; hi = i; }
+  }
+  const hdr = rows[hi].map(h => (h || '').trim().toUpperCase());
+  return rows.slice(hi + 1).filter(r => r.some(c => c))
+    .map(r => Object.fromEntries(hdr.map((k, i) => [k, (r[i] || '').trim()])));
+}
+
+const gf = (r, ...keys) => {
+  for (const k of keys) {
+    if (r[k] !== undefined && r[k] !== '') return r[k];
+  }
+  return '';
+};
+const gt   = r => gf(r, 'WAREHOUSE_NAME', 'TIENDA');
+const gw   = r => gf(r, 'WAREHOUSE_ID');
+const gdate= r => gf(r, 'FECHA');
+const ghora= r => parseInt(gf(r, 'HORA')) || 0;
+const greal= r => parseFloat(gf(r, 'ORDENES_REALES')) || 0;
+const gfc  = r => parseFloat(gf(r, 'PREDICTED')) || 0;
+const gdel = r => parseFloat(gf(r, 'DELTA')) || 0;
+const gpk  = r => parseFloat(gf(r, 'PICKERS_CONECTADOS')) || 0;
+const gavg = r => parseFloat(gf(r, 'AVG_IN_STORE')) || 0;
+
+const n    = (v, d = 0) => { const x = parseFloat(v) || 0; return d ? x.toFixed(d) : Math.round(x).toLocaleString(); };
+const uniq = (arr, fn) => [...new Set(arr.map(fn).filter(Boolean))].sort();
+
+function render() {
+  const el = document.getElementById('main');
+  const tiendas = uniq(D, gt);
+  if (!fT && tiendas.length) fT = tiendas[0];
+
+  const data = D.filter(r => gt(r) === fT);
+  const dias  = uniq(data, gdate);
+
+  // build cell map
+  const mp = {};
+  for (const r of data) {
+    const k = `${gdate(r)}_${ghora(r)}`;
+    if (!mp[k]) mp[k] = { real: 0, fc: 0, delta: 0, pk: 0, avg: 0, cnt: 0 };
+    mp[k].real  += greal(r);
+    mp[k].fc    += gfc(r);
+    mp[k].delta += gdel(r);
+    mp[k].pk    += gpk(r);
+    mp[k].avg   += gavg(r);
+    mp[k].cnt++;
+  }
+
+  // per-dia totals
+  const byDia = {};
+  for (const dia of dias) {
+    byDia[dia] = { real: 0, fc: 0, delta: 0, pk: 0, avg: [], avgSum: 0, avgCnt: 0 };
+    for (let h = 0; h < 24; h++) {
+      const c = mp[`${dia}_${h}`];
+      if (!c) continue;
+      byDia[dia].real  += c.real;
+      byDia[dia].fc    += c.fc;
+      byDia[dia].delta += c.delta;
+      byDia[dia].pk    += c.pk;
+      if (c.avg > 0) { byDia[dia].avgSum += c.avg; byDia[dia].avgCnt++; }
+    }
+    byDia[dia].avgVal = byDia[dia].avgCnt > 0 ? byDia[dia].avgSum / byDia[dia].avgCnt : 0;
+    byDia[dia].ocxpk  = byDia[dia].pk > 0 ? byDia[dia].real / byDia[dia].pk : 0;
+  }
+
+  // global totals
+  const totReal  = dias.reduce((s, d) => s + byDia[d].real, 0);
+  const totFC    = dias.reduce((s, d) => s + byDia[d].fc, 0);
+  const totPK    = dias.reduce((s, d) => s + byDia[d].pk, 0);
+  const totOCxPK = totPK > 0 ? totReal / totPK : 0;
+  const globDelta = totReal - totFC;
+  const globAvgCnt = dias.filter(d => byDia[d].avgCnt > 0).length;
+  const globAvg = globAvgCnt > 0 ? dias.reduce((s, d) => s + byDia[d].avgVal, 0) / globAvgCnt : 0;
+
+  // worst/best day
+  const diasSorted = [...dias].sort((a, b) => byDia[a].delta - byDia[b].delta);
+  const worstDay = diasSorted[0];
+  const bestDay  = diasSorted[diasSorted.length - 1];
+
+  const wh = gw(data[0]) || '';
+
+  // build hour table rows per day
+  function makeRows(dia) {
+    const bd = byDia[dia];
+    const HORAS = Array.from({length:24},(_,i)=>i);
+
+    const fcCells   = HORAS.map(h => { const c=mp[`${dia}_${h}`]; return c ? `<td>${n(c.fc,0)}</td>` : '<td class="empty-h"></td>'; }).join('');
+    const realCells = HORAS.map(h => { const c=mp[`${dia}_${h}`]; return c ? `<td>${n(c.real)}</td>` : '<td class="empty-h"></td>'; }).join('');
+    const pkCells   = HORAS.map(h => { const c=mp[`${dia}_${h}`]; return c ? `<td>${Math.round(c.pk)}</td>` : '<td class="empty-h"></td>'; }).join('');
+    const avgCells  = HORAS.map(h => { const c=mp[`${dia}_${h}`]; return c && c.avg>0 ? `<td>${c.avg.toFixed(2)}</td>` : '<td class="empty-h"></td>'; }).join('');
+    const ocpCells  = HORAS.map(h => {
+      const c=mp[`${dia}_${h}`];
+      if(!c||c.pk===0) return '<td class="empty-h"></td>';
+      return `<td>${(c.real/c.pk).toFixed(1)}</td>`;
+    }).join('');
+
+    // totals col
+    const delta = bd.real - bd.fc;
+    const dpCls = delta>0?'dp-g':delta<0?'dp-r':'dp-n';
+    const dpTxt = delta>0?'+'+n(delta):n(delta);
+    const ocxpkColor = bd.ocxpk<5?'var(--re)':bd.ocxpk<10?'var(--ye)':'var(--gr)';
+    const avgColor   = bd.avgVal>0?(bd.avgVal<8?'var(--gr)':bd.avgVal<12?'var(--ye)':'var(--re)'):'var(--xs)';
+
+    return `
+      <tr class="date-hdr">
+        <td class="date-lbl" colspan="${1+24+1}">📅 ${dia.substring(5)} &nbsp;<span class="dp ${dpCls}">${dpTxt} vs FC</span></td>
+      </tr>
+      <tr class="row-fc">
+        <td class="lbl">Forecast</td>
+        ${fcCells}
+        <td style="color:var(--dim);font-weight:800">${n(bd.fc)}</td>
+      </tr>
+      <tr class="row-real">
+        <td class="lbl">Real</td>
+        ${realCells}
+        <td style="color:var(--bl);font-weight:800">${n(bd.real)}</td>
+      </tr>
+      <tr class="row-pk">
+        <td class="lbl">Pickers</td>
+        ${pkCells}
+        <td style="color:var(--or);font-weight:800">${Math.round(bd.pk)}</td>
+      </tr>
+      <tr class="row-avg">
+        <td class="lbl">Avg in-store</td>
+        ${avgCells}
+        <td style="color:${avgColor};font-weight:800">${bd.avgVal>0?bd.avgVal.toFixed(2):'—'}</td>
+      </tr>
+      <tr class="row-ocp">
+        <td class="lbl">OC / Picker</td>
+        ${ocpCells}
+        <td style="color:${ocxpkColor};font-weight:800">${bd.ocxpk.toFixed(1)}</td>
+      </tr>`;
+  }
+
+  const precisionColor = Math.abs(globDelta/(totFC||1))<0.1?'var(--gr)':Math.abs(globDelta/(totFC||1))<0.2?'var(--ye)':'var(--re)';
+
+  el.innerHTML = `
+  <div class="fw">
+    <select onchange="fT=this.value;render()">
+      ${tiendas.map(t=>`<option value="${t}" ${fT===t?'selected':''}>${t}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="strip">
+    <div class="si"><div class="sn" style="color:var(--bl)">${n(totReal)}</div><div class="sl">OC Reales</div></div>
+    <div class="si"><div class="sn" style="color:var(--dim)">${n(totFC)}</div><div class="sl">Forecast</div></div>
+    <div class="si"><div class="sn" style="color:${globDelta>=0?'var(--gr)':'var(--re)'}">${globDelta>=0?'+':''}${n(globDelta)}</div><div class="sl">Δ Total</div></div>
+    <div class="si"><div class="sn" style="color:var(--ye)">${totOCxPK.toFixed(1)}</div><div class="sl">OC/Picker</div></div>
+  </div>
+
+  <div class="ins-grid">
+    <div class="ins">
+      <div class="ins-lbl">📉 Peor día</div>
+      <div class="ins-val" style="color:var(--re)">${worstDay?worstDay.substring(5):'—'}</div>
+      <div class="ins-sub">${worstDay?(byDia[worstDay].delta>=0?'+':'')+n(byDia[worstDay].delta)+' vs forecast':''}</div>
+    </div>
+    <div class="ins">
+      <div class="ins-lbl">📈 Mejor día</div>
+      <div class="ins-val" style="color:var(--gr)">${bestDay?bestDay.substring(5):'—'}</div>
+      <div class="ins-sub">${bestDay?(byDia[bestDay].delta>=0?'+':'')+n(byDia[bestDay].delta)+' vs forecast':''}</div>
+    </div>
+    <div class="ins">
+      <div class="ins-lbl">⏱ Avg in-store</div>
+      <div class="ins-val" style="color:var(--ye)">${globAvg.toFixed(2)} min</div>
+      <div class="ins-sub">Promedio tiempo en tienda</div>
+    </div>
+    <div class="ins">
+      <div class="ins-lbl">🎯 Precisión forecast</div>
+      <div class="ins-val" style="color:${precisionColor}">${totFC>0?(100-Math.abs(globDelta/totFC)*100).toFixed(1)+'%':'—'}</div>
+      <div class="ins-sub">1 − |Δ| / Forecast</div>
+    </div>
+  </div>
+
+  ${!dias.length ? '<div class="empty">Sin datos para esta tienda.</div>' : `
+  <div class="card"><div class="day-wrap"><table class="day-tbl">
+    <thead><tr>
+      <th class="lbl">Métrica</th>
+      ${Array.from({length:24},(_,i)=>`<th>${i}</th>`).join('')}
+      <th style="color:var(--ac);font-size:8px;min-width:36px">Total</th>
+    </tr></thead>
+    <tbody>${dias.map(makeRows).join('')}</tbody>
+  </table></div></div>
+  <div style="font-size:10px;color:var(--dim);padding:2px 0 8px">WH ${wh} · OC/Picker = total OC ÷ total pickers del día</div>
+  `}
+  `;
+}
+
+async function load() {
+  try {
+    const txt = await safe(csvUrl);
+    D = parse(txt);
+
+    // fecha range en header
+    const fechas = uniq(D, gdate);
+    if (fechas.length) {
+      document.getElementById('hdt').textContent =
+        fechas[0].substring(5) + ' – ' + fechas[fechas.length - 1].substring(5);
+    }
+
+    console.log('[Forecast MX] rows:', D.length);
+    if (D[0]) console.log('[cols]', Object.keys(D[0]));
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    render();
+  } catch (e) {
+    document.getElementById('loading').innerHTML =
+      `<div style="font-size:24px;margin-bottom:8px">⚠️</div>${e.message}`;
+  }
+}
+load();
+</script>
+</body>
+</html>
