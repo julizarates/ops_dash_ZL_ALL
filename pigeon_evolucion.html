@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pigeon · Evolución de Tiempos</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F0EFEB;color:#111;font-family:'Figtree',sans-serif;font-size:15px;line-height:1.4;min-height:100vh}
+
+.hdr{background:#fff;border-bottom:2px solid #E5E4DF;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-size:22px;font-weight:900;letter-spacing:-.5px}.logo b{color:#E24B4A}
+.tags{display:flex;gap:6px;align-items:center;margin-left:10px}
+.tag{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:3px 10px;border-radius:8px;border:1px solid}
+.tag-evo{background:#FFF8E1;color:#E65100;border-color:#FFE082}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:6px;font-size:13px;color:#999}
+.dot{width:9px;height:9px;border-radius:50%;background:#ccc}.dot.ok{background:#4CAF50}
+.btn{font-size:13px;font-weight:700;padding:7px 16px;border:1.5px solid #DDD;border-radius:8px;background:#fff;cursor:pointer;font-family:'Figtree',sans-serif}.btn:hover{background:#F5F4F0}
+.btn-back{background:#F0EFEB;border-color:#DDD;color:#555}
+
+/* FILTROS */
+.filters{background:#fff;border-bottom:2px solid #E5E4DF;padding:10px 28px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;position:sticky;top:62px;z-index:49}
+.filter-col{display:flex;flex-direction:column;gap:5px}
+.filter-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#bbb}
+
+/* METRIC SELECTOR */
+.metric-pills{display:flex;gap:6px;flex-wrap:wrap}
+.mpill{font-size:11px;font-weight:700;padding:5px 13px;border-radius:8px;border:1.5px solid #E5E4DF;background:#F5F4F0;color:#888;cursor:pointer;transition:all .12s}
+.mpill:hover{border-color:#bbb;color:#444}
+.mpill.on{color:#fff}
+
+/* DROPDOWN */
+.ms-wrap{position:relative}
+.ms-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px;border:1.5px solid #E5E4DF;border-radius:9px;background:#fff;cursor:pointer;font-size:12px;font-weight:700;color:#555;font-family:'Figtree',sans-serif;min-width:160px;transition:border-color .15s}
+.ms-trigger:hover{border-color:#bbb}
+.ms-trigger.open{border-color:#888}
+.ms-arrow{font-size:10px;color:#bbb;transition:transform .15s}
+.ms-trigger.open .ms-arrow{transform:rotate(180deg)}
+.ms-badge{background:#E24B4A;color:#fff;border-radius:99px;font-size:10px;font-weight:800;padding:1px 6px;margin-left:2px}
+.ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:100%;max-height:280px;overflow-y:auto;background:#fff;border:1.5px solid #E5E4DF;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:200;display:none}
+.ms-dropdown.open{display:block}
+.ms-search{padding:8px 10px;border-bottom:1px solid #F0EFEB}
+.ms-search input{width:100%;border:1.5px solid #E5E4DF;border-radius:7px;padding:5px 9px;font-size:12px;font-family:'Figtree',sans-serif;outline:none;color:#333}
+.ms-search input:focus{border-color:#aaa}
+.ms-actions{display:flex;border-bottom:1px solid #F0EFEB}
+.ms-act-btn{flex:1;padding:6px;font-size:11px;font-weight:700;color:#888;background:none;border:none;cursor:pointer;font-family:'Figtree',sans-serif}
+.ms-act-btn:hover{color:#333}
+.ms-act-btn+.ms-act-btn{border-left:1px solid #F0EFEB}
+.ms-item{display:flex;align-items:center;gap:9px;padding:7px 12px;cursor:pointer;font-size:12px;font-weight:600;color:#444;transition:background .1s}
+.ms-item:hover{background:#F5F4F0}
+.ms-item.checked{color:#111;font-weight:700}
+.ms-chk{width:14px;height:14px;border-radius:4px;border:1.5px solid #DDD;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px}
+.ms-item.checked .ms-chk{border-color:var(--cc,#555);background:var(--cc,#555);color:#fff}
+.ms-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ms-divider{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#bbb;padding:8px 12px 4px}
+.sep-v{width:1px;background:#E5E4DF;align-self:stretch;margin:0 4px}
+
+.wrap{padding:20px 28px 40px;max-width:1500px;margin:0 auto}
+.ld{display:flex;align-items:center;justify-content:center;gap:12px;padding:80px;color:#aaa;font-size:18px}
+.sp{width:22px;height:22px;border:3px solid #E0DFD9;border-top-color:#E24B4A;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:#FFF5F5;border:2px solid #F7C1C1;border-radius:12px;padding:16px 20px;color:#A32D2D;font-weight:600;margin:20px 28px}
+
+.sec-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#bbb;margin-bottom:8px;margin-top:18px;padding-left:2px}
+.sec-title:first-child{margin-top:0}
+
+/* SUMMARY ROW */
+.summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:1000px){.summary-row{grid-template-columns:repeat(3,1fr)}}
+.skpi{background:#fff;border:2px solid #E5E4DF;border-radius:14px;padding:14px 16px;border-left:5px solid var(--c,#ccc)}
+.skpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#aaa;margin-bottom:4px}
+.skpi-val{font-size:26px;font-weight:900;letter-spacing:-1px;line-height:1;color:var(--c,#111)}
+.skpi-sub{font-size:11px;color:#888;margin-top:3px}
+
+/* CHART GRID — por país */
+.country-section{margin-bottom:28px}
+.country-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.country-badge{font-size:12px;font-weight:800;padding:4px 14px;border-radius:99px;color:#fff}
+.country-stat{font-size:12px;color:#aaa;font-weight:600}
+
+/* grid de tiendas */
+.stores-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(420px,1fr))}
+.store-card{background:#fff;border:2px solid #E5E4DF;border-radius:14px;padding:16px 18px}
+.store-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.store-name{font-size:13px;font-weight:800;color:#333}
+.store-stats{display:flex;gap:10px}
+.sstat{display:flex;flex-direction:column;align-items:flex-end}
+.sstat-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#bbb}
+.sstat-val{font-size:13px;font-weight:800;color:#555}
+
+/* TABLA RESUMEN DIARIO */
+.card{background:#fff;border:2px solid #E5E4DF;border-radius:14px;padding:18px 22px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#888;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 10px;text-align:right;color:#aaa;font-size:10px;border-bottom:2px solid #E5E4DF;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+th:first-child,th:nth-child(2),th:nth-child(3){text-align:left}
+td{padding:6px 10px;text-align:right;border-bottom:1px solid #F0EFEB;font-weight:600}
+td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
+tr:hover td{background:#FAFAF8}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
+.bco{background:#E3F2FD;color:#1565C0;border:1px solid #BBDEFB}
+.bbr{background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9}
+.bpe{background:#FFF8E1;color:#E65100;border:1px solid #FFE082}
+.bmx{background:#F3E5F5;color:#6A1B9A;border:1px solid #CE93D8}
+.bcl{background:#FCE4EC;color:#880E4F;border:1px solid #F48FB1}
+.no-data{padding:40px;text-align:center;color:#aaa;font-size:14px}
+.trend-up{color:#A32D2D}
+.trend-dn{color:#2E7D32}
+.trend-eq{color:#aaa}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">
+    <span class="logo">Turbo<b>Ops</b></span>
+    <div class="tags">
+      <span class="tag tag-evo">📈 Pigeon · Evolución de Tiempos</span>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span class="live"><span class="dot" id="dot"></span><span id="upd">Cargando...</span></span>
+    <button class="btn" onclick="loadAll()">↺ Refrescar</button>
+  </div>
+</div>
+
+<div class="filters" id="filters" style="display:none">
+  <!-- Métrica a visualizar -->
+  <div class="filter-col">
+    <div class="filter-label">Métrica</div>
+    <div class="metric-pills" id="metric-pills"></div>
+  </div>
+  <div class="sep-v"></div>
+  <!-- País -->
+  <div class="filter-col">
+    <div class="filter-label">País</div>
+    <div class="ms-wrap" id="ms-country">
+      <button class="ms-trigger" onclick="toggleDD('ms-country')">
+        <span id="ms-country-label">Todos</span>
+        <span class="ms-arrow">▼</span>
+      </button>
+      <div class="ms-dropdown" id="ms-country-dd"></div>
+    </div>
+  </div>
+  <div class="sep-v"></div>
+  <!-- Tienda -->
+  <div class="filter-col" style="min-width:200px">
+    <div class="filter-label">Tienda</div>
+    <div class="ms-wrap" id="ms-store">
+      <button class="ms-trigger" onclick="toggleDD('ms-store')">
+        <span id="ms-store-label">Todas</span>
+        <span class="ms-arrow">▼</span>
+      </button>
+      <div class="ms-dropdown" id="ms-store-dd"></div>
+    </div>
+  </div>
+  <div class="sep-v"></div>
+  <!-- Agrupación -->
+  <div class="filter-col">
+    <div class="filter-label">Ver por</div>
+    <div class="metric-pills">
+      <button class="mpill on" id="grp-fecha" style="background:#555;border-color:#555" onclick="setGroup('fecha')">Día</button>
+      <button class="mpill" id="grp-hora"  onclick="setGroup('hora')">Hora del día</button>
+    </div>
+  </div>
+</div>
+
+<div class="ld" id="gld"><div class="sp"></div>Leyendo datos...</div>
+<div class="err" id="err" style="display:none"></div>
+
+<div class="wrap" id="app" style="display:none">
+  <!-- Resumen global -->
+  <div class="sec-title">📊 Resumen del período — solo órdenes Pigeon</div>
+  <div class="summary-row" id="summary-row"></div>
+
+  <!-- Gráficos por país → tienda -->
+  <div class="sec-title" id="charts-title">📈 Evolución por tienda</div>
+  <div id="charts-area"></div>
+
+  <!-- Tabla resumen diario por tienda -->
+  <div class="card" id="table-card">
+    <div class="card-title" id="table-title">Resumen diario por tienda</div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr id="table-head"></tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const SID   = '1V2gV4YgV4FRwIAsNf6p-kv3Uy2wx5H7O3rInwZPTFsE';
+const AKEY  = 'AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+const SHEET = 'pigeon';
+
+const CM = {
+  CO:{label:'🇨🇴 CO',color:'#1565C0',cls:'bco'},
+  BR:{label:'🇧🇷 BR',color:'#2E7D32',cls:'bbr'},
+  PE:{label:'🇵🇪 PE',color:'#E65100',cls:'bpe'},
+  MX:{label:'🇲🇽 MX',color:'#6A1B9A',cls:'bmx'},
+  CL:{label:'🇨🇱 CL',color:'#880E4F',cls:'bcl'},
+};
+
+// Métricas disponibles
+const METRICS = [
+  {key:'postPig',  label:'Post-Pigeon',      color:'#FF8F00', desc:'Desde asignación casillero hasta que RT llega al store'},
+  {key:'hoYa',     label:'HO RT ya en tienda',color:'#4CAF50', desc:'Handover cuando RT ya esperaba en el store'},
+  {key:'hoNo',     label:'HO RT no llegado',  color:'#E24B4A', desc:'Handover cuando pedido esperó al RT'},
+  {key:'ctPP',     label:'CT Post-Pigeon',    color:'#00897B', desc:'Cycle time hasta casillero'},
+  {key:'ctHO',     label:'CT Handover',       color:'#F4511E', desc:'Cycle time total hasta entrega al RT'},
+  {key:'pigeo',    label:'OC Pigeon',         color:'#1565C0', desc:'Cantidad de órdenes Pigeon (volumen)'},
+  {key:'pctPig',   label:'% Pigeon',          color:'#6A1B9A', desc:'Porcentaje de órdenes vía Pigeon'},
+];
+
+let allData=[], charts={};
+let activeMetric='ctHO';
+let activeGroup='fecha'; // 'fecha' | 'hora'
+let activeCountries=new Set(), activeStoreKeys=new Set();
+
+const pf  = v=>{ const n=parseFloat((v||'').toString().replace(',','.')); return isNaN(n)?null:n; };
+const avg = a=>{ const f=a.filter(x=>x!==null&&!isNaN(x)); return f.length?f.reduce((s,v)=>s+v,0)/f.length:null; };
+const sum = a=>a.reduce((s,v)=>s+(v||0),0);
+const fmt = (n,d=1)=>(n===null||n===undefined||isNaN(n))?'—':(+n).toFixed(d);
+const wavg= (rows,field)=>{
+  if(field==='pigeo') return sum(rows.map(r=>r.pigeo));
+  if(field==='pctPig'){
+    const tot=sum(rows.map(r=>r.total)); const pig=sum(rows.map(r=>r.pigeo));
+    return tot?pig/tot*100:null;
+  }
+  const v=rows.filter(r=>r.pigeo>0&&r[field]!==null&&!isNaN(r[field]));
+  const tw=sum(v.map(r=>r.pigeo));
+  return tw?v.reduce((s,r)=>s+r[field]*r.pigeo,0)/tw:null;
+};
+const cv=(v,hi,lo)=>v===null||isNaN(v)?'#111':v>hi?'#A32D2D':v<lo?'#2E7D32':'#111';
+
+// Colores de líneas para tiendas dentro de un país
+const LINE_COLORS=['#1565C0','#E24B4A','#FF8F00','#6A1B9A','#00897B','#F4511E','#039BE5','#8D6E63','#546E7A','#2E7D32','#880E4F','#F57F17'];
+
+async function fetchSheet(name){
+  const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(name)}?key=${AKEY}`);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const json=await r.json(), rows=json.values||[];
+  const KNOWN=['HORA','FECHA','PAIS','COUNTRY','WAREHOUSE_ID','WAREHOUSEID','STORE_NAME',
+    'TOTAL_OC','OC_VENTANILLA','OC_PIGEON','AVG_ASSING_MIN','AVG_PICKING_MIN','AVG_PACKING_MIN',
+    'AVG_POST_PIGEON_MIN','AVG_HANDOVER_RT_YA_EN_TIENDA_MIN','AVG_HANDOVER_RT_NO_LLEGADO_MIN',
+    'OC_RT_YA_EN_TIENDA','OC_RT_NO_LLEGADO',
+    'AVG_CYCLE_TIME_POST_PIGEON_MIN','AVG_CYCLE_TIME_HANDOVER_MIN'];
+  let hi=rows.findIndex(row=>row.some(c=>KNOWN.includes((c||'').toString().trim().toUpperCase())));
+  if(hi<0) hi=0;
+  const hdrs=rows[hi];
+  return rows.slice(hi+1).filter(row=>row.some(c=>c&&c.toString().trim())).map(row=>{
+    const o={}; hdrs.forEach((h,i)=>{ o[h.trim().toUpperCase()]=(row[i]||'').toString().trim(); }); return o;
+  });
+}
+
+function parseHora(v){
+  const s=(v||'').toString().trim();
+  const tp=s.includes('T')?s.split('T')[1]:s.includes(' ')?s.split(' ')[1]:s;
+  return parseInt(tp)||0;
+}
+
+function parseRows(raw){
+  return raw.map(r=>{
+    const country=r.PAIS||r.COUNTRY||'';
+    const wh=r.WAREHOUSE_ID||r.WAREHOUSEID||'';
+    return {
+      country, wh,
+      storeKey: country+'§'+wh,
+      store: r.STORE_NAME||r.WAREHOUSE_NAME||wh,
+      fecha: (r.FECHA||'').split(' ')[0].split('T')[0],
+      hora:  parseHora(r.HORA),
+      total: parseInt(r.TOTAL_OC)||0,
+      vent:  parseInt(r.OC_VENTANILLA)||0,
+      pigeo: parseInt(r.OC_PIGEON)||0,
+      pctVent: pf(r.PCT_VENTANILLA),
+      pctPig:  pf(r.PCT_PIGEON),
+      assign:  pf(r.AVG_ASSING_MIN),
+      picking: pf(r.AVG_PICKING_MIN),
+      packing: pf(r.AVG_PACKING_MIN),
+      postPig: pf(r.AVG_POST_PIGEON_MIN),
+      hoYa:    pf(r.AVG_HANDOVER_RT_YA_EN_TIENDA_MIN),
+      hoNo:    pf(r.AVG_HANDOVER_RT_NO_LLEGADO_MIN),
+      ocYa:    parseInt(r.OC_RT_YA_EN_TIENDA)||0,
+      ocNo:    parseInt(r.OC_RT_NO_LLEGADO)||0,
+      ctPP:    pf(r.AVG_CYCLE_TIME_POST_PIGEON_MIN),
+      ctHO:    pf(r.AVG_CYCLE_TIME_HANDOVER_MIN),
+    };
+  }).filter(r=>r.fecha&&r.country);
+}
+
+// ── METRIC PILLS ─────────────────────────────────────
+function buildMetricPills(){
+  const el=document.getElementById('metric-pills');
+  el.innerHTML=METRICS.map(m=>`
+    <button class="mpill${m.key===activeMetric?' on':''}"
+      id="mp-${m.key}"
+      style="${m.key===activeMetric?`background:${m.color};border-color:${m.color}`:''}"
+      onclick="setMetric('${m.key}')">${m.label}</button>
+  `).join('');
+}
+
+function setMetric(key){
+  activeMetric=key;
+  buildMetricPills();
+  renderApp();
+}
+
+function setGroup(g){
+  activeGroup=g;
+  ['fecha','hora'].forEach(x=>{
+    const b=document.getElementById('grp-'+x);
+    if(x===g){ b.classList.add('on'); b.style.cssText='background:#555;border-color:#555;color:#fff'; }
+    else       { b.classList.remove('on'); b.style.cssText=''; }
+  });
+  renderApp();
+}
+
+// ── DROPDOWNS ─────────────────────────────────────────
+let openDD=null;
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ms-wrap')&&openDD){
+    document.getElementById(openDD+'-dd').classList.remove('open');
+    document.getElementById(openDD).querySelector('.ms-trigger').classList.remove('open');
+    openDD=null;
+  }
+});
+function toggleDD(id){
+  const dd=document.getElementById(id+'-dd');
+  const tr=document.getElementById(id).querySelector('.ms-trigger');
+  if(openDD&&openDD!==id){
+    document.getElementById(openDD+'-dd').classList.remove('open');
+    document.getElementById(openDD).querySelector('.ms-trigger').classList.remove('open');
+  }
+  dd.classList.toggle('open'); tr.classList.toggle('open');
+  openDD=dd.classList.contains('open')?id:null;
+}
+function setDDLabel(el,sel,total,all){
+  const n=sel.size;
+  el.innerHTML=(n===0||n===total)?all:`${n} sel. <span class="ms-badge">${n}</span>`;
+}
+
+function buildCountryDD(){
+  const countries=[...new Set(allData.map(r=>r.country))].sort();
+  const dd=document.getElementById('ms-country-dd');
+  const items=countries.map(c=>{
+    const m=CM[c]||{label:c,color:'#999'};
+    const on=activeCountries.has(c);
+    return `<div class="ms-item${on?' checked':''}" data-val="${c}" style="--cc:${m.color}" onclick="toggleCountry('${c}')">
+      <div class="ms-chk">${on?'✓':''}</div>
+      <div class="ms-dot" style="background:${m.color}"></div><span>${m.label}</span>
+    </div>`;
+  }).join('');
+  dd.innerHTML=`<div class="ms-actions">
+    <button class="ms-act-btn" onclick="selAllC()">Todo</button>
+    <button class="ms-act-btn" onclick="clrAllC()">Limpiar</button>
+  </div><div>`+items+`</div>`;
+  setDDLabel(document.getElementById('ms-country-label'),activeCountries,countries.length,'Todos los países');
+}
+
+function buildStoreDD(){
+  const byC={};
+  [...new Set(allData.map(r=>r.storeKey))].forEach(sk=>{
+    const row=allData.find(r=>r.storeKey===sk); if(!row) return;
+    if(!byC[row.country]) byC[row.country]=[];
+    byC[row.country].push({sk,store:row.store});
+  });
+  const allSK=new Set(allData.map(r=>r.storeKey));
+  let items='';
+  Object.keys(byC).sort().forEach(c=>{
+    const m=CM[c]||{label:c,color:'#999'};
+    const cOn=activeCountries.has(c);
+    items+=`<div class="ms-divider" style="color:${m.color}">${m.label}</div>`;
+    byC[c].sort((a,b)=>a.store.localeCompare(b.store)).forEach(({sk,store})=>{
+      const on=activeStoreKeys.has(sk);
+      items+=`<div class="ms-item${on?' checked':''}${!cOn?' ':''}" data-val="${store}"
+        style="--cc:${m.color};${!cOn?'opacity:.3;pointer-events:none':''}"
+        onclick="toggleStore('${sk}')">
+        <div class="ms-chk">${on?'✓':''}</div>
+        <div class="ms-dot" style="background:${m.color}40;border:1.5px solid ${m.color}"></div>
+        <span>${store}</span>
+      </div>`;
+    });
+  });
+  const dd=document.getElementById('ms-store-dd');
+  dd.innerHTML=`<div class="ms-search"><input type="text" placeholder="Buscar tienda..." oninput="filterDD('ms-store-dd',this.value)"></div>
+    <div class="ms-actions">
+      <button class="ms-act-btn" onclick="selAllS()">Todo</button>
+      <button class="ms-act-btn" onclick="clrAllS()">Limpiar</button>
+    </div><div>`+items+`</div>`;
+  setDDLabel(document.getElementById('ms-store-label'),activeStoreKeys,allSK.size,'Todas las tiendas');
+}
+
+function filterDD(id,q){
+  document.querySelectorAll(`#${id} .ms-item`).forEach(el=>{
+    el.style.display=(el.dataset.val||'').toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+
+function selAllC(){ allData.forEach(r=>{ activeCountries.add(r.country); activeStoreKeys.add(r.storeKey); }); buildCountryDD(); buildStoreDD(); renderApp(); }
+function clrAllC(){ activeCountries.clear(); activeStoreKeys.clear(); buildCountryDD(); buildStoreDD(); renderApp(); }
+function selAllS(){ allData.filter(r=>activeCountries.has(r.country)).forEach(r=>activeStoreKeys.add(r.storeKey)); buildStoreDD(); renderApp(); }
+function clrAllS(){ activeStoreKeys.clear(); buildStoreDD(); renderApp(); }
+function toggleCountry(c){
+  if(activeCountries.has(c)){ activeCountries.delete(c); allData.filter(r=>r.country===c).forEach(r=>activeStoreKeys.delete(r.storeKey)); }
+  else { activeCountries.add(c); allData.filter(r=>r.country===c).forEach(r=>activeStoreKeys.add(r.storeKey)); }
+  buildCountryDD(); buildStoreDD(); renderApp();
+}
+function toggleStore(sk){ activeStoreKeys.has(sk)?activeStoreKeys.delete(sk):activeStoreKeys.add(sk); buildStoreDD(); renderApp(); }
+
+// ── CHARTS ────────────────────────────────────────────
+const GC='#E5E4DF',TC='#aaa';
+const TIP={backgroundColor:'#fff',borderColor:'#E5E4DF',borderWidth:1,
+  titleColor:'#111',bodyColor:'#555',
+  titleFont:{family:'Figtree',size:12,weight:'bold'},bodyFont:{family:'Figtree',size:12}};
+
+function mkLine(id, labels, datasets, ylabel){
+  if(charts[id]) charts[id].destroy();
+  const el=document.getElementById(id); if(!el) return;
+  charts[id]=new Chart(el,{type:'line',data:{labels,datasets},options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:datasets.length>1,labels:{font:{family:'Figtree',size:11},color:'#555',boxWidth:12,padding:8}},
+      tooltip:{...TIP,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}${ylabel&&ylabel.includes('min')?' min':ylabel&&ylabel.includes('%')?'%':''}`}}
+    },
+    scales:{
+      x:{grid:{color:GC},ticks:{color:TC,font:{size:10,family:'Figtree'},maxRotation:45}},
+      y:{grid:{color:GC},ticks:{color:TC,font:{size:11,family:'Figtree'}},min:0,
+         title:{display:!!ylabel,text:ylabel||'',color:TC,font:{family:'Figtree',size:11}}}
+    }
+  }});
+}
+
+// ── RENDER ────────────────────────────────────────────
+function renderApp(){
+  const fd=allData.filter(r=>activeCountries.has(r.country)&&activeStoreKeys.has(r.storeKey));
+  if(!fd.length){
+    document.getElementById('summary-row').innerHTML='<div class="no-data" style="grid-column:1/-1">Sin datos</div>';
+    document.getElementById('charts-area').innerHTML='';
+    document.getElementById('table-body').innerHTML='';
+    return;
+  }
+
+  const pig=fd.filter(r=>r.pigeo>0);
+  const mMeta=METRICS.find(m=>m.key===activeMetric)||METRICS[0];
+  const isCount=activeMetric==='pigeo'||activeMetric==='pctPig';
+  const ylabel=isCount?(activeMetric==='pctPig'?'% Pigeon':'OC Pigeon'):'minutos';
+
+  // ── RESUMEN GLOBAL ──
+  const totPig=sum(pig.map(r=>r.pigeo));
+  const totOC =sum(fd.map(r=>r.total));
+  const dias=[...new Set(pig.map(r=>r.fecha))].sort();
+  const firstV=wavg(pig.filter(r=>r.fecha===dias[0]),activeMetric);
+  const lastV =wavg(pig.filter(r=>r.fecha===dias[dias.length-1]),activeMetric);
+  const trend = (firstV!==null&&lastV!==null&&dias.length>1)? ((lastV-firstV)/Math.abs(firstV||1)*100).toFixed(1) : null;
+  const globalV=wavg(pig,activeMetric);
+
+  document.getElementById('summary-row').innerHTML=`
+    <div class="skpi" style="--c:${mMeta.color}">
+      <div class="skpi-lbl">${mMeta.label} — global</div>
+      <div class="skpi-val">${fmt(globalV)}${activeMetric==='pctPig'?'%':activeMetric==='pigeo'?'':' min'}</div>
+      <div class="skpi-sub">promedio ponderado período completo</div>
+    </div>
+    <div class="skpi" style="--c:#4CAF50">
+      <div class="skpi-lbl">Primer día</div>
+      <div class="skpi-val">${fmt(firstV)}${activeMetric==='pctPig'?'%':activeMetric==='pigeo'?'':' min'}</div>
+      <div class="skpi-sub">${dias[0]||'—'}</div>
+    </div>
+    <div class="skpi" style="--c:#F4511E">
+      <div class="skpi-lbl">Último día</div>
+      <div class="skpi-val">${fmt(lastV)}${activeMetric==='pctPig'?'%':activeMetric==='pigeo'?'':' min'}</div>
+      <div class="skpi-sub">${dias[dias.length-1]||'—'}</div>
+    </div>
+    <div class="skpi" style="--c:${trend===null?'#aaa':parseFloat(trend)>0?'#A32D2D':'#2E7D32'}">
+      <div class="skpi-lbl">Variación</div>
+      <div class="skpi-val">${trend===null?'—':(parseFloat(trend)>0?'▲':'▼')+Math.abs(parseFloat(trend))+'%'}</div>
+      <div class="skpi-sub">primer → último día</div>
+    </div>
+    <div class="skpi" style="--c:#1565C0">
+      <div class="skpi-lbl">OC Pigeon totales</div>
+      <div class="skpi-val">${totPig.toLocaleString('es')}</div>
+      <div class="skpi-sub">${totOC?(totPig/totOC*100).toFixed(1):0}% del total · ${dias.length} día(s)</div>
+    </div>`;
+
+  // ── GRÁFICOS POR PAÍS → tiendas ──
+  const area=document.getElementById('charts-area');
+  area.innerHTML='';
+  // Destruir charts viejos
+  Object.keys(charts).forEach(k=>{ if(charts[k]){ charts[k].destroy(); delete charts[k]; } });
+
+  // Agrupar datos filtrados por país
+  const countries=[...new Set(fd.map(r=>r.country))].sort();
+  const groupKey=activeGroup; // 'fecha' o 'hora'
+
+  countries.forEach(country=>{
+    const cRows=fd.filter(r=>r.country===country);
+    const cPig=cRows.filter(r=>r.pigeo>0);
+    const meta=CM[country]||{label:country,color:'#999',cls:''};
+
+    // tiendas de este país
+    const storeKeys=[...new Set(cRows.map(r=>r.storeKey))].sort();
+    const storeNames=Object.fromEntries(storeKeys.map(sk=>[sk, cRows.find(r=>r.storeKey===sk)?.store||sk]));
+
+    // eje X = fechas únicas o horas
+    let xVals;
+    if(groupKey==='fecha') xVals=[...new Set(cRows.map(r=>r.fecha))].sort();
+    else xVals=[...new Set(cRows.map(r=>r.hora))].sort((a,b)=>a-b);
+
+    const xLabels=groupKey==='fecha'?xVals.map(f=>f.slice(5)):xVals.map(h=>h+':00');
+
+    // Sección por país
+    const sec=document.createElement('div');
+    sec.className='country-section';
+    const cVal=wavg(cPig,activeMetric);
+    sec.innerHTML=`<div class="country-hdr">
+      <span class="country-badge" style="background:${meta.color}">${meta.label}</span>
+      <span class="country-stat">${mMeta.label}: <strong>${fmt(cVal)}${activeMetric==='pctPig'?'%':activeMetric==='pigeo'?'':' min'}</strong> · ${sum(cPig.map(r=>r.pigeo)).toLocaleString('es')} OC Pigeon</span>
+    </div>`;
+
+    // Dos modos: si hay ≤3 tiendas → un solo chart con todas; si hay más → grid de cards individuales
+    if(storeKeys.length<=4){
+      // Un solo chart con todas las tiendas superpuestas
+      const wrapper=document.createElement('div');
+      wrapper.className='store-card';
+      wrapper.style.marginBottom='12px';
+      const cid='chart-'+country+'-all';
+      wrapper.innerHTML=`<canvas id="${cid}" style="height:220px"></canvas>`;
+      sec.appendChild(wrapper);
+      area.appendChild(sec);
+
+      const datasets=storeKeys.map((sk,i)=>{
+        const sRows=cPig.filter(r=>r.storeKey===sk);
+        const data=xVals.map(x=>{
+          const sub=sRows.filter(r=>r[groupKey]===x);
+          return sub.length?wavg(sub,activeMetric):null;
+        });
+        return {
+          label:storeNames[sk],
+          data,
+          borderColor:LINE_COLORS[i%LINE_COLORS.length],
+          backgroundColor:'transparent',
+          borderWidth:2.5,
+          pointRadius:4,
+          pointBackgroundColor:LINE_COLORS[i%LINE_COLORS.length],
+          tension:.3,
+          spanGaps:true,
+        };
+      });
+      setTimeout(()=>mkLine(cid,xLabels,datasets,ylabel),0);
+
+    } else {
+      // Grid de cards, una por tienda
+      const grid=document.createElement('div');
+      grid.className='stores-grid';
+      sec.appendChild(grid);
+      area.appendChild(sec);
+
+      storeKeys.forEach((sk,i)=>{
+        const sRows=cPig.filter(r=>r.storeKey===sk);
+        const totS=sum(sRows.map(r=>r.pigeo));
+        const avgV=wavg(sRows,activeMetric);
+        // trend de la tienda
+        const sDias=[...new Set(sRows.map(r=>r.fecha))].sort();
+        const s0=wavg(sRows.filter(r=>r.fecha===sDias[0]),activeMetric);
+        const s1=wavg(sRows.filter(r=>r.fecha===sDias[sDias.length-1]),activeMetric);
+        const sTrend=s0&&s1&&sDias.length>1?((s1-s0)/Math.abs(s0||1)*100).toFixed(0):null;
+        const tc=LINE_COLORS[i%LINE_COLORS.length];
+        const cid='chart-'+sk.replace(/[^a-z0-9]/gi,'-');
+
+        const card=document.createElement('div');
+        card.className='store-card';
+        card.innerHTML=`
+          <div class="store-card-hdr">
+            <span class="store-name">${storeNames[sk]}</span>
+            <div class="store-stats">
+              <div class="sstat">
+                <span class="sstat-lbl">${mMeta.label}</span>
+                <span class="sstat-val" style="color:${tc}">${fmt(avgV)}${activeMetric==='pctPig'?'%':activeMetric==='pigeo'?'':' min'}</span>
+              </div>
+              ${sTrend!==null?`<div class="sstat">
+                <span class="sstat-lbl">Variación</span>
+                <span class="sstat-val ${parseFloat(sTrend)>0?'trend-up':'trend-dn'}">${parseFloat(sTrend)>0?'▲':'▼'}${Math.abs(parseFloat(sTrend))}%</span>
+              </div>`:''}
+              <div class="sstat">
+                <span class="sstat-lbl">OC Pigeon</span>
+                <span class="sstat-val">${totS.toLocaleString('es')}</span>
+              </div>
+            </div>
+          </div>
+          <canvas id="${cid}" style="height:160px"></canvas>`;
+        grid.appendChild(card);
+
+        const data=xVals.map(x=>{
+          const sub=sRows.filter(r=>r[groupKey]===x);
+          return sub.length?wavg(sub,activeMetric):null;
+        });
+        setTimeout(()=>mkLine(cid,xLabels,[{
+          label:storeNames[sk], data,
+          borderColor:tc, backgroundColor:'transparent',
+          borderWidth:2.5, pointRadius:4, pointBackgroundColor:tc,
+          tension:.3, spanGaps:true,
+        }],ylabel),0);
+      });
+    }
+  });
+
+  // ── TABLA RESUMEN ──
+  const isHora=groupKey==='hora';
+  document.getElementById('table-title').textContent=isHora?'Resumen por hora del día':'Resumen diario por tienda';
+  const thead=document.getElementById('table-head');
+  thead.innerHTML=`<th>País</th><th>Tienda</th><th>${isHora?'Hora':'Fecha'}</th>
+    <th>OC Pigeon</th><th>${mMeta.label}</th>
+    ${!isCount?'<th>vs día anterior</th>':''}`;
+
+  const trows=[];
+  const countries2=[...new Set(fd.map(r=>r.country))].sort();
+  countries2.forEach(country=>{
+    const cRows=fd.filter(r=>r.country===country);
+    const storeKeys2=[...new Set(cRows.map(r=>r.storeKey))].sort();
+    storeKeys2.forEach(sk=>{
+      const sRows=cRows.filter(r=>r.storeKey===sk&&r.pigeo>0);
+      const storeName=cRows.find(r=>r.storeKey===sk)?.store||sk;
+      const xVals2=groupKey==='fecha'?[...new Set(sRows.map(r=>r.fecha))].sort():[...new Set(sRows.map(r=>r.hora))].sort((a,b)=>a-b);
+      let prevV=null;
+      xVals2.forEach((x,xi)=>{
+        const sub=sRows.filter(r=>r[groupKey]===x);
+        if(!sub.length) return;
+        const v=wavg(sub,activeMetric);
+        const oc=sum(sub.map(r=>r.pigeo));
+        const diff=(!isCount&&prevV!==null&&v!==null)?(v-prevV):null;
+        trows.push({country,storeName,x,oc,v,diff,xi});
+        prevV=v;
+      });
+    });
+  });
+
+  const m=METRICS.find(mm=>mm.key===activeMetric);
+  document.getElementById('table-body').innerHTML=trows.map(r=>{
+    const meta=CM[r.country]||{cls:'',color:'#999'};
+    const xLabel=groupKey==='fecha'?r.x.slice(5):(r.x+':00');
+    const diffCell=!isCount?`<td style="color:${r.diff===null?'#aaa':r.diff>0?'#A32D2D':'#2E7D32'};font-weight:700">${r.diff===null?'—':(r.diff>0?'▲':'▼')+fmt(Math.abs(r.diff))}</td>`:'';
+    return `<tr>
+      <td><span class="badge ${meta.cls}">${r.country}</span></td>
+      <td>${r.storeName}</td>
+      <td>${xLabel}</td>
+      <td>${r.oc.toLocaleString('es')}</td>
+      <td style="color:${!isCount?cv(r.v,activeMetric==='ctHO'?25:activeMetric==='ctPP'?20:activeMetric==='hoNo'?15:10,activeMetric==='ctHO'?8:activeMetric==='ctPP'?5:1):'#111'};font-weight:700">${fmt(r.v)}${activeMetric==='pctPig'?'%':activeMetric==='pigeo'?'':' min'}</td>
+      ${diffCell}
+    </tr>`;
+  }).join('');
+}
+
+async function loadAll(){
+  document.getElementById('dot').className='dot';
+  document.getElementById('upd').textContent='Cargando...';
+  document.getElementById('gld').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('filters').style.display='none';
+  document.getElementById('err').style.display='none';
+  try{
+    const raw=await fetchSheet(SHEET);
+    allData=parseRows(raw);
+    const countries=[...new Set(allData.map(r=>r.country))];
+    activeCountries=new Set(countries);
+    activeStoreKeys=new Set(allData.map(r=>r.storeKey));
+    buildMetricPills();
+    buildCountryDD();
+    buildStoreDD();
+    document.getElementById('filters').style.display='flex';
+    document.getElementById('gld').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('dot').className='dot ok';
+    document.getElementById('upd').textContent='Actualizado '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+    renderApp();
+  }catch(e){
+    document.getElementById('gld').style.display='none';
+    document.getElementById('err').style.display='block';
+    document.getElementById('err').textContent='Error: '+e.message;
+  }
+}
+loadAll();
+</script>
+</body>
+</html>
