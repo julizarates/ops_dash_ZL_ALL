@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Debug Pigeon Sheets</title>
+<style>
+body{font-family:monospace;padding:20px;background:#f5f5f5}
+pre{background:#fff;padding:16px;border:1px solid #ddd;border-radius:8px;overflow:auto;font-size:12px}
+h3{margin:16px 0 6px}
+.ok{color:green}.bad{color:red}
+</style>
+</head>
+<body>
+<h2>Debug — Pigeon Sheets</h2>
+<div id="out">Cargando...</div>
+<script>
+const SID  = '1V2gV4YgV4FRwIAsNf6p-kv3Uy2wx5H7O3rInwZPTFsE';
+const AKEY = 'AIzaSyAttY6mdOrj4ic3vYCyuFpAkiYx9HFrasg';
+
+async function go(){
+  const out = document.getElementById('out');
+  let html = '';
+
+  for(const sheet of ['antes','pigeon']){
+    try{
+      const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SID}/values/${encodeURIComponent(sheet)}?key=${AKEY}`);
+      const json = await r.json();
+      const rows = json.values||[];
+      html += `<h3>Sheet: "${sheet}" — ${rows.length} filas totales</h3>`;
+
+      // Mostrar primeras 3 filas raw
+      html += `<b>Primeras 3 filas raw:</b><pre>${JSON.stringify(rows.slice(0,3),null,2)}</pre>`;
+
+      // Detectar header row
+      const KNOWN=['PAIS','COUNTRY','WAREHOUSE_ID','WAREHOUSEID','STORE_NAME',
+        'TOTAL_OC','TOTAL_OC_BASELINE','OC_PIGEON','AVG_ASSING_MIN','AVG_PICKING_MIN',
+        'AVG_HANDOVER_TOTAL_MIN','AVG_POST_PIGEON_MIN','AVG_CYCLE_TIME_HANDOVER_MIN',
+        'AVG_HANDOVER_RT_YA_EN_TIENDA_MIN'];
+      let hi = rows.findIndex(row=>row.some(c=>KNOWN.includes((c||'').toString().trim().toUpperCase())));
+      html += `<b>Header row detectada en índice: <span class="${hi>=0?'ok':'bad'}">${hi}</span></b><br>`;
+
+      if(hi>=0){
+        html += `<b>Headers encontrados:</b><pre>${JSON.stringify(rows[hi],null,2)}</pre>`;
+        // Mostrar primera fila de datos
+        if(rows[hi+1]) html += `<b>Primera fila de datos:</b><pre>${JSON.stringify(rows[hi+1],null,2)}</pre>`;
+      }
+    }catch(e){
+      html += `<h3 class="bad">Error en "${sheet}": ${e.message}</h3>`;
+    }
+  }
+  out.innerHTML = html;
+}
+go();
+</script>
+</body>
+</html>
