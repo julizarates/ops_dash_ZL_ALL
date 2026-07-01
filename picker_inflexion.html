@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboOps MX · OC/Picker vs Tiempo</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --bg:#0F1117;--sur:#181C26;--card:#1E2330;--bor:#2A3040;
+  --tx:#E8EAF0;--dim:#7A8299;--xs:#4E5670;
+  --gr:#22C55E;--ye:#F59E0B;--re:#EF4444;--bl:#3B82F6;--or:#F97316;
+  --ac:#6366F1;--acb:rgba(99,102,241,.12);--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Figtree',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh}
+
+.hdr{background:var(--sur);border-bottom:1px solid var(--bor);padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.logo{font-size:18px;font-weight:900;letter-spacing:-.5px}
+.logo em{font-style:normal;color:var(--ac)}
+.hdr-r{flex:1;text-align:right;font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+
+.pg{padding:12px;max-width:980px;margin:0 auto}
+.spin-wrap{text-align:center;padding:48px 24px;color:var(--dim);font-size:13px}
+.spinner{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.fw{position:relative;margin-bottom:8px}
+.fw::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--dim);pointer-events:none}
+select{width:100%;padding:7px 22px 7px 9px;border:1px solid var(--bor);border-radius:8px;background:var(--card);font-family:inherit;font-size:12px;color:var(--tx);appearance:none;cursor:pointer;font-weight:600}
+select:focus{outline:none;border-color:var(--ac)}
+select option{background:var(--sur)}
+
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+
+.strip{display:flex;background:var(--card);border:1px solid var(--bor);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.si{flex:1;padding:10px 6px;text-align:center;border-right:1px solid var(--bor)}
+.si:last-child{border-right:none}
+.sn{font-size:18px;font-weight:900;line-height:1}
+.sl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+
+.card{background:var(--card);border:1px solid var(--bor);border-radius:var(--r);margin-bottom:10px;overflow:hidden;padding:14px}
+.card-title{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--bor)}
+
+/* scatter */
+#scatter-wrap{width:100%;overflow:hidden}
+svg text{font-family:'Figtree',sans-serif}
+
+/* umbral badge */
+.umbral-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;width:100%}
+.ub-icon{font-size:20px}
+.ub-txt{flex:1}
+.ub-main{font-size:13px;font-weight:800;color:var(--re)}
+.ub-sub{font-size:10px;color:var(--dim);margin-top:2px}
+
+.rec-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:10px 14px;margin-bottom:10px;width:100%}
+.rb-main{font-size:13px;font-weight:800;color:var(--gr)}
+.rb-sub{font-size:10px;color:var(--dim);margin-top:2px}
+
+/* bucket table */
+.bt{width:100%;border-collapse:collapse}
+.bt th{font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;padding:5px 8px;border-bottom:1px solid var(--bor);text-align:left}
+.bt th.r{text-align:right}
+.bt td{padding:7px 8px;font-size:12px;font-weight:700;border-bottom:1px solid rgba(42,48,64,.5)}
+.bt tr:last-child td{border-bottom:none}
+.bt td.r{text-align:right}
+.bar-wrap{display:flex;align-items:center;gap:6px}
+.bar-bg{flex:1;height:6px;background:var(--bor);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+
+.tooltip-box{position:fixed;background:var(--sur);border:1px solid var(--bor);border-radius:8px;padding:8px 10px;font-size:11px;pointer-events:none;z-index:999;display:none;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.tooltip-box strong{color:var(--ac)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <span style="font-size:18px">🇲🇽</span>
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="hdr-r">OC/Picker · Punto de inflexión</div>
+</div>
+
+<div class="pg">
+  <div id="loading" class="spin-wrap"><div class="spinner"></div>Cargando datos...</div>
+  <div id="main" style="display:none"></div>
+</div>
+
+<div class="tooltip-box" id="tip"></div>
+
+<script>
+const PUB = '2PACX-1vSjvn2pYoqZE7P3McgTyxBFVVwHJ4twsjYek6ozjErLjRqLbIbaRy7n8XUtL-05nynBmGwFpnQ-H45d';
+const GID = '1885728971';
+const csvUrl = `https://docs.google.com/spreadsheets/d/e/${PUB}/pub?gid=${GID}&single=true&output=csv`;
+
+let D = [], fT = 'TODAS';
+
+const safe = u => fetch(u).then(r => r.ok ? r.text() : '').catch(() => '');
+
+function parseCSV(txt) {
+  if (!txt) return [];
+  return txt.replace(/\r/g,'').split('\n').map(line => {
+    const row=[]; let c='',q=false;
+    for(let i=0;i<=line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){q=!q;}
+      else if((ch===','||ch===undefined)&&!q){row.push(c);c='';}
+      else c+=(ch||'');
+    }
+    return row;
+  }).filter(r=>r.some(x=>x!==''));
+}
+
+function parse(txt) {
+  const rows=parseCSV(txt);
+  if(rows.length<2) return [];
+  const kw=['warehouse','fecha','hora','predicted','ordenes','pickers','avg'];
+  let hi=0,best=-1;
+  for(let i=0;i<Math.min(rows.length,25);i++){
+    const r=rows[i].map(c=>(c||'').trim().toLowerCase());
+    const ne=r.filter(c=>c).length;
+    const hk=r.some(c=>kw.some(k=>c.includes(k)));
+    if(ne>=3&&hk&&ne>best){best=ne;hi=i;}
+  }
+  const hdr=rows[hi].map(h=>(h||'').trim().toUpperCase());
+  return rows.slice(hi+1).filter(r=>r.some(c=>c))
+    .map(r=>Object.fromEntries(hdr.map((k,i)=>[k,(r[i]||'').trim()])));
+}
+
+const gf  = (r,...ks)=>{for(const k of ks){if(r[k]!==undefined&&r[k]!=='')return r[k];}return '';};
+const gt  = r=>gf(r,'WAREHOUSE_NAME','TIENDA');
+const n   = (v,d=0)=>{const x=parseFloat(v)||0;return d?x.toFixed(d):Math.round(x).toLocaleString();};
+const uniq= (arr,fn)=>[...new Set(arr.map(fn).filter(Boolean))].sort();
+
+// Regresión lineal simple
+function linReg(pts) {
+  const N=pts.length; if(N<3) return null;
+  const mx=pts.reduce((s,p)=>s+p.x,0)/N;
+  const my=pts.reduce((s,p)=>s+p.y,0)/N;
+  const num=pts.reduce((s,p)=>s+(p.x-mx)*(p.y-my),0);
+  const den=pts.reduce((s,p)=>s+(p.x-mx)**2,0);
+  if(den===0) return null;
+  const slope=num/den, intercept=my-slope*mx;
+  // R²
+  const ssTot=pts.reduce((s,p)=>s+(p.y-my)**2,0);
+  const ssRes=pts.reduce((s,p)=>s+(p.y-(slope*p.x+intercept))**2,0);
+  const r2=ssTot>0?1-ssRes/ssTot:0;
+  return {slope,intercept,r2,mx,my};
+}
+
+// Encontrar umbral: donde la pendiente se "dispara" — punto donde avg_in_store supera media+0.5*std
+function findInflexion(pts) {
+  if(pts.length<5) return null;
+  // agrupar en buckets de 1 OC/picker
+  const buckets={};
+  for(const p of pts){
+    const b=Math.floor(p.x);
+    if(!buckets[b]) buckets[b]=[];
+    buckets[b].push(p.y);
+  }
+  const bk=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  const avgY=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+  const stdY=Math.sqrt(pts.reduce((s,p)=>s+(p.y-avgY)**2,0)/pts.length);
+  // primer bucket donde el avg supera mean + 0.5*std
+  for(const b of bk){
+    const arr=buckets[b];
+    const bAvg=arr.reduce((s,v)=>s+v,0)/arr.length;
+    if(bAvg>avgY+0.5*stdY) return b;
+  }
+  return bk[bk.length-1];
+}
+
+function buildPoints(data) {
+  return data
+    .map(r=>({
+      tienda: gt(r),
+      fecha:  gf(r,'FECHA'),
+      hora:   parseInt(gf(r,'HORA'))||0,
+      pk:     parseFloat(gf(r,'PICKERS_CONECTADOS'))||0,
+      real:   parseFloat(gf(r,'ORDENES_REALES'))||0,
+      avg:    parseFloat(gf(r,'AVG_IN_STORE'))||0,
+    }))
+    .filter(p=>p.pk>0&&p.avg>0)
+    .map(p=>({...p, ocp: p.real/p.pk}));
+}
+
+function render() {
+  const el=document.getElementById('main');
+  const tiendas=uniq(D,gt);
+  const filtered = fT==='TODAS' ? D : D.filter(r=>gt(r)===fT);
+  const pts = buildPoints(filtered);
+
+  if(!pts.length){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--dim)">Sin datos suficientes para el análisis.</div>';
+    return;
+  }
+
+  const reg=linReg(pts.map(p=>({x:p.ocp,y:p.avg})));
+  const inflexion=findInflexion(pts.map(p=>({x:p.ocp,y:p.avg})));
+
+  // bucket analysis
+  const STEP=2;
+  const maxOCP=Math.min(Math.ceil(d3.max(pts,p=>p.ocp)),40);
+  const buckets=[];
+  for(let lo=0;lo<maxOCP;lo+=STEP){
+    const hi=lo+STEP;
+    const sub=pts.filter(p=>p.ocp>=lo&&p.ocp<hi);
+    if(!sub.length) continue;
+    const avgT=sub.reduce((s,p)=>s+p.avg,0)/sub.length;
+    const avgOCP=sub.reduce((s,p)=>s+p.ocp,0)/sub.length;
+    buckets.push({label:`${lo}–${hi}`,lo,hi,avgT,avgOCP,n:sub.length});
+  }
+  const maxAvgT=d3.max(buckets,b=>b.avgT)||1;
+
+  // pickers recomendados: si total real del día y avg_ocp ideal < inflexion
+  const totalReal=pts.reduce((s,p)=>s+p.real,0);
+  const diasUniq=uniq(filtered,r=>gf(r,'FECHA'));
+  const avgRealPorDia=diasUniq.length?totalReal/diasUniq.length:totalReal;
+  const horasPico=12; // horas con operación activa aprox
+  const ocxHora=avgRealPorDia/horasPico;
+  const pickersRec=inflexion?Math.ceil(ocxHora/Math.max(inflexion-1,1)):null;
+
+  // global avg
+  const globalAvgT=pts.reduce((s,p)=>s+p.avg,0)/pts.length;
+  const globalAvgOCP=pts.reduce((s,p)=>s+p.ocp,0)/pts.length;
+
+  el.innerHTML=`
+  <div class="filters">
+    <div class="fw">
+      <select onchange="fT=this.value;render()">
+        <option value="TODAS" ${fT==='TODAS'?'selected':''}>🌐 Todas las tiendas</option>
+        ${tiendas.map(t=>`<option value="${t}" ${fT===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--bor);border-radius:8px;padding:7px 10px;font-size:11px;font-weight:700;color:var(--dim)">
+      ${pts.length} registros · ${diasUniq.length} días · ${fT==='TODAS'?tiendas.length+' tiendas':fT}
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="si">
+      <div class="sn" style="color:var(--ye)">${globalAvgOCP.toFixed(1)}</div>
+      <div class="sl">OC/Picker prom</div>
+    </div>
+    <div class="si">
+      <div class="sn" style="color:${globalAvgT<8?'var(--gr)':globalAvgT<12?'var(--ye)':'var(--re)'}">${globalAvgT.toFixed(2)}</div>
+      <div class="sl">Avg in-store prom</div>
+    </div>
+    <div class="si">
+      <div class="sn" style="color:var(--re)">${inflexion!=null?'≥'+inflexion:'—'}</div>
+      <div class="sl">Umbral OC/Picker</div>
+    </div>
+    <div class="si">
+      <div class="sn" style="color:var(--gr)">${pickersRec!=null?pickersRec:'—'}</div>
+      <div class="sl">Pickers rec.</div>
+    </div>
+  </div>
+
+  ${inflexion!=null?`
+  <div class="umbral-badge">
+    <span class="ub-icon">⚠️</span>
+    <div class="ub-txt">
+      <div class="ub-main">Cuando OC/Picker supera ${inflexion}, el tiempo en tienda empieza a deteriorarse</div>
+      <div class="ub-sub">Por encima de este umbral el avg in-store supera la media + 0.5σ del período analizado${reg?` · Tendencia: +${reg.slope.toFixed(3)} min por cada OC/Picker adicional (R²=${reg.r2.toFixed(2)})`:''}</div>
+    </div>
+  </div>`:''}
+
+  ${pickersRec!=null?`
+  <div class="rec-badge">
+    <span class="ub-icon">👷</span>
+    <div class="ub-txt">
+      <div class="rb-main">Recomendación: ${pickersRec} pickers en horas pico para mantener OC/Picker por debajo del umbral</div>
+      <div class="rb-sub">Basado en ~${Math.round(avgRealPorDia)} OC/día promedio distribuidas en ${horasPico}h activas → ${ocxHora.toFixed(1)} OC/h, con umbral de ${inflexion} OC/picker</div>
+    </div>
+  </div>`:''}
+
+  <div class="card">
+    <div class="card-title">📊 Scatter · OC/Picker vs Tiempo en tienda (por hora)</div>
+    <div id="scatter-wrap"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Avg in-store por rango de OC/Picker</div>
+    <table class="bt">
+      <thead><tr>
+        <th>Rango OC/Picker</th>
+        <th class="r">N registros</th>
+        <th class="r">Avg in-store</th>
+        <th style="min-width:120px">Nivel</th>
+      </tr></thead>
+      <tbody>
+      ${buckets.map(b=>{
+        const pct=b.avgT/maxAvgT*100;
+        const color=inflexion&&b.lo>=inflexion?'var(--re)':b.avgT>globalAvgT?'var(--ye)':'var(--gr)';
+        const flag=inflexion&&b.lo>=inflexion?' 🔴':'';
+        return `<tr>
+          <td style="font-weight:800;color:${color}">${b.label}${flag}</td>
+          <td class="r" style="color:var(--dim)">${b.n}</td>
+          <td class="r" style="color:${color}">${b.avgT.toFixed(2)} min</td>
+          <td>
+            <div class="bar-wrap">
+              <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  </div>
+  `;
+
+  drawScatter(pts, reg, inflexion);
+}
+
+function drawScatter(pts, reg, inflexion) {
+  const wrap=document.getElementById('scatter-wrap');
+  const W=wrap.clientWidth||900, H=300;
+  const M={top:16,right:20,bottom:36,left:44};
+  const iW=W-M.left-M.right, iH=H-M.top-M.bottom;
+
+  const xMax=Math.min(d3.max(pts,p=>p.ocp)*1.05,45);
+  const yMax=d3.max(pts,p=>p.avg)*1.1;
+
+  const x=d3.scaleLinear().domain([0,xMax]).range([0,iW]);
+  const y=d3.scaleLinear().domain([0,yMax]).range([iH,0]);
+
+  d3.select('#scatter-wrap svg').remove();
+  const svg=d3.select('#scatter-wrap').append('svg')
+    .attr('width',W).attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+
+  // grid
+  g.append('g').attr('class','grid')
+    .call(d3.axisLeft(y).tickSize(-iW).tickFormat(''))
+    .call(g=>g.select('.domain').remove())
+    .call(g=>g.selectAll('line').attr('stroke','rgba(42,48,64,.6)').attr('stroke-dasharray','3,3'));
+
+  // inflexion zone
+  if(inflexion!=null){
+    g.append('rect')
+      .attr('x',x(inflexion)).attr('y',0)
+      .attr('width',iW-x(inflexion)).attr('height',iH)
+      .attr('fill','rgba(239,68,68,.07)');
+    g.append('line')
+      .attr('x1',x(inflexion)).attr('x2',x(inflexion))
+      .attr('y1',0).attr('y2',iH)
+      .attr('stroke','rgba(239,68,68,.6)').attr('stroke-width',1.5).attr('stroke-dasharray','5,3');
+    g.append('text')
+      .attr('x',x(inflexion)+4).attr('y',10)
+      .attr('fill','rgba(239,68,68,.8)').attr('font-size',9).attr('font-weight',700)
+      .text('Umbral ≥'+inflexion);
+  }
+
+  // regression line
+  if(reg){
+    const x0=0, x1=xMax;
+    g.append('line')
+      .attr('x1',x(x0)).attr('y1',y(reg.slope*x0+reg.intercept))
+      .attr('x2',x(x1)).attr('y2',y(Math.min(reg.slope*x1+reg.intercept,yMax)))
+      .attr('stroke','rgba(99,102,241,.5)').attr('stroke-width',1.5).attr('stroke-dasharray','4,2');
+  }
+
+  // dots — sample if too many
+  const sample = pts.length>600 ? pts.filter((_,i)=>i%Math.ceil(pts.length/600)===0) : pts;
+  const tip=document.getElementById('tip');
+
+  g.selectAll('circle').data(sample).enter().append('circle')
+    .attr('cx',p=>x(p.ocp))
+    .attr('cy',p=>y(p.avg))
+    .attr('r',3)
+    .attr('fill',p=>inflexion&&p.ocp>=inflexion?'rgba(239,68,68,.55)':'rgba(59,130,246,.45)')
+    .attr('stroke',p=>inflexion&&p.ocp>=inflexion?'rgba(239,68,68,.9)':'rgba(59,130,246,.9)')
+    .attr('stroke-width',.8)
+    .on('mousemove',(e,p)=>{
+      tip.style.display='block';
+      tip.style.left=(e.clientX+12)+'px';
+      tip.style.top=(e.clientY-28)+'px';
+      tip.innerHTML=`<strong>${p.tienda}</strong> · ${p.fecha} ${p.hora}:00<br>OC/Picker: <strong style="color:var(--ye)">${p.ocp.toFixed(1)}</strong> &nbsp; Avg: <strong style="color:var(--or)">${p.avg.toFixed(2)} min</strong>`;
+    })
+    .on('mouseleave',()=>{ tip.style.display='none'; });
+
+  // axes
+  g.append('g').attr('transform',`translate(0,${iH})`)
+    .call(d3.axisBottom(x).ticks(10).tickSize(3))
+    .call(g=>g.select('.domain').attr('stroke','var(--bor)'))
+    .call(g=>g.selectAll('text').attr('fill','var(--dim)').attr('font-size',9).attr('font-family','Figtree'));
+  g.append('g')
+    .call(d3.axisLeft(y).ticks(6).tickSize(3))
+    .call(g=>g.select('.domain').attr('stroke','var(--bor)'))
+    .call(g=>g.selectAll('text').attr('fill','var(--dim)').attr('font-size',9).attr('font-family','Figtree'));
+
+  // axis labels
+  svg.append('text').attr('x',M.left+iW/2).attr('y',H-4)
+    .attr('text-anchor','middle').attr('fill','var(--dim)').attr('font-size',9).attr('font-family','Figtree')
+    .text('OC / Picker (por hora)');
+  svg.append('text').attr('transform',`translate(10,${M.top+iH/2}) rotate(-90)`)
+    .attr('text-anchor','middle').attr('fill','var(--dim)').attr('font-size',9).attr('font-family','Figtree')
+    .text('Avg in-store (min)');
+}
+
+async function load() {
+  try {
+    const txt=await safe(csvUrl);
+    D=parse(txt);
+    console.log('[Inflexión] rows:',D.length);
+    if(D[0]) console.log('[cols]',Object.keys(D[0]));
+    document.getElementById('loading').style.display='none';
+    document.getElementById('main').style.display='block';
+    render();
+  } catch(e) {
+    document.getElementById('loading').innerHTML=`<div style="font-size:24px;margin-bottom:8px">⚠️</div>${e.message}`;
+  }
+}
+load();
+</script>
+</body>
+</html>
