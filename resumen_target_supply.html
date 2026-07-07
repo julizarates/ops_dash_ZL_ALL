@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TurboOps | Cumplimiento Target Supply</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E24B4A;
+  --red-bg: #FEF2F2;
+  --green: #10B981;
+  --green-bg: #ECFDF5;
+  --yellow: #F59E0B;
+  --yellow-bg: #FFFBEB;
+  --blue: #3B82F6;
+  --gray: #6B7280;
+  --border: #E5E7EB;
+  --surface: #F9FAFB;
+  --text: #111827;
+  --text-sm: #6B7280;
+  --radius: 12px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Figtree', sans-serif; background: #F5F5F5; color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* HEADER */
+.header {
+  background: #fff;
+  border-bottom: 2.5px solid var(--red);
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+.logo em { font-style: normal; color: var(--red); }
+.header-info { flex: 1; }
+.header-title { font-size: 11px; font-weight: 600; color: var(--text-sm); letter-spacing: 0.3px; text-transform: uppercase; }
+.header-week { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+/* FILTERS */
+.filters {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-wrap { flex: 1; position: relative; min-width: calc(50% - 4px); }
+.filter-wrap::after {
+  content: '▾';
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--gray); pointer-events: none;
+}
+select {
+  width: 100%; padding: 7px 22px 7px 9px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); font-family: inherit; font-size: 12px;
+  color: var(--text); appearance: none; cursor: pointer; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+select:focus { outline: none; border-color: var(--red); }
+
+/* LOADING */
+#loading {
+  text-align: center; padding: 48px 24px; color: var(--gray);
+  font-size: 13px; display: none;
+}
+.spinner {
+  width: 28px; height: 28px; border: 3px solid var(--border);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MAIN CONTENT */
+#store-list, #store-detail { display: none; }
+.content-area { padding: 10px; max-width: 540px; margin: 0 auto; }
+
+/* STORE LIST CARDS */
+.store-card {
+  background: #fff; border-radius: var(--radius); padding: 13px 14px;
+  margin-bottom: 8px; box-shadow: var(--shadow);
+  cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+  border: 1px solid var(--border);
+}
+.store-card:active { transform: scale(0.99); box-shadow: none; }
+.store-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.store-card-name { font-size: 14px; font-weight: 700; line-height: 1.3; flex: 1; min-width: 0; }
+.store-card-meta { font-size: 11px; color: var(--text-sm); margin-bottom: 10px; }
+
+/* STATUS BADGE */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; padding: 3px 9px;
+  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+.status-ok      { background: var(--green-bg);  color: #065F46; }
+.status-partial { background: var(--yellow-bg); color: #92400E; }
+.status-bad     { background: var(--red-bg);    color: #991B1B; }
+
+/* STORAGE MINI PILLS (en el card, resumen visual rápido) */
+.storage-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+.storage-pill {
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 6px; display: flex; align-items: center; gap: 3px;
+}
+.storage-pill.ok  { background: var(--green-bg); color: #065F46; }
+.storage-pill.bad { background: var(--red-bg);   color: #991B1B; }
+
+/* SECTION CARDS */
+.sec { background: #fff; border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.sec-header { padding: 12px 14px 0; }
+.sec-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.sec-sub { font-size: 11px; color: var(--text-sm); margin-top: 3px; }
+.sec-body { padding: 10px 14px 14px; }
+
+/* STORE DETAIL HEADER */
+.detail-header { padding: 14px; }
+.detail-name { font-size: 17px; font-weight: 800; line-height: 1.2; margin-bottom: 3px; }
+.detail-meta { font-size: 11px; color: var(--text-sm); margin-bottom: 12px; }
+
+/* TOTALS BAR */
+.totals-strip {
+  background: #111; color: #fff; padding: 8px 12px;
+  display: flex; gap: 12px; overflow-x: auto; font-size: 11px;
+  align-items: center; margin-bottom: 10px; border-radius: 10px;
+  scrollbar-width: none;
+}
+.totals-strip::-webkit-scrollbar { display: none; }
+.t-item { display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; flex-shrink: 0; }
+.t-num { font-size: 16px; font-weight: 800; }
+.t-label { font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.3px; }
+.t-sep { width: 1px; background: #333; height: 28px; flex-shrink: 0; }
+
+/* STORAGE DETAIL CARDS (dentro del detalle de tienda) */
+.storage-item {
+  padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: #fff; margin-bottom: 8px;
+}
+.storage-item.bad { border-left: 3px solid var(--red); background: var(--red-bg); }
+.storage-item.ok  { border-left: 3px solid var(--green); background: var(--green-bg); }
+.storage-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.storage-name { font-size: 13px; font-weight: 700; text-transform: capitalize; }
+.storage-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.sm-item { text-align: center; background: rgba(255,255,255,0.6); border-radius: 8px; padding: 6px 4px; }
+.sm-num { font-size: 14px; font-weight: 800; line-height: 1.1; }
+.sm-lbl { font-size: 8.5px; color: var(--gray); font-weight: 600; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.2px; }
+.storage-target-row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
+.storage-bar-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.storage-bar-fill { height: 100%; border-radius: 3px; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 24px; color: var(--gray); font-size: 13px; }
+
+/* Back button */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; color: var(--red);
+  padding: 6px 10px 6px 6px; border-radius: 8px; cursor: pointer;
+  margin-bottom: 4px; background: var(--red-bg); border: none;
+  font-family: inherit;
+}
+
+@media (max-width: 360px) {
+  .storage-metrics { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="header-info">
+    <div class="header-title">Cumplimiento Target Supply</div>
+    <div class="header-week" id="header-week">Cargando datos...</div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="filter-wrap">
+    <select id="sel-pais"><option value="">🌎 País</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-mes"><option value="">📅 Mes</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-estado">
+      <option value="">🎯 Estado</option>
+      <option value="ok">🟢 Cumple todo</option>
+      <option value="partial">🟡 Parcial</option>
+      <option value="bad">🔴 No cumple</option>
+    </select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-tienda"><option value="">🏪 Tienda</option></select>
+  </div>
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  Cargando datos...
+</div>
+
+<div class="content-area">
+  <div id="store-list"></div>
+  <div id="store-detail"></div>
+</div>
+
+<script>
+// ===================== CONSTANTS =====================
+// << Mismo PUB_ID publicado de siempre. Si esta pestaña vive en OTRA
+// spreadsheet distinta a la de los demás dashboards, reemplaza este valor
+// por el PUB_ID de esa spreadsheet (Archivo > Compartir > Publicar en la web).
+const PUB_ID = '2PACX-1vQnT4uViGiikmSNyKqTYcaQDcW5UUsxipbLFpETotIJm46MVdk8AwgQ0-M5IBE4sRZ6h8KJ0QGy3iXE';
+const GID = {
+  resumen: '144513164'   // << pestaña "Resumen"
+};
+const csvUrl = g => `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${g}&single=true&output=csv`;
+
+const KNOWN = ['COUNTRY','CITY','WH ID','Tienda','Mes','STORAGE type',
+               '# Skus con stock','Unds','Und x SKU','PVD','Días de venta',
+               'Target Supply','Cumplimiento','% Cumplimiento'];
+
+function normCC(cc) { return (cc||'').trim().toUpperCase(); }
+function normWH(wh) { const n = parseInt(parseFloat(wh)); return isNaN(n) ? (wh||'').trim() : String(n); }
+
+// ===================== STATE =====================
+let state = { pais:'', mes:'', estado:'', tienda:'' };
+let allRows = [];        // filas normalizadas, una por país+wh+mes+storage
+let storeGroups = {};    // key = country_wh_mes -> { meta, storages:[] }
+
+// ===================== CSV PARSER =====================
+function parseCSV(text) {
+  const lines = text.replace(/\r/g,'').split('\n');
+  return lines.map(line => {
+    const row = []; let cur = '', inQ = false;
+    for (let i = 0; i <= line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if ((c === ',' || c === undefined) && !inQ) { row.push(cur); cur = ''; }
+      else { cur += (c||''); }
+    }
+    return row;
+  }).filter(r => r.some(c => c !== ''));
+}
+
+function findHdr(rows) {
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    if (rows[i].some(c => KNOWN.includes((c||'').trim()))) return i;
+  }
+  return 0;
+}
+
+function toObjs(rows, hIdx) {
+  const h = rows[hIdx].map(x => (x||'').trim());
+  return rows.slice(hIdx+1)
+    .filter(r => r.some(c => c))
+    .map(r => Object.fromEntries(h.map((k,i) => [k, (r[i]||'').trim()])));
+}
+
+// Parsea números que pueden venir con "," de miles o "." decimal
+function parseNum(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const cleaned = String(v).replace(/,/g,'').replace('%','').trim();
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+// Parsea % que puede venir como "80.1%", "0.801" o "80.1"
+function parsePct(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const hasPctSign = String(v).includes('%');
+  const n = parseNum(v);
+  if (n === null) return null;
+  if (hasPctSign) return n / 100;
+  if (n > 1.5) return n / 100; // viene como 80.1 en vez de 0.801
+  return n;
+}
+
+// ===================== DATA PROCESSOR =====================
+function processResumen(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows);
+  const objs = toObjs(rows, hIdx);
+
+  allRows = objs.map(r => {
+    const country = normCC(r['COUNTRY']);
+    const whId    = normWH(r['WH ID']);
+    const mes     = (r['Mes']||'').trim();
+    return {
+      country, city: r['CITY'], whId, tienda: r['Tienda'], mes,
+      storage: (r['STORAGE type']||'').trim(),
+      skus: parseNum(r['# Skus con stock']),
+      unds: parseNum(r['Unds']),
+      undXSku: parseNum(r['Und x SKU']),
+      pvd: parseNum(r['PVD']),
+      diasVenta: parseNum(r['Días de venta']),
+      target: parseNum(r['Target Supply']),
+      cumplimiento: (r['Cumplimiento']||'').trim(),
+      pct: parsePct(r['% Cumplimiento']),
+      key: country+'_'+whId
+    };
+  }).filter(r => r.country && r.whId && r.whId !== 'NaN');
+
+  // Agrupar por tienda+mes
+  storeGroups = {};
+  for (const r of allRows) {
+    const gk = r.key+'_'+r.mes;
+    if (!storeGroups[gk]) {
+      storeGroups[gk] = {
+        key: r.key, mes: r.mes,
+        country: r.country, city: r.city, whId: r.whId, tienda: r.tienda,
+        storages: []
+      };
+    }
+    storeGroups[gk].storages.push(r);
+  }
+
+  const meses = [...new Set(allRows.map(r => r.mes))].filter(Boolean).sort();
+  if (meses.length) {
+    document.getElementById('header-week').textContent = 'Datos hasta ' + meses[meses.length-1];
+    if (!state.mes) state.mes = meses[meses.length-1]; // default: mes más reciente
+  }
+}
+
+// ===================== HELPERS =====================
+function storeStatus(storages) {
+  const total = storages.length;
+  const cumplen = storages.filter(s => s.cumplimiento.toLowerCase() === 'cumple').length;
+  if (cumplen === total) return { cls:'ok', label:'Cumple todo', cumplen, total };
+  if (cumplen === 0)     return { cls:'bad', label:'No cumple', cumplen, total };
+  return { cls:'partial', label:'Parcial', cumplen, total };
+}
+function statusStyle(cls) {
+  if (cls === 'ok')      return { badge:'status-ok',      emoji:'🟢' };
+  if (cls === 'partial') return { badge:'status-partial', emoji:'🟡' };
+  return                      { badge:'status-bad',      emoji:'🔴' };
+}
+function fmtNum(n, dec) {
+  if (n === null || n === undefined) return '—';
+  return n.toLocaleString('es-ES', { minimumFractionDigits: dec||0, maximumFractionDigits: dec||0 });
+}
+function fmtPct(n) {
+  if (n === null || n === undefined) return '—';
+  return Math.round(n*100)+'%';
+}
+function pctColor(n) {
+  if (n === null) return 'var(--gray)';
+  if (n >= 0.95 && n <= 1.05) return 'var(--green)'; // cerca del 100% del target = ideal
+  if (n < 0.7 || n > 1.3) return 'var(--red)';
+  return 'var(--yellow)';
+}
+
+// ===================== FILTERS =====================
+function filteredGroups() {
+  return Object.values(storeGroups).filter(g => {
+    if (state.pais && g.country !== state.pais) return false;
+    if (state.mes && g.mes !== state.mes) return false;
+    if (state.tienda && g.key !== state.tienda) return false;
+    if (state.estado) {
+      const st = storeStatus(g.storages);
+      if (st.cls !== state.estado) return false;
+    }
+    return true;
+  }).sort((a,b) => (a.tienda||'').localeCompare(b.tienda||''));
+}
+
+function buildFilters() {
+  const countries = [...new Set(Object.values(storeGroups).map(g => g.country))].sort();
+  const pSel = document.getElementById('sel-pais');
+  pSel.innerHTML = '<option value="">🌎 País</option>' +
+    countries.map(c => `<option value="${c}">${c}</option>`).join('');
+  pSel.value = state.pais;
+
+  const meses = [...new Set(Object.values(storeGroups).map(g => g.mes))].filter(Boolean).sort();
+  const mSel = document.getElementById('sel-mes');
+  mSel.innerHTML = '<option value="">📅 Todos los meses</option>' +
+    meses.map(m => `<option value="${m}">${m}</option>`).join('');
+  mSel.value = state.mes;
+
+  rebuildTienda();
+}
+
+function rebuildTienda() {
+  const groups = Object.values(storeGroups).filter(g => {
+    if (state.pais && g.country !== state.pais) return false;
+    if (state.mes && g.mes !== state.mes) return false;
+    return true;
+  });
+  const seen = new Set();
+  const opts = [];
+  groups.forEach(g => {
+    if (seen.has(g.key)) return;
+    seen.add(g.key);
+    opts.push(g);
+  });
+  opts.sort((a,b) => (a.tienda||'').localeCompare(b.tienda||''));
+  const tSel = document.getElementById('sel-tienda');
+  tSel.innerHTML = '<option value="">🏪 Tienda</option>' +
+    opts.map(g => `<option value="${g.key}">${g.tienda} (${g.country})</option>`).join('');
+  if (!opts.find(g => g.key === state.tienda)) state.tienda = '';
+  tSel.value = state.tienda;
+}
+
+// ===================== RENDER =====================
+function showLoading(v) { document.getElementById('loading').style.display = v ? 'block' : 'none'; }
+
+function renderView() {
+  showLoading(false);
+  if (state.tienda) renderDetail(state.tienda);
+  else renderList();
+}
+
+function renderList() {
+  const detail = document.getElementById('store-detail');
+  const list   = document.getElementById('store-list');
+  detail.style.display = 'none';
+  const groups = filteredGroups();
+
+  if (!groups.length) {
+    list.innerHTML = '<div class="empty">No hay tiendas para este filtro.<br>Verifica que el sheet tenga datos publicados.</div>';
+    list.style.display = 'block'; return;
+  }
+
+  const totalStores = groups.length;
+  const okCount      = groups.filter(g => storeStatus(g.storages).cls === 'ok').length;
+  const partialCount = groups.filter(g => storeStatus(g.storages).cls === 'partial').length;
+  const badCount     = groups.filter(g => storeStatus(g.storages).cls === 'bad').length;
+
+  const strip = `<div class="totals-strip">
+    <div class="t-item"><div class="t-num">${totalStores}</div><div class="t-label">Tiendas</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num" style="color:#10B981">${okCount}</div><div class="t-label">🟢 Cumple</div></div>
+    <div class="t-item"><div class="t-num" style="color:#F59E0B">${partialCount}</div><div class="t-label">🟡 Parcial</div></div>
+    <div class="t-item"><div class="t-num" style="color:#E24B4A">${badCount}</div><div class="t-label">🔴 No cumple</div></div>
+  </div>`;
+
+  const cards = groups.map(g => {
+    const st = storeStatus(g.storages);
+    const stStyle = statusStyle(st.cls);
+    const pills = g.storages
+      .slice().sort((a,b) => a.storage.localeCompare(b.storage))
+      .map(s => {
+        const ok = s.cumplimiento.toLowerCase() === 'cumple';
+        return `<span class="storage-pill ${ok?'ok':'bad'}">${ok?'✓':'✗'} ${s.storage}</span>`;
+      }).join('');
+
+    return `<div class="store-card" onclick="selectStore('${g.key}')">
+      <div class="store-card-top">
+        <div class="store-card-name">${g.tienda||g.whId}</div>
+        <span class="status-badge ${stStyle.badge}">${stStyle.emoji} ${st.cumplen}/${st.total}</span>
+      </div>
+      <div class="store-card-meta">${g.country}${g.city?' · '+g.city:''} · WH ${g.whId} · ${g.mes}</div>
+      <div class="storage-pills">${pills}</div>
+    </div>`;
+  }).join('');
+
+  list.innerHTML = strip + cards;
+  list.style.display = 'block';
+}
+
+function selectStore(k) {
+  state.tienda = k;
+  document.getElementById('sel-tienda').value = k;
+  renderDetail(k);
+  window.scrollTo(0,0);
+}
+
+function goBack() {
+  state.tienda = '';
+  document.getElementById('sel-tienda').value = '';
+  renderList();
+  window.scrollTo(0,0);
+}
+
+function renderDetail(k) {
+  const list   = document.getElementById('store-list');
+  const detail = document.getElementById('store-detail');
+  list.style.display = 'none';
+
+  // Si hay filtro de mes, usamos ese grupo. Si no, tomamos el mes más reciente para esa tienda.
+  let g = storeGroups[k+'_'+state.mes];
+  if (!g) {
+    const candidates = Object.values(storeGroups).filter(x => x.key === k).sort((a,b) => a.mes.localeCompare(b.mes));
+    g = candidates[candidates.length-1];
+  }
+
+  if (!g) { detail.innerHTML='<div class="empty">Tienda no encontrada.</div>'; detail.style.display='block'; return; }
+
+  const st = storeStatus(g.storages);
+  const stStyle = statusStyle(st.cls);
+
+  let html = `<button class="back-btn" onclick="goBack()">← Volver</button>`;
+
+  html += `<div class="sec">
+    <div class="detail-header">
+      <div class="detail-name">${g.tienda||g.whId}</div>
+      <div class="detail-meta">${g.country}${g.city?' · '+g.city:''} · WH ${g.whId} · Mes ${g.mes}</div>
+      <span class="status-badge ${stStyle.badge}">${stStyle.emoji} ${st.label} (${st.cumplen}/${st.total} storages)</span>
+    </div>
+  </div>`;
+
+  html += `<div class="sec">
+    <div class="sec-header">
+      <div class="sec-title">📦 Detalle por tipo de storage</div>
+      <div class="sec-sub">Und x SKU real vs Target Supply</div>
+    </div>
+    <div class="sec-body">`;
+
+  const sorted = g.storages.slice().sort((a,b) => a.storage.localeCompare(b.storage));
+  sorted.forEach(s => {
+    const ok = s.cumplimiento.toLowerCase() === 'cumple';
+    const barColor = pctColor(s.pct);
+    const barWidth = s.pct !== null ? Math.min(Math.abs(s.pct)*100, 100) : 0;
+
+    html += `<div class="storage-item ${ok?'ok':'bad'}">
+      <div class="storage-top">
+        <div class="storage-name">${s.storage}</div>
+        <span class="status-badge ${ok?'status-ok':'status-bad'}">${ok?'✓ Cumple':'✗ No cumple'}</span>
+      </div>
+      <div class="storage-metrics">
+        <div class="sm-item"><div class="sm-num">${fmtNum(s.skus)}</div><div class="sm-lbl">SKUs c/stock</div></div>
+        <div class="sm-item"><div class="sm-num">${fmtNum(s.unds)}</div><div class="sm-lbl">Unds</div></div>
+        <div class="sm-item"><div class="sm-num">${fmtNum(s.undXSku,1)}</div><div class="sm-lbl">Und x SKU</div></div>
+      </div>
+      <div class="storage-metrics">
+        <div class="sm-item"><div class="sm-num">${fmtNum(s.pvd,1)}</div><div class="sm-lbl">PVD (u/día)</div></div>
+        <div class="sm-item"><div class="sm-num">${fmtNum(s.diasVenta,1)}</div><div class="sm-lbl">Días venta</div></div>
+        <div class="sm-item"><div class="sm-num">${fmtNum(s.target,1)}</div><div class="sm-lbl">Target</div></div>
+      </div>
+      <div class="storage-target-row">
+        <span>% Cumplimiento (Target / Real)</span>
+        <span style="font-weight:800;color:${barColor}">${fmtPct(s.pct)}</span>
+      </div>
+      <div class="storage-bar-track"><div class="storage-bar-fill" style="width:${barWidth}%;background:${barColor}"></div></div>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  html += `<div style="height:24px"></div>`;
+
+  detail.innerHTML = html;
+  detail.style.display = 'block';
+}
+
+// ===================== EVENTS =====================
+document.getElementById('sel-pais').addEventListener('change', e => {
+  state.pais = e.target.value; state.tienda = '';
+  rebuildTienda(); renderView();
+});
+document.getElementById('sel-mes').addEventListener('change', e => {
+  state.mes = e.target.value; state.tienda = '';
+  rebuildTienda(); renderView();
+});
+document.getElementById('sel-estado').addEventListener('change', e => {
+  state.estado = e.target.value; renderView();
+});
+document.getElementById('sel-tienda').addEventListener('change', e => {
+  state.tienda = e.target.value; renderView();
+});
+
+// ===================== LOAD =====================
+const safeFetch = url =>
+  fetch(url)
+    .then(r => r.ok ? r.text() : '')
+    .catch(() => '');
+
+async function loadAll() {
+  showLoading(true);
+  document.getElementById('store-list').style.display = 'none';
+  document.getElementById('store-detail').style.display = 'none';
+  try {
+    const resTxt = await safeFetch(csvUrl(GID.resumen));
+    if (!resTxt) throw new Error('No se pudo cargar la hoja "Resumen". Verifica que el sheet esté publicado en la web.');
+
+    processResumen(resTxt);
+    buildFilters();
+    document.getElementById('sel-mes').value = state.mes;
+    renderView();
+  } catch(e) {
+    showLoading(false);
+    const el = document.getElementById('loading');
+    el.style.display = 'block';
+    el.innerHTML = `<div style="font-size:24px;margin-bottom:8px">⚠️</div>Error al cargar los datos.<br><span style="font-size:11px;color:#aaa">${e.message || 'Verifica que el sheet esté publicado.'}</span>`;
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
