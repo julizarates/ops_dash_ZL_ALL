@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboOps Hub — Zone Leads</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e2e8f0;
+    --orange: #ea580c;
+    --orange-light: #fff7ed;
+    --orange-dim: #fed7aa;
+    --text: #0f172a;
+    --muted: #94a3b8;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --sidebar-w: 210px;
+  }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; align-items: center; gap: 16px; height: 52px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .logo { font-size: 15px; font-weight: 800; color: var(--orange); letter-spacing: 0.5px; white-space: nowrap; }
+  .logo span { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 8px; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .country-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: var(--muted); cursor: pointer; transition: all .15s; white-space: nowrap; font-weight: 500; }
+  .country-pill:hover { background: var(--orange-light); border-color: var(--orange-dim); color: var(--orange); }
+  .country-pill.active { background: var(--orange-light); border-color: var(--orange); color: var(--orange); font-weight: 700; }
+  .updated { font-size: 10px; color: var(--muted); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+  .sidebar-section { padding: 16px 14px 6px; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; font-size: 12.5px; color: #475569; cursor: pointer; border-left: 3px solid transparent; transition: all .15s; user-select: none; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--orange-light); color: var(--orange); border-left-color: var(--orange); font-weight: 600; }
+  .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+  .nav-badge { margin-left: auto; background: var(--orange-dim); color: var(--orange); font-size: 8px; padding: 1px 6px; border-radius: 8px; font-weight: 700; }
+
+  .sub-menu { display: none; flex-direction: column; }
+  .sub-menu.open { display: flex; }
+  .sub-item { display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 42px; font-size: 11.5px; color: #64748b; cursor: pointer; transition: all .15s; border-left: 3px solid transparent; }
+  .sub-item:hover { background: var(--surface2); color: var(--text); }
+  .sub-item.active { color: var(--green); border-left-color: var(--green); font-weight: 600; background: var(--green-light); }
+
+  .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+  .info-banner { background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 6px 16px; font-size: 10.5px; color: #92400e; display: none; align-items: center; gap: 6px; flex-shrink: 0; }
+  .info-banner.show { display: flex; }
+
+  iframe { width: 100%; flex: 1; border: none; display: none; background: var(--bg); }
+  iframe.active { display: block; }
+
+  .welcome { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px; }
+  .welcome h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+  .welcome p { font-size: 13px; color: var(--muted); text-align: center; max-width: 400px; line-height: 1.7; }
+  .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; width: 100%; max-width: 580px; }
+  .module-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 14px; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .module-card:hover { border-color: var(--orange); background: var(--orange-light); }
+  .module-card .mic { font-size: 26px; }
+  .module-card .mt { font-size: 12px; font-weight: 600; color: var(--text); }
+  .module-card .ms { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">⚡ TURBOOPS <span>Hub Zone Leads</span></div>
+  <div class="topbar-right" id="countryBar" style="display:none">
+    <span style="font-size:10px;color:var(--muted)">País:</span>
+    <div class="country-pill" onclick="selectCountry('CO')">🇨🇴 CO</div>
+    <div class="country-pill" onclick="selectCountry('AR')">🇦🇷 AR</div>
+    <div class="country-pill" onclick="selectCountry('PE')">🇵🇪 PE</div>
+    <div class="country-pill" onclick="selectCountry('BR')">🇧🇷 BR</div>
+    <div class="country-pill" onclick="selectCountry('CL')">🇨🇱 CL</div>
+    <div class="country-pill" onclick="selectCountry('MX')">🇲🇽 MX</div>
+  </div>
+  <div class="updated" id="updatedTs"></div>
+</div>
+
+<div class="main">
+  <nav class="sidebar">
+    <div class="sidebar-section">Operaciones</div>
+    <div class="nav-item" onclick="showSection('welcome')"><span class="icon">🏠</span> Inicio</div>
+    <div class="nav-item" onclick="showSection('disc')"><span class="icon">📋</span> Disciplina</div>
+    <div class="nav-item" id="nav-metricas" onclick="toggleMetricas()"><span class="icon">📊</span> Métricas<span class="nav-badge">6</span></div>
+    <div class="sub-menu" id="subMetricas">
+      <div class="sub-item" onclick="selectCountry('CO')">🇨🇴 Colombia</div>
+      <div class="sub-item" onclick="selectCountry('AR')">🇦🇷 Argentina</div>
+      <div class="sub-item" onclick="selectCountry('PE')">🇵🇪 Perú</div>
+      <div class="sub-item" onclick="selectCountry('BR')">🇧🇷 Brasil</div>
+      <div class="sub-item" onclick="selectCountry('CL')">🇨🇱 Chile</div>
+      <div class="sub-item" onclick="selectCountry('MX')">🇲🇽 México</div>
+    </div>
+    <div class="sidebar-section">Auditoría</div>
+    <div class="nav-item" onclick="showSection('visitas')"><span class="icon">🚶</span> Visitas ZL</div>
+  </nav>
+
+  <div class="content">
+    <div class="info-banner" id="infoBanner"></div>
+
+    <div class="welcome" id="section-welcome">
+      <div style="font-size:40px">⚡</div>
+      <h2>Hub TurboOps — Zone Leads</h2>
+      <p>Todos los dashboards operativos en un solo lugar. Seleccioná una sección del menú o accedé directo desde acá.</p>
+      <div class="module-grid">
+        <div class="module-card" onclick="showSection('disc')">
+          <span class="mic">📋</span>
+          <div class="mt">Disciplina</div>
+          <div class="ms">Visitas · scores · cumplimiento</div>
+        </div>
+        <div class="module-card" onclick="openMetricasDefault()">
+          <span class="mic">📊</span>
+          <div class="mt">Métricas</div>
+          <div class="ms">SO · Defectos · Cycle Time por país</div>
+        </div>
+        <div class="module-card" onclick="showSection('visitas')">
+          <span class="mic">🚶</span>
+          <div class="mt">Visitas ZL</div>
+          <div class="ms">Semanas acumuladas S1–S16</div>
+        </div>
+      </div>
+    </div>
+
+    <iframe id="section-disc"    src="https://julizarates.github.io/ops_dash_ZL_ALL/disc_ops_dashboard.html"></iframe>
+    <iframe id="section-visitas" src="https://julizarates.github.io/ops_dash_ZL_ALL/dashboard_visitas.html"></iframe>
+    <iframe id="section-CO"      src="https://julizarates.github.io/ops_dash_ZL_ALL/zone_lead_co.html"></iframe>
+    <iframe id="section-AR"      src="https://julizarates.github.io/ops_dash_ZL_ALL/zone_lead_AR.html"></iframe>
+    <iframe id="section-PE"      src="https://julizarates.github.io/ops_dash_ZL_ALL/zone_lead_PE.html"></iframe>
+    <iframe id="section-BR"      src="https://julizarates.github.io/ops_dash_ZL_ALL/zone_lead_BR.html"></iframe>
+    <iframe id="section-CL"      src="https://julizarates.github.io/ops_dash_ZL_ALL/zone_lead_CL.html"></iframe>
+    <iframe id="section-MX"      src="https://julizarates.github.io/ops_dash_ZL_ALL/zone_lead_MX.html"></iframe>
+  </div>
+</div>
+
+<script>
+  let metricasOpen = false;
+
+  const now = new Date();
+  document.getElementById('updatedTs').textContent =
+    `Actualizado ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'short'})} ${now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}`;
+
+  const banners = {
+    visitas: '📅 Visitas acumuladas S1–S16 (Enero–Abril 2026). Para actualizar: corré el script de Python y subí el archivo a GitHub Pages.',
+    CO:'🇨🇴 Colombia', AR:'🇦🇷 Argentina', PE:'🇵🇪 Perú', BR:'🇧🇷 Brasil', CL:'🇨🇱 Chile', MX:'🇲🇽 México'
+  };
+  const paises = ['CO','AR','PE','BR','CL','MX'];
+  const labels = {CO:'Colombia',AR:'Argentina',PE:'Perú',BR:'Brasil',CL:'Chile',MX:'México'};
+
+  function setBanner(id) {
+    const b = document.getElementById('infoBanner');
+    const msg = banners[id] || '';
+    if (msg) { b.textContent = msg; b.classList.add('show'); }
+    else { b.classList.remove('show'); }
+  }
+
+  function hideAll() {
+    document.querySelectorAll('iframe, .welcome').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.country-pill').forEach(el => el.classList.remove('active'));
+    document.getElementById('countryBar').style.display = 'none';
+    document.getElementById('infoBanner').classList.remove('show');
+  }
+
+  function showSection(id) {
+    hideAll();
+    const el = document.getElementById('section-' + id);
+    if (el) el.classList.add('active');
+    const navEl = document.querySelector(`.nav-item[onclick="showSection('${id}')"]`);
+    if (navEl) navEl.classList.add('active');
+    if (!paises.includes(id)) {
+      metricasOpen = false;
+      document.getElementById('subMetricas').classList.remove('open');
+      document.getElementById('nav-metricas').classList.remove('active');
+    }
+    setBanner(id);
+  }
+
+  function toggleMetricas() {
+    metricasOpen = !metricasOpen;
+    document.getElementById('subMetricas').classList.toggle('open', metricasOpen);
+    document.getElementById('nav-metricas').classList.toggle('active', metricasOpen);
+    if (metricasOpen) selectCountry('CO');
+  }
+
+  function openMetricasDefault() {
+    metricasOpen = true;
+    document.getElementById('subMetricas').classList.add('open');
+    document.getElementById('nav-metricas').classList.add('active');
+    selectCountry('CO');
+  }
+
+  function selectCountry(code) {
+    hideAll();
+    metricasOpen = true;
+    document.getElementById('subMetricas').classList.add('open');
+    document.getElementById('nav-metricas').classList.add('active');
+    document.querySelectorAll('.sub-item').forEach(el => {
+      el.classList.toggle('active', el.textContent.trim().includes(labels[code]));
+    });
+    document.getElementById('countryBar').style.display = 'flex';
+    document.querySelectorAll('.country-pill').forEach(el => {
+      el.classList.toggle('active', el.textContent.includes(code));
+    });
+    document.getElementById('section-' + code).classList.add('active');
+    setBanner(code);
+  }
+
+  showSection('welcome');
+</script>
+</body>
+</html>
