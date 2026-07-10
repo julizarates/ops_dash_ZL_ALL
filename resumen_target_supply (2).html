@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TurboOps | Cumplimiento Target Supply</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E24B4A;
+  --red-bg: #FEF2F2;
+  --green: #10B981;
+  --green-bg: #ECFDF5;
+  --yellow: #F59E0B;
+  --yellow-bg: #FFFBEB;
+  --blue: #3B82F6;
+  --gray: #6B7280;
+  --border: #E5E7EB;
+  --surface: #F9FAFB;
+  --text: #111827;
+  --text-sm: #6B7280;
+  --radius: 12px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Figtree', sans-serif; background: #F5F5F5; color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* HEADER */
+.header {
+  background: #fff;
+  border-bottom: 2.5px solid var(--red);
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+.logo em { font-style: normal; color: var(--red); }
+.header-info { flex: 1; }
+.header-title { font-size: 11px; font-weight: 600; color: var(--text-sm); letter-spacing: 0.3px; text-transform: uppercase; }
+.header-week { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+/* FILTERS */
+.filters {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 53px;
+  z-index: 99;
+}
+.filter-wrap { flex: 1; position: relative; min-width: calc(50% - 4px); }
+.filter-wrap::after {
+  content: '▾';
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--gray); pointer-events: none;
+}
+.filter-wrap.search::after { content: ''; }
+select, input[type="text"] {
+  width: 100%; padding: 7px 22px 7px 9px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); font-family: inherit; font-size: 12px;
+  color: var(--text); appearance: none; cursor: pointer; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+input[type="text"] { cursor: text; padding: 7px 9px; }
+select:focus, input[type="text"]:focus { outline: none; border-color: var(--red); }
+
+/* LOADING */
+#loading {
+  text-align: center; padding: 48px 24px; color: var(--gray);
+  font-size: 13px; display: none;
+}
+.spinner {
+  width: 28px; height: 28px; border: 3px solid var(--border);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* CONTENT */
+.content-area { padding: 8px; }
+#table-wrap { display: none; }
+
+/* TOTALS BAR */
+.totals-strip {
+  background: #111; color: #fff; padding: 8px 12px;
+  display: flex; gap: 12px; overflow-x: auto; font-size: 11px;
+  align-items: center; margin-bottom: 8px; border-radius: 10px;
+  scrollbar-width: none;
+}
+.totals-strip::-webkit-scrollbar { display: none; }
+.t-item { display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; flex-shrink: 0; }
+.t-num { font-size: 16px; font-weight: 800; }
+.t-label { font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.3px; }
+.t-sep { width: 1px; background: #333; height: 28px; flex-shrink: 0; }
+
+/* TABLE */
+.table-scroll {
+  overflow-x: auto; background: #fff; border-radius: var(--radius);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  -webkit-overflow-scrolling: touch;
+}
+table { border-collapse: collapse; width: 100%; min-width: 1180px; font-size: 12px; }
+thead th {
+  position: sticky; top: 0; background: #111; color: #fff;
+  padding: 9px 10px; text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap;
+  cursor: pointer; user-select: none; z-index: 1;
+}
+thead th:hover { background: #222; }
+thead th .arrow { font-size: 9px; margin-left: 3px; opacity: 0.6; }
+thead th.sorted .arrow { opacity: 1; color: var(--yellow); }
+tbody td {
+  padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid var(--border);
+}
+tbody tr:hover { background: var(--surface); }
+tbody tr:nth-child(even) { background: #FCFCFD; }
+tbody tr:nth-child(even):hover { background: var(--surface); }
+.col-tienda { font-weight: 700; }
+.col-num { text-align: right; font-variant-numeric: tabular-nums; }
+.pill-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+}
+.pill-ok  { background: var(--green-bg); color: #065F46; }
+.pill-bad { background: var(--red-bg);   color: #991B1B; }
+.dif-neg { color: var(--red); font-weight: 700; }
+.dif-pos { color: var(--green); font-weight: 700; }
+.dif-zero { color: var(--gray); }
+.pct-cell { font-weight: 700; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 24px; color: var(--gray); font-size: 13px; }
+
+@media (max-width: 480px) {
+  .filters { top: 49px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="header-info">
+    <div class="header-title">Cumplimiento Target Supply</div>
+    <div class="header-week" id="header-week">Cargando datos...</div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="filter-wrap">
+    <select id="sel-pais"><option value="">🌎 País</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-mes"><option value="">📅 Mes</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-storage"><option value="">🌡️ Storage</option></select>
+  </div>
+  <div class="filter-wrap">
+    <select id="sel-estado">
+      <option value="">🎯 Estado</option>
+      <option value="cumple">🟢 Cumple</option>
+      <option value="no cumple">🔴 No cumple</option>
+    </select>
+  </div>
+  <div class="filter-wrap search" style="min-width:100%">
+    <input type="text" id="search-tienda" placeholder="🔍 Buscar tienda...">
+  </div>
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  Cargando datos...
+</div>
+
+<div class="content-area">
+  <div id="table-wrap">
+    <div id="totals"></div>
+    <div class="table-scroll">
+      <table id="data-table">
+        <thead><tr id="table-head"></tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== CONSTANTS =====================
+const PUB_ID = '2PACX-1vTB9BxcY1MTfL4y3MLCzPpJlX50zpRe2ycHYUnv0-VYANy4kxPu76ScdyRFRQP3SEmj2Y__Gd-OWI46';
+const GID = {
+  resumen: '144513164'   // << pestaña "Resumen"
+};
+const csvUrl = g => `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${g}&single=true&output=csv`;
+
+const KNOWN = ['COUNTRY','CITY','WH ID','Tienda','Mes','STORAGE type',
+               '# Skus con stock','Unds','Und x SKU','PVD','Días de venta',
+               'Target Supply','Cumplimiento','% Cumplimiento','Target SKUs',
+               'Dif SKUs (Real - Target)'];
+
+// Definición de columnas de la tabla: key interno, label visible, tipo de dato
+const COLUMNS = [
+  { key:'country',      label:'País',        type:'text' },
+  { key:'city',         label:'Ciudad',      type:'text' },
+  { key:'whId',         label:'WH ID',       type:'text' },
+  { key:'tienda',       label:'Tienda',      type:'text', cls:'col-tienda' },
+  { key:'mes',          label:'Mes',         type:'text' },
+  { key:'storage',      label:'Storage',     type:'text' },
+  { key:'skus',         label:'SKUs c/stock',type:'num' },
+  { key:'unds',         label:'Unds',        type:'num' },
+  { key:'undXSku',      label:'Und x SKU',   type:'num', dec:1 },
+  { key:'pvd',          label:'PVD',         type:'num', dec:2 },
+  { key:'diasVenta',    label:'Días venta',  type:'num', dec:1 },
+  { key:'target',       label:'Target Supply', type:'num', dec:1 },
+  { key:'cumplimiento', label:'Cumplimiento', type:'status' },
+  { key:'pct',          label:'% Cumpl.',    type:'pct' },
+  { key:'targetSkus',   label:'Target SKUs', type:'num' },
+  { key:'difSkus',      label:'Dif SKUs',    type:'dif' },
+];
+
+function normCC(cc) { return (cc||'').trim().toUpperCase(); }
+function normWH(wh) { const n = parseInt(parseFloat(wh)); return isNaN(n) ? (wh||'').trim() : String(n); }
+
+// ===================== STATE =====================
+let state = { pais:'', mes:'', storage:'', estado:'', search:'' };
+let allRows = [];
+let sortKey = 'tienda';
+let sortDir = 1; // 1 asc, -1 desc
+
+// ===================== CSV PARSER =====================
+function parseCSV(text) {
+  const lines = text.replace(/\r/g,'').split('\n');
+  return lines.map(line => {
+    const row = []; let cur = '', inQ = false;
+    for (let i = 0; i <= line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if ((c === ',' || c === undefined) && !inQ) { row.push(cur); cur = ''; }
+      else { cur += (c||''); }
+    }
+    return row;
+  }).filter(r => r.some(c => c !== ''));
+}
+
+function findHdr(rows) {
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    if (rows[i].some(c => KNOWN.includes((c||'').trim()))) return i;
+  }
+  return 0;
+}
+
+function toObjs(rows, hIdx) {
+  const h = rows[hIdx].map(x => (x||'').trim());
+  return rows.slice(hIdx+1)
+    .filter(r => r.some(c => c))
+    .map(r => Object.fromEntries(h.map((k,i) => [k, (r[i]||'').trim()])));
+}
+
+function parseNum(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const cleaned = String(v).replace(/,/g,'').replace('%','').trim();
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+function parsePct(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const hasPctSign = String(v).includes('%');
+  const n = parseNum(v);
+  if (n === null) return null;
+  if (hasPctSign) return n / 100;
+  if (n > 1.5) return n / 100;
+  return n;
+}
+
+// ===================== DATA PROCESSOR =====================
+function processResumen(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows);
+  const objs = toObjs(rows, hIdx);
+
+  allRows = objs.map(r => {
+    const country = normCC(r['COUNTRY']);
+    const whId    = normWH(r['WH ID']);
+    const skus    = parseNum(r['# Skus con stock']);
+    const targetSkus = parseNum(r['Target SKUs']);
+    let difSkus = parseNum(r['Dif SKUs (Real - Target)']);
+    if (difSkus === null && skus !== null && targetSkus !== null) difSkus = skus - targetSkus;
+    return {
+      country, city: r['CITY'], whId, tienda: r['Tienda'], mes: (r['Mes']||'').trim(),
+      storage: (r['STORAGE type']||'').trim(),
+      skus,
+      unds: parseNum(r['Unds']),
+      undXSku: parseNum(r['Und x SKU']),
+      pvd: parseNum(r['PVD']),
+      diasVenta: parseNum(r['Días de venta']),
+      target: parseNum(r['Target Supply']),
+      cumplimiento: (r['Cumplimiento']||'').trim(),
+      pct: parsePct(r['% Cumplimiento']),
+      targetSkus,
+      difSkus
+    };
+  }).filter(r => r.country && r.whId && r.whId !== 'NaN');
+
+  const meses = [...new Set(allRows.map(r => r.mes))].filter(Boolean).sort();
+  if (meses.length) {
+    document.getElementById('header-week').textContent = 'Datos hasta ' + meses[meses.length-1];
+    if (!state.mes) state.mes = meses[meses.length-1]; // default: mes más reciente
+  }
+}
+
+// ===================== FORMATTERS =====================
+function fmtNum(n, dec) {
+  if (n === null || n === undefined) return '—';
+  return n.toLocaleString('es-ES', { minimumFractionDigits: dec||0, maximumFractionDigits: dec||0 });
+}
+function fmtPct(n) {
+  if (n === null || n === undefined) return '—';
+  return (n*100).toFixed(1)+'%';
+}
+function pctColor(n) {
+  if (n === null) return 'var(--gray)';
+  if (n >= 0.9 && n <= 1.1) return 'var(--green)';
+  if (n < 0.6 || n > 1.4) return 'var(--red)';
+  return 'var(--yellow)';
+}
+
+// ===================== FILTERS =====================
+function filteredRows() {
+  const s = state.search.trim().toLowerCase();
+  return allRows.filter(r => {
+    if (state.pais && r.country !== state.pais) return false;
+    if (state.mes && r.mes !== state.mes) return false;
+    if (state.storage && r.storage !== state.storage) return false;
+    if (state.estado && r.cumplimiento.toLowerCase() !== state.estado) return false;
+    if (s && !(r.tienda||'').toLowerCase().includes(s)) return false;
+    return true;
+  });
+}
+
+function buildFilters() {
+  const countries = [...new Set(allRows.map(r => r.country))].sort();
+  const pSel = document.getElementById('sel-pais');
+  pSel.innerHTML = '<option value="">🌎 País</option>' +
+    countries.map(c => `<option value="${c}">${c}</option>`).join('');
+  pSel.value = state.pais;
+
+  const meses = [...new Set(allRows.map(r => r.mes))].filter(Boolean).sort();
+  const mSel = document.getElementById('sel-mes');
+  mSel.innerHTML = '<option value="">📅 Todos los meses</option>' +
+    meses.map(m => `<option value="${m}">${m}</option>`).join('');
+  mSel.value = state.mes;
+
+  const storages = [...new Set(allRows.map(r => r.storage))].filter(Boolean).sort();
+  const sSel = document.getElementById('sel-storage');
+  sSel.innerHTML = '<option value="">🌡️ Storage</option>' +
+    storages.map(s => `<option value="${s}">${s}</option>`).join('');
+  sSel.value = state.storage;
+}
+
+// ===================== SORT =====================
+function sortRows(rows) {
+  const col = COLUMNS.find(c => c.key === sortKey);
+  return rows.slice().sort((a,b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (col.type === 'text') {
+      av = (av||'').toString().toLowerCase(); bv = (bv||'').toString().toLowerCase();
+      if (av < bv) return -1*sortDir;
+      if (av > bv) return 1*sortDir;
+      return 0;
+    }
+    // numérico (num, pct, dif) — nulls al final
+    av = (av === null || av === undefined) ? -Infinity : av;
+    bv = (bv === null || bv === undefined) ? -Infinity : bv;
+    return (av - bv) * sortDir;
+  });
+}
+
+// ===================== RENDER =====================
+function showLoading(v) { document.getElementById('loading').style.display = v ? 'block' : 'none'; }
+
+function renderHead() {
+  const head = document.getElementById('table-head');
+  head.innerHTML = COLUMNS.map(c => {
+    const isSorted = c.key === sortKey;
+    const arrow = isSorted ? (sortDir === 1 ? '▲' : '▼') : '↕';
+    return `<th class="${isSorted?'sorted':''}" onclick="onSort('${c.key}')">${c.label}<span class="arrow">${arrow}</span></th>`;
+  }).join('');
+}
+
+function onSort(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  renderTable();
+}
+
+function cellHTML(r, c) {
+  const v = r[c.key];
+  if (c.type === 'text') return `<td class="${c.cls||''}">${v || '—'}</td>`;
+  if (c.type === 'num')  return `<td class="col-num">${fmtNum(v, c.dec)}</td>`;
+  if (c.type === 'pct')  return `<td class="col-num pct-cell" style="color:${pctColor(v)}">${fmtPct(v)}</td>`;
+  if (c.type === 'status') {
+    const ok = (v||'').toLowerCase() === 'cumple';
+    return `<td><span class="pill-status ${ok?'pill-ok':'pill-bad'}">${ok?'🟢':'🔴'} ${v||'—'}</span></td>`;
+  }
+  if (c.type === 'dif') {
+    if (v === null || v === undefined) return `<td class="col-num">—</td>`;
+    const cls = v < 0 ? 'dif-neg' : (v > 0 ? 'dif-pos' : 'dif-zero');
+    const sign = v > 0 ? '+' : '';
+    return `<td class="col-num ${cls}">${sign}${fmtNum(v)}</td>`;
+  }
+  return `<td>${v ?? '—'}</td>`;
+}
+
+function renderTable() {
+  const rows = sortRows(filteredRows());
+  const body = document.getElementById('table-body');
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="${COLUMNS.length}"><div class="empty">No hay filas para este filtro.</div></td></tr>`;
+  } else {
+    body.innerHTML = rows.map(r => `<tr>${COLUMNS.map(c => cellHTML(r,c)).join('')}</tr>`).join('');
+  }
+  renderHead();
+
+  // totals strip
+  const total = rows.length;
+  const tiendas = new Set(rows.map(r => r.country+'_'+r.whId)).size;
+  const cumplen = rows.filter(r => r.cumplimiento.toLowerCase() === 'cumple').length;
+  const noCumplen = total - cumplen;
+  document.getElementById('totals').innerHTML = `<div class="totals-strip">
+    <div class="t-item"><div class="t-num">${tiendas}</div><div class="t-label">Tiendas</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num">${total}</div><div class="t-label">Filas</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num" style="color:#10B981">${cumplen}</div><div class="t-label">🟢 Cumple</div></div>
+    <div class="t-item"><div class="t-num" style="color:#E24B4A">${noCumplen}</div><div class="t-label">🔴 No cumple</div></div>
+  </div>`;
+}
+
+// ===================== EVENTS =====================
+document.getElementById('sel-pais').addEventListener('change', e => { state.pais = e.target.value; renderTable(); });
+document.getElementById('sel-mes').addEventListener('change', e => { state.mes = e.target.value; renderTable(); });
+document.getElementById('sel-storage').addEventListener('change', e => { state.storage = e.target.value; renderTable(); });
+document.getElementById('sel-estado').addEventListener('change', e => { state.estado = e.target.value; renderTable(); });
+document.getElementById('search-tienda').addEventListener('input', e => { state.search = e.target.value; renderTable(); });
+
+// ===================== LOAD =====================
+const safeFetch = url =>
+  fetch(url)
+    .then(r => r.ok ? r.text() : '')
+    .catch(() => '');
+
+async function loadAll() {
+  showLoading(true);
+  document.getElementById('table-wrap').style.display = 'none';
+  try {
+    const resTxt = await safeFetch(csvUrl(GID.resumen));
+    if (!resTxt) throw new Error('No se pudo cargar la hoja "Resumen". Verifica que el sheet esté publicado en la web (formato CSV).');
+
+    processResumen(resTxt);
+    buildFilters();
+    document.getElementById('sel-mes').value = state.mes;
+    showLoading(false);
+    document.getElementById('table-wrap').style.display = 'block';
+    renderTable();
+  } catch(e) {
+    showLoading(false);
+    const el = document.getElementById('loading');
+    el.style.display = 'block';
+    el.innerHTML = `<div style="font-size:24px;margin-bottom:8px">⚠️</div>Error al cargar los datos.<br><span style="font-size:11px;color:#aaa">${e.message || 'Verifica que el sheet esté publicado.'}</span>`;
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
