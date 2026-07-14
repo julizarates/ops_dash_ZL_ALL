@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TurboOps | Tiempos de Entrega AR</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#E24B4A; --red-bg:#FEF2F2;
+  --green:#10B981; --green-bg:#ECFDF5;
+  --yellow:#F59E0B; --yellow-bg:#FFFBEB;
+  --border:#E5E7EB; --surface:#F9FAFB; --text:#111827; --text-sm:#6B7280;
+  --radius:12px; --shadow:0 1px 4px rgba(0,0,0,.08);
+  --c-lasheras:#E24B4A; --c-monserrat:#3B82F6; --c-sannicolas:#F59E0B;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Figtree',sans-serif;background:#F5F5F5;color:var(--text);font-size:14px;line-height:1.5}
+.header{background:#fff;border-bottom:2.5px solid var(--red);padding:12px 16px 10px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.logo{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.logo em{font-style:normal;color:var(--red)}
+.header-info{flex:1}
+.header-title{font-size:11px;font-weight:600;color:var(--text-sm);letter-spacing:.3px;text-transform:uppercase}
+.header-sub{font-size:10px;color:#aaa;margin-top:1px}
+
+.content{padding:12px;max-width:900px;margin:0 auto}
+
+/* Store tabs */
+.store-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.store-tab{flex:1;min-width:110px;text-align:center;padding:9px 8px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-weight:700;font-size:12.5px;cursor:pointer;color:var(--text-sm);transition:.12s}
+.store-tab.active{border-color:currentColor;box-shadow:var(--shadow)}
+.store-tab[data-store="11"].active{color:var(--c-lasheras);background:#FEF2F2}
+.store-tab[data-store="23"].active{color:var(--c-monserrat);background:#EFF6FF}
+.store-tab[data-store="802"].active{color:var(--c-sannicolas);background:#FFFBEB}
+.store-tab[data-store=""].active{color:var(--text);background:var(--surface);border-color:var(--text)}
+
+.gran-toggle{display:flex;gap:6px;margin-bottom:12px}
+.gran-btn{flex:1;text-align:center;padding:7px;border-radius:8px;border:1px solid var(--border);background:#fff;font-weight:600;font-size:12px;cursor:pointer;color:var(--text-sm)}
+.gran-btn.active{background:#111;color:#fff;border-color:#111}
+
+/* KPI strip */
+.kpi-strip{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px}
+.kpi{flex:1;min-width:120px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow)}
+.kpi-label{font-size:10px;font-weight:700;color:var(--text-sm);text-transform:uppercase;letter-spacing:.3px}
+.kpi-val{font-size:22px;font-weight:800;margin-top:3px}
+.kpi-delta{font-size:11px;font-weight:700;margin-top:2px}
+
+/* Sections */
+.sec{background:#fff;border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.sec-header{padding:14px 16px 0}
+.sec-title{font-size:14px;font-weight:800}
+.sec-sub{font-size:11px;color:var(--text-sm);margin-top:2px}
+.sec-body{padding:12px 16px 16px}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap.tall{height:300px}
+
+/* Breakdown table */
+.breakdown{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.bstage{display:flex;align-items:center;gap:8px}
+.bstage-label{width:118px;flex-shrink:0;font-size:11.5px;font-weight:600;color:var(--text-sm)}
+.bstage-track{flex:1;height:9px;background:var(--surface);border-radius:5px;overflow:hidden}
+.bstage-fill{height:100%;border-radius:5px}
+.bstage-val{width:52px;text-align:right;font-size:12px;font-weight:700;flex-shrink:0}
+
+/* QA cards */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qa-card{background:var(--surface);border-radius:10px;padding:10px;border:1px solid var(--border)}
+.qa-card.crit{background:var(--red-bg);border-color:#FCA5A5}
+.qa-card.ok{background:var(--green-bg);border-color:#A7F3D0}
+.qa-name{font-size:10.5px;font-weight:700;color:var(--text-sm);text-transform:uppercase;letter-spacing:.2px}
+.qa-val{font-size:19px;font-weight:800;margin-top:2px}
+.qa-target{font-size:10.5px;color:var(--text-sm);margin-top:1px}
+.qa-store-block{margin-bottom:14px}
+.qa-store-name{font-size:12.5px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.qa-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text-sm);font-size:13px}
+#loading{text-align:center;padding:60px 24px;color:var(--text-sm);font-size:13px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:var(--text-sm)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="header-info">
+    <div class="header-title">Tiempos de Entrega · AR</div>
+    <div class="header-sub" id="header-sub">Cargando...</div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="store-tabs" id="store-tabs">
+    <div class="store-tab active" data-store="">Todas</div>
+    <div class="store-tab" data-store="11">Las Heras</div>
+    <div class="store-tab" data-store="23">Monserrat</div>
+    <div class="store-tab" data-store="802">San Nicolás</div>
+  </div>
+
+  <div class="gran-toggle">
+    <div class="gran-btn active" data-gran="DIARIO">Diario</div>
+    <div class="gran-btn" data-gran="SEMANAL">Semanal</div>
+  </div>
+
+  <div id="loading"><div class="spinner"></div>Cargando datos...</div>
+  <div id="app" style="display:none">
+
+    <div class="kpi-strip" id="kpi-strip"></div>
+
+    <div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">📦 Órdenes por período</div>
+        <div class="sec-sub" id="orders-sub">Evolución del número de órdenes</div>
+      </div>
+      <div class="sec-body">
+        <div class="chart-wrap" id="chart-orders"></div>
+        <div class="legend" id="legend-orders"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">⏱️ Tiempo total promedio</div>
+        <div class="sec-sub">Tendencia de TOTAL_TIME (min:seg)</div>
+      </div>
+      <div class="sec-body">
+        <div class="chart-wrap" id="chart-time"></div>
+        <div class="legend" id="legend-time"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">🔍 Desglose del último período</div>
+        <div class="sec-sub" id="breakdown-sub">Tiempo promedio por etapa (min:seg)</div>
+      </div>
+      <div class="sec-body" id="breakdown-body"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-header">
+        <div class="sec-title">🎯 Calidad (QA) · última semana</div>
+        <div class="sec-sub">Defect Rate, Stockouts, SO Ops y Cancelaciones</div>
+      </div>
+      <div class="sec-body" id="qa-body"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PUB_ID = '2PACX-1vQnT4uViGiikmSNyKqTYcaQDcW5UUsxipbLFpETotIJm46MVdk8AwgQ0-M5IBE4sRZ6h8KJ0QGy3iXE';
+const GID = { exAr: '1705085147', qa: '1947598243' };
+const csvUrl = g => `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${g}&single=true&output=csv`;
+
+const STORES = {
+  '11':  { name: 'Las Heras',   color: '#E24B4A' },
+  '23':  { name: 'Monserrat',   color: '#3B82F6' },
+  '802': { name: 'San Nicolás', color: '#F59E0B' },
+};
+const STAGES = [
+  { key:'AVG_SEND_TO_VIVO_MIN',        label:'Envío a Vivo',       color:'#94A3B8' },
+  { key:'AVG_ASIGNACION_PICKER_MIN',   label:'Asig. Picker',       color:'#60A5FA' },
+  { key:'AVG_PICKING_MIN',             label:'Picking',            color:'#3B82F6' },
+  { key:'AVG_PACKING_MIN',             label:'Packing',            color:'#818CF8' },
+  { key:'AVG_HANDOFF_PRE_MIN',         label:'Handoff Pre',        color:'#F59E0B' },
+  { key:'AVG_HANDOFF_POST_MIN',        label:'Handoff Post',       color:'#FB923C' },
+  { key:'AVG_DELIVER_TO_USER_MIN',     label:'Entrega al usuario', color:'#E24B4A' },
+];
+const QA_METRICS = ['(Instore) Picking Time','Handoff Post','Cancel Rate Partner','SO Ops','SO System','Total Stockouts','Defect Rate','ONA','Total DR'];
+const QA_WANTED  = ['Defect Rate','Total Stockouts','SO Ops','Cancel Rate Partner'];
+
+let state = { store: '', gran: 'DIARIO' };
+let exArRows = [];
+let qaByStore = {};
+
+function parseCSV(text){
+  const lines = text.replace(/\r/g,'').split('\n');
+  return lines.map(line=>{
+    const row=[]; let cur='', inQ=false;
+    for(let i=0;i<=line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if((c===','||c===undefined)&&!inQ){row.push(cur);cur='';}
+      else{cur+=(c||'');}
+    }
+    return row;
+  }).filter(r=>r.some(c=>c!==''));
+}
+
+function processExAr(text){
+  const rows = parseCSV(text);
+  let hIdx = rows.findIndex(r => r.some(c => (c||'').trim() === 'GRANULARIDAD'));
+  if (hIdx < 0) hIdx = 0;
+  const hdr = rows[hIdx].map(h=>(h||'').trim());
+  exArRows = rows.slice(hIdx+1).filter(r=>r.some(c=>c)).map(r=>{
+    const o = Object.fromEntries(hdr.map((k,i)=>[k,(r[i]||'').trim()]));
+    o.WAREHOUSE_ID = String(parseInt(o.WAREHOUSE_ID));
+    ['NUM_ORDENES','AVG_TOTAL_TIME_MIN','AVG_KM_TO_USER','AVG_SEND_TO_VIVO_MIN',
+     'AVG_ASIGNACION_PICKER_MIN','AVG_PICKING_MIN','AVG_PACKING_MIN','AVG_HANDOFF_PRE_MIN',
+     'AVG_HANDOFF_POST_MIN','AVG_DELIVER_TO_USER_MIN'].forEach(k=>{ o[k] = parseFloat(o[k])||0; });
+    return o;
+  });
+}
+
+function processQA(text){
+  const rows = parseCSV(text);
+  if (rows.length < 2) return;
+  let hdrIdx = rows.findIndex(r => (r[0]||'').trim().toLowerCase()==='key');
+  if (hdrIdx < 0) hdrIdx = 0;
+  const hdr = rows[hdrIdx].map(h=>(h||'').trim().toLowerCase());
+  const ci  = name => hdr.indexOf(name.toLowerCase());
+  const ciP = name => hdr.findIndex(h=>h.includes(name.toLowerCase()));
+  const iWeek = ciP('week')>=0?ciP('week'):2;
+  const iPais = ci('país')>=0?ci('país'):(ci('pais')>=0?ci('pais'):3);
+  const iWH   = ci('wh id')>=0?ci('wh id'):(ci('wh_id')>=0?ci('wh_id'):5);
+  const iQuartileEnd = (ci('quartile qa')>=0?ci('quartile qa'):9);
+  const metricsStart = iQuartileEnd + 1;
+
+  const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  function parseWeekDate(str){
+    if(!str) return null; str=str.trim();
+    const slash=str.split('/');
+    if(slash.length===3){const [m,d,y]=slash.map(Number); if(!isNaN(m)&&!isNaN(d)&&!isNaN(y)) return new Date(y,m-1,d);}
+    const dash=str.split('-');
+    if(dash.length===2){const day=parseInt(dash[0]); const mon=MONTHS[(dash[1]||'').toLowerCase().substring(0,3)]; if(!isNaN(day)&&mon!==undefined) return new Date(2026,mon,day);}
+    const iso=new Date(str); return isNaN(iso.getTime())?null:iso;
+  }
+
+  const byStore = {};
+  for(const row of rows.slice(hdrIdx+1)){
+    const pais = (row[iPais]||'').trim().toUpperCase();
+    const wh = String(parseInt(parseFloat(row[iWH])));
+    if(pais!=='AR' || !STORES[wh]) continue;
+    const wd = parseWeekDate(row[iWeek]||'');
+    if(!wd) continue;
+    if(!byStore[wh]) byStore[wh]=[];
+    byStore[wh].push({weekDate:wd,row});
+  }
+  qaByStore = {};
+  for(const [wh, entries] of Object.entries(byStore)){
+    entries.sort((a,b)=>b.weekDate-a.weekDate);
+    const latest = entries[0];
+    const metrics = {};
+    QA_METRICS.forEach((name,i)=>{
+      metrics[name] = {
+        value: (latest.row[metricsStart+i*2]||'').trim(),
+        target: (latest.row[metricsStart+18+i]||'').trim(),
+        critic: (latest.row[metricsStart+27+i]||'').trim().toLowerCase()==='critic'
+      };
+    });
+    qaByStore[wh] = { week: latest.weekDate.toISOString().substring(0,10), metrics };
+  }
+}
+
+function mmss(minFloat){
+  const total = Math.round(minFloat*60);
+  const m = Math.floor(total/60), s = total%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function filteredRows(){
+  return exArRows.filter(r => r.GRANULARIDAD===state.gran && (!state.store || r.WAREHOUSE_ID===state.store));
+}
+
+function renderKPIs(){
+  const rows = filteredRows();
+  const strip = document.getElementById('kpi-strip');
+  if(!rows.length){ strip.innerHTML=''; return; }
+  const periods = [...new Set(rows.map(r=>r.PERIODO))].sort();
+  const lastP = periods[periods.length-1];
+  const prevP = periods[periods.length-2];
+  const lastRows = rows.filter(r=>r.PERIODO===lastP);
+  const prevRows = prevP ? rows.filter(r=>r.PERIODO===prevP) : [];
+
+  const totalOrdenes = lastRows.reduce((s,r)=>s+r.NUM_ORDENES,0);
+  const prevOrdenes = prevRows.reduce((s,r)=>s+r.NUM_ORDENES,0);
+  const avgTime = lastRows.reduce((s,r)=>s+r.AVG_TOTAL_TIME_MIN*r.NUM_ORDENES,0) / (totalOrdenes||1);
+  const prevAvgTime = prevRows.length ? prevRows.reduce((s,r)=>s+r.AVG_TOTAL_TIME_MIN*r.NUM_ORDENES,0)/(prevOrdenes||1) : null;
+
+  const deltaOrd = prevOrdenes ? ((totalOrdenes-prevOrdenes)/prevOrdenes*100) : null;
+  const deltaTime = prevAvgTime ? ((avgTime-prevAvgTime)/prevAvgTime*100) : null;
+
+  const kpiHTML = (label,val,delta,goodIsDown)=>{
+    let deltaHtml = '';
+    if(delta!==null && !isNaN(delta)){
+      const good = goodIsDown ? delta<0 : delta>0;
+      deltaHtml = `<div class="kpi-delta" style="color:${good?'var(--green)':'var(--red)'}">${delta>0?'↑':'↓'} ${Math.abs(delta).toFixed(1)}% vs período anterior</div>`;
+    }
+    return `<div class="kpi"><div class="kpi-label">${label}</div><div class="kpi-val">${val}</div>${deltaHtml}</div>`;
+  };
+
+  strip.innerHTML =
+    kpiHTML('Órdenes · último período', totalOrdenes.toLocaleString('es-AR'), deltaOrd, false) +
+    kpiHTML('Tiempo total prom.', mmss(avgTime), deltaTime, true) +
+    `<div class="kpi"><div class="kpi-label">Período</div><div class="kpi-val" style="font-size:15px">${lastP}</div></div>`;
+}
+
+function storeColorList(){
+  return state.store ? [state.store] : Object.keys(STORES);
+}
+
+function svgBarChart(el, periods, series){
+  const W = el.clientWidth || 600, H = el.clientHeight || 260;
+  const padL=42, padR=10, padT=10, padB=28;
+  const maxVal = Math.max(1, ...series.flatMap(s=>s.values));
+  const groupW = (W-padL-padR)/Math.max(1,periods.length);
+  const barW = Math.max(2, (groupW*0.72)/Math.max(1,series.length));
+  let bars='';
+  periods.forEach((p,pi)=>{
+    const groupX = padL + pi*groupW + groupW*0.14;
+    series.forEach((s,si)=>{
+      const v = s.values[pi]||0;
+      const h = (v/maxVal)*(H-padT-padB);
+      const x = groupX + si*barW;
+      const y = H-padB-h;
+      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(barW-1).toFixed(1)}" height="${h.toFixed(1)}" fill="${s.color}" rx="2"><title>${s.label} · ${p}: ${v.toLocaleString('es-AR')}</title></rect>`;
+    });
+  });
+  const step = Math.max(1, Math.ceil(periods.length/8));
+  let labels='';
+  periods.forEach((p,pi)=>{
+    if(pi%step!==0) return;
+    const x = padL + pi*groupW + groupW/2;
+    labels += `<text x="${x.toFixed(1)}" y="${H-8}" font-size="9" fill="#6B7280" text-anchor="middle">${p.slice(5)}</text>`;
+  });
+  let grid='';
+  for(let t=0;t<=4;t++){
+    const val = maxVal*t/4;
+    const y = H-padB-(val/maxVal)*(H-padT-padB);
+    grid += `<line x1="${padL}" x2="${W-padR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#F0F0F0"/>`;
+    grid += `<text x="${padL-6}" y="${(y+3).toFixed(1)}" font-size="9" fill="#9CA3AF" text-anchor="end">${Math.round(val)}</text>`;
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="none">${grid}${bars}${labels}</svg>`;
+}
+
+function svgLineChart(el, periods, series){
+  const W = el.clientWidth || 600, H = el.clientHeight || 260;
+  const padL=46, padR=10, padT=10, padB=28;
+  const allVals = series.flatMap(s=>s.values.filter(v=>v!=null));
+  const maxVal = Math.max(1, ...allVals);
+  const stepX = (W-padL-padR)/Math.max(1,periods.length-1);
+  let paths='';
+  series.forEach(s=>{
+    let d=''; let started=false;
+    s.values.forEach((v,i)=>{
+      if(v==null){ started=false; return; }
+      const x=padL+i*stepX, y=H-padB-(v/maxVal)*(H-padT-padB);
+      d += (started?'L':'M')+x.toFixed(1)+','+y.toFixed(1)+' ';
+      started=true;
+    });
+    paths += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2"/>`;
+    s.values.forEach((v,i)=>{
+      if(v==null) return;
+      const x=padL+i*stepX, y=H-padB-(v/maxVal)*(H-padT-padB);
+      paths += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${s.color}"><title>${s.label} · ${periods[i]}: ${mmss(v)}</title></circle>`;
+    });
+  });
+  const step = Math.max(1, Math.ceil(periods.length/8));
+  let labels='';
+  periods.forEach((p,i)=>{
+    if(i%step!==0) return;
+    const x = padL+i*stepX;
+    labels += `<text x="${x.toFixed(1)}" y="${H-8}" font-size="9" fill="#6B7280" text-anchor="middle">${p.slice(5)}</text>`;
+  });
+  let grid='';
+  for(let t=0;t<=4;t++){
+    const val = maxVal*t/4;
+    const y = H-padB-(val/maxVal)*(H-padT-padB);
+    grid += `<line x1="${padL}" x2="${W-padR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#F0F0F0"/>`;
+    grid += `<text x="${padL-6}" y="${(y+3).toFixed(1)}" font-size="9" fill="#9CA3AF" text-anchor="end">${mmss(val)}</text>`;
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" preserveAspectRatio="none">${grid}${paths}${labels}</svg>`;
+}
+
+function renderOrdersChart(){
+  const rows = filteredRows();
+  const periods = [...new Set(rows.map(r=>r.PERIODO))].sort();
+  const stores = storeColorList();
+  const series = stores.map(wh => ({
+    label: STORES[wh].name, color: STORES[wh].color,
+    values: periods.map(p => { const r = rows.find(r=>r.PERIODO===p && r.WAREHOUSE_ID===wh); return r ? r.NUM_ORDENES : 0; })
+  }));
+  svgBarChart(document.getElementById('chart-orders'), periods, series);
+  document.getElementById('legend-orders').innerHTML = stores.map(wh =>
+    `<span><i style="background:${STORES[wh].color}"></i>${STORES[wh].name}</span>`).join('');
+  document.getElementById('orders-sub').textContent =
+    state.gran==='DIARIO' ? 'Órdenes por día · últimos 14 días' : 'Órdenes por semana';
+}
+
+function renderTimeChart(){
+  const rows = filteredRows();
+  const periods = [...new Set(rows.map(r=>r.PERIODO))].sort();
+  const stores = storeColorList();
+  const series = stores.map(wh => ({
+    label: STORES[wh].name, color: STORES[wh].color,
+    values: periods.map(p => { const r = rows.find(r=>r.PERIODO===p && r.WAREHOUSE_ID===wh); return r ? r.AVG_TOTAL_TIME_MIN : null; })
+  }));
+  svgLineChart(document.getElementById('chart-time'), periods, series);
+  document.getElementById('legend-time').innerHTML = stores.map(wh =>
+    `<span><i style="background:${STORES[wh].color}"></i>${STORES[wh].name}</span>`).join('');
+}
+
+function renderBreakdown(){
+  const rows = filteredRows();
+  const periods = [...new Set(rows.map(r=>r.PERIODO))].sort();
+  const lastP = periods[periods.length-1];
+  const stores = storeColorList();
+  const body = document.getElementById('breakdown-body');
+  document.getElementById('breakdown-sub').textContent = `Etapas del pedido · período ${lastP||''}`;
+
+  if(!lastP){ body.innerHTML = '<div class="empty">Sin datos</div>'; return; }
+
+  body.innerHTML = stores.map(wh=>{
+    const r = rows.find(r=>r.PERIODO===lastP && r.WAREHOUSE_ID===wh);
+    if(!r) return '';
+    const maxVal = Math.max(...STAGES.map(s=>r[s.key]));
+    return `<div class="qa-store-block">
+      <div class="qa-store-name"><span class="qa-dot" style="background:${STORES[wh].color}"></span>${STORES[wh].name} · Total: ${mmss(r.AVG_TOTAL_TIME_MIN)}</div>
+      <div class="breakdown">
+        ${STAGES.map(s=>`<div class="bstage">
+          <div class="bstage-label">${s.label}</div>
+          <div class="bstage-track"><div class="bstage-fill" style="width:${maxVal?(r[s.key]/maxVal*100):0}%;background:${s.color}"></div></div>
+          <div class="bstage-val">${mmss(r[s.key])}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderQA(){
+  const stores = storeColorList();
+  const body = document.getElementById('qa-body');
+  const blocks = stores.map(wh=>{
+    const qa = qaByStore[wh];
+    if(!qa) return `<div class="qa-store-block">
+      <div class="qa-store-name"><span class="qa-dot" style="background:${STORES[wh].color}"></span>${STORES[wh].name}</div>
+      <div class="empty" style="padding:16px">Sin datos QA para esta tienda</div>
+    </div>`;
+    const cards = QA_WANTED.map(name=>{
+      const m = qa.metrics[name];
+      if(!m) return '';
+      const cls = m.critic ? 'crit' : 'ok';
+      return `<div class="qa-card ${cls}">
+        <div class="qa-name">${name}</div>
+        <div class="qa-val" style="color:${m.critic?'var(--red)':'var(--text)'}">${m.value||'—'}</div>
+        <div class="qa-target">Target: ${m.target||'—'}</div>
+      </div>`;
+    }).join('');
+    return `<div class="qa-store-block">
+      <div class="qa-store-name"><span class="qa-dot" style="background:${STORES[wh].color}"></span>${STORES[wh].name} · sem. ${qa.week}</div>
+      <div class="qa-grid">${cards}</div>
+    </div>`;
+  }).join('');
+  body.innerHTML = blocks;
+}
+
+function renderAll(){
+  renderKPIs();
+  renderOrdersChart();
+  renderTimeChart();
+  renderBreakdown();
+  renderQA();
+}
+
+document.getElementById('store-tabs').addEventListener('click', e=>{
+  const tab = e.target.closest('.store-tab'); if(!tab) return;
+  document.querySelectorAll('.store-tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  state.store = tab.dataset.store;
+  renderAll();
+});
+document.querySelectorAll('.gran-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.gran-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.gran = btn.dataset.gran;
+    renderAll();
+  });
+});
+
+const safeFetch = url => fetch(url).then(r=>r.ok?r.text():'').catch(()=>'');
+
+async function loadAll(){
+  try{
+    const [exArTxt, qaTxt] = await Promise.all([ safeFetch(csvUrl(GID.exAr)), safeFetch(csvUrl(GID.qa)) ]);
+    if(!exArTxt) throw new Error('No se pudo cargar la pestaña EX_AR. Verifica que el sheet esté publicado.');
+    processExAr(exArTxt);
+    if(qaTxt) processQA(qaTxt);
+
+    const periods = [...new Set(exArRows.map(r=>r.PERIODO))].sort();
+    document.getElementById('header-sub').textContent =
+      periods.length ? `Datos hasta ${periods[periods.length-1]}` : 'Sin datos';
+
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').style.display='block';
+    renderAll();
+  }catch(e){
+    document.getElementById('loading').innerHTML =
+      `<div style="font-size:24px;margin-bottom:8px">⚠️</div>Error al cargar los datos.<br><span style="font-size:11px;color:#aaa">${e.message}</span>`;
+  }
+}
+loadAll();
+</script>
+</body>
+</html>
