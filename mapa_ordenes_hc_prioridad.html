@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MX · Mapa de Órdenes, HC y Prioridad de Recorte</title>
+<style>
+  :root{
+    --bg:#0f1216;
+    --panel:#161b21;
+    --panel2:#1c222a;
+    --line:#2a323c;
+    --text:#e7ebf0;
+    --muted:#8b96a5;
+    --accent:#4fd1c5;
+    --critico:#e35d5d;
+    --bajo:#e0a12f;
+    --medio:#4f8ce3;
+    --bueno:#3fbf7f;
+    --mono:'IBM Plex Mono','SF Mono',Consolas,monospace;
+    --sans:'Inter','Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased;
+  }
+  header{
+    padding:28px 32px 20px; border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;
+  }
+  header h1{
+    margin:0 0 6px; font-size:20px; font-weight:700; letter-spacing:-0.01em;
+  }
+  header .sub{color:var(--muted); font-size:13px; font-family:var(--mono);}
+  .meta{font-size:12px; color:var(--muted); font-family:var(--mono); text-align:right;}
+  .meta b{color:var(--text);}
+  nav{
+    display:flex; gap:2px; padding:0 32px; border-bottom:1px solid var(--line);
+    background:var(--panel);
+  }
+  nav button{
+    background:none; border:none; color:var(--muted); padding:14px 18px;
+    font-family:var(--sans); font-size:13.5px; font-weight:600; cursor:pointer;
+    border-bottom:2px solid transparent;
+  }
+  nav button.active{color:var(--text); border-bottom-color:var(--accent);}
+  main{padding:24px 32px 60px; max-width:1400px; margin:0 auto;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-bottom:18px; font-size:12px; color:var(--muted);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:9px; height:9px; border-radius:2px; display:inline-block;}
+  .grid-map{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:6px;
+  }
+  .cell{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:10px 12px; position:relative; overflow:hidden; cursor:default;
+    transition:transform .12s ease;
+  }
+  .cell:hover{transform:translateY(-2px); border-color:var(--accent);}
+  .cell .bar{
+    position:absolute; left:0; bottom:0; height:3px; width:100%;
+  }
+  .cell .name{font-size:12.5px; font-weight:600; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cell .city{font-size:10.5px; color:var(--muted); margin-bottom:8px;}
+  .cell .row{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; margin-top:3px;}
+  .cell .row .k{color:var(--muted);}
+  .cell .row .v{font-weight:600;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em;
+    color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg);
+  }
+  tbody td{padding:8px 10px; border-bottom:1px solid var(--line); font-family:var(--mono); font-size:12.5px;}
+  tbody tr:hover{background:var(--panel2);}
+  .badge{
+    display:inline-block; padding:2px 8px; border-radius:20px; font-size:10.5px;
+    font-weight:700; font-family:var(--sans);
+  }
+  .badge.Crítico{background:rgba(227,93,93,.15); color:var(--critico);}
+  .badge.Bajo{background:rgba(224,161,47,.15); color:var(--bajo);}
+  .badge.Medio{background:rgba(79,140,227,.15); color:var(--medio);}
+  .badge.Bueno{background:rgba(63,191,127,.15); color:var(--bueno);}
+  .rank{color:var(--muted); font-family:var(--mono);}
+  .name-cell{font-family:var(--sans); font-weight:600; color:var(--text);}
+  .city-cell{color:var(--muted);}
+  .controls{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
+  .controls select, .controls input{
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:7px 10px; border-radius:6px; font-family:var(--sans); font-size:12.5px;
+  }
+  .stat-row{display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;}
+  .stat{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:14px 18px; min-width:130px;
+  }
+  .stat .n{font-size:22px; font-weight:700; font-family:var(--mono);}
+  .stat .l{font-size:11px; color:var(--muted); margin-top:2px;}
+  footer{padding:20px 32px 40px; color:var(--muted); font-size:11.5px; font-family:var(--mono); border-top:1px solid var(--line); margin-top:20px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Mapa de Órdenes, HC &amp; Prioridad de Recorte — MX</h1>
+    <div class="sub">Datos diarios promedio · Septiembre</div>
+  </div>
+  <div class="meta">Última actualización: <b id="lastUpdate">17 jul 2026</b><br>69 tiendas · fuente: export interno</div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-view="mapa">Mapa Órdenes &amp; HC</button>
+  <button class="tab-btn" data-view="prioridad">Prioridad de Recorte</button>
+</nav>
+
+<main>
+
+  <section id="view-mapa" class="view active">
+    <div class="legend">
+      <span><span class="dot" style="background:var(--critico)"></span> Crítico &lt;30 ord/HC</span>
+      <span><span class="dot" style="background:var(--bajo)"></span> Bajo 30–50</span>
+      <span><span class="dot" style="background:var(--medio)"></span> Medio 50–70</span>
+      <span><span class="dot" style="background:var(--bueno)"></span> Bueno &gt;70</span>
+    </div>
+    <div class="grid-map" id="gridMap"></div>
+  </section>
+
+  <section id="view-prioridad" class="view">
+    <div class="stat-row" id="statRow"></div>
+    <div class="controls">
+      <input type="text" id="searchInput" placeholder="Buscar tienda o ciudad...">
+      <select id="nivelFilter">
+        <option value="">Todos los niveles</option>
+        <option value="Crítico">Crítico</option>
+        <option value="Bajo">Bajo</option>
+        <option value="Medio">Medio</option>
+        <option value="Bueno">Bueno</option>
+      </select>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Tienda</th><th>Ciudad</th><th>Órd/día</th><th>HC total</th>
+          <th>Órd/HC día</th><th>Productividad</th><th>Nivel</th><th>UE hoy</th><th>Exceso UE</th>
+        </tr>
+      </thead>
+      <tbody id="priorityBody"></tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  Cómo actualizar: reemplaza el array STORES en este archivo con datos nuevos y vuelve a subirlo (commit + push) a tu repo de GitHub Pages. No requiere conexión en vivo a ningún Sheet.
+</footer>
+
+<script>
+const STORES = [{"Rank": 1, "WH_name": "Estadio jalisco", "City": "Guadalajara", "Daily_Orders_Sept": 21, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 4.2, "Productividad": 4, "Nivel": "Crítico", "UE_today_cost": 12.43, "Exceso_UE_vs_benchmark": 11.78, "OptB": 5, "Dif": 8241}, {"Rank": 2, "WH_name": "Medrano", "City": "Guadalajara", "Daily_Orders_Sept": 24, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 4.8, "Productividad": 5, "Nivel": "Crítico", "UE_today_cost": 10.69, "Exceso_UE_vs_benchmark": 10.04, "OptB": 5, "Dif": 8139}, {"Rank": 3, "WH_name": "Nueva Galicia", "City": "Sin ciudad", "Daily_Orders_Sept": 32, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 6.4, "Productividad": 6, "Nivel": "Crítico", "UE_today_cost": 8.13, "Exceso_UE_vs_benchmark": 7.48, "OptB": 5, "Dif": 7911}, {"Rank": 4, "WH_name": "El colli", "City": "Sin ciudad", "Daily_Orders_Sept": 28, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 5.6, "Productividad": 6, "Nivel": "Crítico", "UE_today_cost": 9.26, "Exceso_UE_vs_benchmark": 8.61, "OptB": 5, "Dif": 8028}, {"Rank": 5, "WH_name": "Solidaridad", "City": "Monterrey", "Daily_Orders_Sept": 42, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 8.4, "Productividad": 8, "Nivel": "Crítico", "UE_today_cost": 6.19, "Exceso_UE_vs_benchmark": 5.54, "OptB": 5, "Dif": 7611}, {"Rank": 6, "WH_name": "José alvarado", "City": "Monterrey", "Daily_Orders_Sept": 46, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 9.2, "Productividad": 9, "Nivel": "Crítico", "UE_today_cost": 5.64, "Exceso_UE_vs_benchmark": 4.99, "OptB": 5, "Dif": 7489}, {"Rank": 7, "WH_name": "Agrícola", "City": "Ciudad de México", "Daily_Orders_Sept": 54, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 10.8, "Productividad": 11, "Nivel": "Crítico", "UE_today_cost": 4.81, "Exceso_UE_vs_benchmark": 4.16, "OptB": 5, "Dif": 7250}, {"Rank": 8, "WH_name": "Fundidora", "City": "Monterrey", "Daily_Orders_Sept": 56, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 11.2, "Productividad": 11, "Nivel": "Crítico", "UE_today_cost": 4.62, "Exceso_UE_vs_benchmark": 3.97, "OptB": 5, "Dif": 7184}, {"Rank": 9, "WH_name": "San Rafael", "City": "Guadalajara", "Daily_Orders_Sept": 86, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 17.2, "Productividad": 17, "Nivel": "Crítico", "UE_today_cost": 3.01, "Exceso_UE_vs_benchmark": 2.36, "OptB": 5, "Dif": 6284}, {"Rank": 10, "WH_name": "Bugambilias", "City": "Guadalajara", "Daily_Orders_Sept": 82, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 20.5, "Productividad": 20, "Nivel": "Crítico", "UE_today_cost": 2.64, "Exceso_UE_vs_benchmark": 1.99, "OptB": 5, "Dif": 6417}, {"Rank": 11, "WH_name": "Viaducto", "City": "Ciudad de México", "Daily_Orders_Sept": 105, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 21.0, "Productividad": 21, "Nivel": "Crítico", "UE_today_cost": 2.46, "Exceso_UE_vs_benchmark": 1.81, "OptB": 5, "Dif": 5705}, {"Rank": 12, "WH_name": "Gustavo baz", "City": "Sin ciudad", "Daily_Orders_Sept": 108, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 21.6, "Productividad": 22, "Nivel": "Crítico", "UE_today_cost": 2.39, "Exceso_UE_vs_benchmark": 1.74, "OptB": 5, "Dif": 5619}, {"Rank": 13, "WH_name": "Constituyentes", "City": "Querétaro", "Daily_Orders_Sept": 92, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 23.0, "Productividad": 23, "Nivel": "Crítico", "UE_today_cost": 2.36, "Exceso_UE_vs_benchmark": 1.71, "OptB": 5, "Dif": 6118}, {"Rank": 14, "WH_name": "Presidentes", "City": "Sin ciudad", "Daily_Orders_Sept": 120, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 24.0, "Productividad": 24, "Nivel": "Crítico", "UE_today_cost": 2.16, "Exceso_UE_vs_benchmark": 1.51, "OptB": 5, "Dif": 5266}, {"Rank": 15, "WH_name": "Pirandello", "City": "Monterrey", "Daily_Orders_Sept": 122, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 24.4, "Productividad": 24, "Nivel": "Crítico", "UE_today_cost": 2.11, "Exceso_UE_vs_benchmark": 1.46, "OptB": 5, "Dif": 5192}, {"Rank": 16, "WH_name": "Élite", "City": "Sin ciudad", "Daily_Orders_Sept": 120, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 24.0, "Productividad": 24, "Nivel": "Crítico", "UE_today_cost": 2.16, "Exceso_UE_vs_benchmark": 1.51, "OptB": 5, "Dif": 5266}, {"Rank": 17, "WH_name": "Capitan mederos", "City": "Sin ciudad", "Daily_Orders_Sept": 120, "TOTAL_HC": 6, "HC_productivo": 5, "Orders_per_HC_dia": 24.0, "Productividad": 24, "Nivel": "Crítico", "UE_today_cost": 2.16, "Exceso_UE_vs_benchmark": 1.51, "OptB": 5, "Dif": 5266}, {"Rank": 18, "WH_name": "Bosques", "City": "Ciudad de México", "Daily_Orders_Sept": 100, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 25.0, "Productividad": 25, "Nivel": "Crítico", "UE_today_cost": 2.16, "Exceso_UE_vs_benchmark": 1.51, "OptB": 5, "Dif": 5876}, {"Rank": 19, "WH_name": "Republica", "City": "Saltillo", "Daily_Orders_Sept": 106, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 26.5, "Productividad": 26, "Nivel": "Crítico", "UE_today_cost": 2.04, "Exceso_UE_vs_benchmark": 1.39, "OptB": 5, "Dif": 5690}, {"Rank": 20, "WH_name": "Portillo", "City": "Cancún", "Daily_Orders_Sept": 110, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 27.5, "Productividad": 27, "Nivel": "Crítico", "UE_today_cost": 1.97, "Exceso_UE_vs_benchmark": 1.32, "OptB": 5, "Dif": 5578}, {"Rank": 21, "WH_name": "Arcos", "City": "Querétaro", "Daily_Orders_Sept": 116, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 29.0, "Productividad": 29, "Nivel": "Crítico", "UE_today_cost": 1.87, "Exceso_UE_vs_benchmark": 1.22, "OptB": 5, "Dif": 5397}, {"Rank": 22, "WH_name": "Zapopan", "City": "Guadalajara", "Daily_Orders_Sept": 155, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 38.8, "Productividad": 39, "Nivel": "Bajo", "UE_today_cost": 1.4, "Exceso_UE_vs_benchmark": 0.75, "OptB": 5, "Dif": 4228}, {"Rank": 23, "WH_name": "Lomas", "City": "Puebla", "Daily_Orders_Sept": 161, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 40.2, "Productividad": 40, "Nivel": "Bajo", "UE_today_cost": 1.34, "Exceso_UE_vs_benchmark": 0.69, "OptB": 5, "Dif": 4025}, {"Rank": 24, "WH_name": "Toreo", "City": "Ciudad de México", "Daily_Orders_Sept": 189, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 47.2, "Productividad": 47, "Nivel": "Bajo", "UE_today_cost": 1.14, "Exceso_UE_vs_benchmark": 0.49, "OptB": 5, "Dif": 3188}, {"Rank": 25, "WH_name": "San Ramon", "City": "Mérida", "Daily_Orders_Sept": 221, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 55.2, "Productividad": 55, "Nivel": "Medio", "UE_today_cost": 0.98, "Exceso_UE_vs_benchmark": 0.33, "OptB": 5, "Dif": 2243}, {"Rank": 26, "WH_name": "El Rosario", "City": "Mérida", "Daily_Orders_Sept": 226, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 56.5, "Productividad": 57, "Nivel": "Medio", "UE_today_cost": 0.95, "Exceso_UE_vs_benchmark": 0.3, "OptB": 5, "Dif": 2073}, {"Rank": 27, "WH_name": "San Pedro", "City": "Monterrey", "Daily_Orders_Sept": 233, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 58.2, "Productividad": 58, "Nivel": "Medio", "UE_today_cost": 0.93, "Exceso_UE_vs_benchmark": 0.28, "OptB": 5, "Dif": 1889}, {"Rank": 28, "WH_name": "Sauz", "City": "Guadalajara", "Daily_Orders_Sept": 236, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 59.0, "Productividad": 59, "Nivel": "Medio", "UE_today_cost": 0.92, "Exceso_UE_vs_benchmark": 0.27, "OptB": 5, "Dif": 1801}, {"Rank": 29, "WH_name": "Bosque Real", "City": "Ciudad de México", "Daily_Orders_Sept": 240, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 60.0, "Productividad": 60, "Nivel": "Medio", "UE_today_cost": 0.9, "Exceso_UE_vs_benchmark": 0.25, "OptB": 5, "Dif": 1665}, {"Rank": 30, "WH_name": "Tapatía", "City": "Guadalajara", "Daily_Orders_Sept": 374, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 62.3, "Productividad": 62, "Nivel": "Medio", "UE_today_cost": 0.81, "Exceso_UE_vs_benchmark": 0.16, "OptB": 7, "Dif": 1195}, {"Rank": 31, "WH_name": "Granjas", "City": "Ciudad de México", "Daily_Orders_Sept": 382, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 63.7, "Productividad": 64, "Nivel": "Medio", "UE_today_cost": 0.79, "Exceso_UE_vs_benchmark": 0.14, "OptB": 7, "Dif": 956}, {"Rank": 32, "WH_name": "Las Aguilas", "City": "Ciudad de México", "Daily_Orders_Sept": 261, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 65.2, "Productividad": 65, "Nivel": "Medio", "UE_today_cost": 0.83, "Exceso_UE_vs_benchmark": 0.18, "OptB": 5, "Dif": 1037}, {"Rank": 33, "WH_name": "Fuentes del Pedregal", "City": "Ciudad de México", "Daily_Orders_Sept": 264, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 66.0, "Productividad": 66, "Nivel": "Medio", "UE_today_cost": 0.82, "Exceso_UE_vs_benchmark": 0.17, "OptB": 5, "Dif": 947}, {"Rank": 34, "WH_name": "lindavista", "City": "Ciudad de México", "Daily_Orders_Sept": 397, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 66.2, "Productividad": 66, "Nivel": "Medio", "UE_today_cost": 0.76, "Exceso_UE_vs_benchmark": 0.11, "OptB": 7, "Dif": 495}, {"Rank": 35, "WH_name": "Areopuerto", "City": "Sin ciudad", "Daily_Orders_Sept": 400, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 66.7, "Productividad": 67, "Nivel": "Medio", "UE_today_cost": 0.76, "Exceso_UE_vs_benchmark": 0.11, "OptB": 7, "Dif": 412}, {"Rank": 36, "WH_name": "Cholula", "City": "Puebla", "Daily_Orders_Sept": 269, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 67.2, "Productividad": 67, "Nivel": "Medio", "UE_today_cost": 0.8, "Exceso_UE_vs_benchmark": 0.15, "OptB": 5, "Dif": 798}, {"Rank": 37, "WH_name": "Leones", "City": "Monterrey", "Daily_Orders_Sept": 467, "TOTAL_HC": 8, "HC_productivo": 7, "Orders_per_HC_dia": 66.7, "Productividad": 67, "Nivel": "Medio", "UE_today_cost": 0.74, "Exceso_UE_vs_benchmark": 0.09, "OptB": 8, "Dif": 173}, {"Rank": 38, "WH_name": "Atizapan", "City": "Ciudad de México", "Daily_Orders_Sept": 477, "TOTAL_HC": 8, "HC_productivo": 7, "Orders_per_HC_dia": 68.1, "Productividad": 68, "Nivel": "Medio", "UE_today_cost": 0.72, "Exceso_UE_vs_benchmark": 0.07, "OptB": 8, "Dif": 0}, {"Rank": 39, "WH_name": "La Paz MX", "City": "Puebla", "Daily_Orders_Sept": 270, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 67.5, "Productividad": 68, "Nivel": "Medio", "UE_today_cost": 0.8, "Exceso_UE_vs_benchmark": 0.15, "OptB": 5, "Dif": 755}, {"Rank": 40, "WH_name": "Avante", "City": "Ciudad de México", "Daily_Orders_Sept": 473, "TOTAL_HC": 8, "HC_productivo": 7, "Orders_per_HC_dia": 67.6, "Productividad": 68, "Nivel": "Medio", "UE_today_cost": 0.73, "Exceso_UE_vs_benchmark": 0.08, "OptB": 8, "Dif": 11}, {"Rank": 41, "WH_name": "Paseo del Sol", "City": "Guadalajara", "Daily_Orders_Sept": 412, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 68.7, "Productividad": 69, "Nivel": "Medio", "UE_today_cost": 0.73, "Exceso_UE_vs_benchmark": 0.08, "OptB": 7, "Dif": 40}, {"Rank": 42, "WH_name": "Frida", "City": "Ciudad de México", "Daily_Orders_Sept": 484, "TOTAL_HC": 8, "HC_productivo": 7, "Orders_per_HC_dia": 69.1, "Productividad": 69, "Nivel": "Medio", "UE_today_cost": 0.71, "Exceso_UE_vs_benchmark": 0.06, "OptB": 8, "Dif": 0}, {"Rank": 43, "WH_name": "Jardines de la Patria", "City": "Guadalajara", "Daily_Orders_Sept": 418, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 69.7, "Productividad": 70, "Nivel": "Bueno", "UE_today_cost": 0.72, "Exceso_UE_vs_benchmark": 0.07, "OptB": 7, "Dif": 0}, {"Rank": 44, "WH_name": "Roma Norte", "City": "Ciudad de México", "Daily_Orders_Sept": 492, "TOTAL_HC": 8, "HC_productivo": 7, "Orders_per_HC_dia": 70.3, "Productividad": 70, "Nivel": "Bueno", "UE_today_cost": 0.7, "Exceso_UE_vs_benchmark": 0.05, "OptB": 8, "Dif": 0}, {"Rank": 45, "WH_name": "Ajusco", "City": "Ciudad de México", "Daily_Orders_Sept": 488, "TOTAL_HC": 8, "HC_productivo": 7, "Orders_per_HC_dia": 69.7, "Productividad": 70, "Nivel": "Bueno", "UE_today_cost": 0.71, "Exceso_UE_vs_benchmark": 0.06, "OptB": 8, "Dif": 0}, {"Rank": 46, "WH_name": "Santa Fe", "City": "Ciudad de México", "Daily_Orders_Sept": 428, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 71.3, "Productividad": 71, "Nivel": "Bueno", "UE_today_cost": 0.71, "Exceso_UE_vs_benchmark": 0.06, "OptB": 7, "Dif": 0}, {"Rank": 47, "WH_name": "Zedec", "City": "Ciudad de México", "Daily_Orders_Sept": 426, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 71.0, "Productividad": 71, "Nivel": "Bueno", "UE_today_cost": 0.71, "Exceso_UE_vs_benchmark": 0.06, "OptB": 7, "Dif": 0}, {"Rank": 48, "WH_name": "Polanco", "City": "Sin ciudad", "Daily_Orders_Sept": 500, "TOTAL_HC": 9, "HC_productivo": 7, "Orders_per_HC_dia": 71.4, "Productividad": 71, "Nivel": "Bueno", "UE_today_cost": 0.78, "Exceso_UE_vs_benchmark": 0.13, "OptB": 9, "Dif": 959}, {"Rank": 49, "WH_name": "Fidel", "City": "Guadalajara", "Daily_Orders_Sept": 432, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 72.0, "Productividad": 72, "Nivel": "Bueno", "UE_today_cost": 0.7, "Exceso_UE_vs_benchmark": 0.05, "OptB": 7, "Dif": 0}, {"Rank": 50, "WH_name": "Campestre", "City": "Ciudad de México", "Daily_Orders_Sept": 504, "TOTAL_HC": 9, "HC_productivo": 7, "Orders_per_HC_dia": 72.0, "Productividad": 72, "Nivel": "Bueno", "UE_today_cost": 0.77, "Exceso_UE_vs_benchmark": 0.12, "OptB": 9, "Dif": 837}, {"Rank": 51, "WH_name": "Duraznos", "City": "Ciudad de México", "Daily_Orders_Sept": 290, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 72.5, "Productividad": 73, "Nivel": "Bueno", "UE_today_cost": 0.74, "Exceso_UE_vs_benchmark": 0.09, "OptB": 5, "Dif": 164}, {"Rank": 52, "WH_name": "San Mike", "City": "Ciudad de México", "Daily_Orders_Sept": 457, "TOTAL_HC": 7, "HC_productivo": 6, "Orders_per_HC_dia": 76.2, "Productividad": 76, "Nivel": "Bueno", "UE_today_cost": 0.66, "Exceso_UE_vs_benchmark": 0.01, "OptB": 7, "Dif": 0}, {"Rank": 53, "WH_name": "Angelópolis", "City": "Puebla", "Daily_Orders_Sept": 305, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 76.2, "Productividad": 76, "Nivel": "Bueno", "UE_today_cost": 0.71, "Exceso_UE_vs_benchmark": 0.06, "OptB": 5, "Dif": 0}, {"Rank": 54, "WH_name": "Huicholes", "City": "Ciudad de México", "Daily_Orders_Sept": 540, "TOTAL_HC": 9, "HC_productivo": 7, "Orders_per_HC_dia": 77.1, "Productividad": 77, "Nivel": "Bueno", "UE_today_cost": 0.72, "Exceso_UE_vs_benchmark": 0.07, "OptB": 9, "Dif": 0}, {"Rank": 55, "WH_name": "Portales Norte", "City": "Ciudad de México", "Daily_Orders_Sept": 689, "TOTAL_HC": 11, "HC_productivo": 9, "Orders_per_HC_dia": 76.6, "Productividad": 77, "Nivel": "Bueno", "UE_today_cost": 0.69, "Exceso_UE_vs_benchmark": 0.04, "OptB": 11, "Dif": 0}, {"Rank": 56, "WH_name": "Toriello Guerra", "City": "Ciudad de México", "Daily_Orders_Sept": 694, "TOTAL_HC": 11, "HC_productivo": 9, "Orders_per_HC_dia": 77.1, "Productividad": 77, "Nivel": "Bueno", "UE_today_cost": 0.68, "Exceso_UE_vs_benchmark": 0.03, "OptB": 11, "Dif": 0}, {"Rank": 57, "WH_name": "Valle oriente", "City": "Monterrey", "Daily_Orders_Sept": 312, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 78.0, "Productividad": 78, "Nivel": "Bueno", "UE_today_cost": 0.69, "Exceso_UE_vs_benchmark": 0.04, "OptB": 5, "Dif": 0}, {"Rank": 58, "WH_name": "San Ángel", "City": "Ciudad de México", "Daily_Orders_Sept": 544, "TOTAL_HC": 9, "HC_productivo": 7, "Orders_per_HC_dia": 77.7, "Productividad": 78, "Nivel": "Bueno", "UE_today_cost": 0.71, "Exceso_UE_vs_benchmark": 0.06, "OptB": 9, "Dif": 0}, {"Rank": 59, "WH_name": "Altavista", "City": "Monterrey", "Daily_Orders_Sept": 557, "TOTAL_HC": 9, "HC_productivo": 7, "Orders_per_HC_dia": 79.6, "Productividad": 80, "Nivel": "Bueno", "UE_today_cost": 0.7, "Exceso_UE_vs_benchmark": 0.05, "OptB": 9, "Dif": 0}, {"Rank": 60, "WH_name": "Carso", "City": "Ciudad de México", "Daily_Orders_Sept": 801, "TOTAL_HC": 12, "HC_productivo": 10, "Orders_per_HC_dia": 80.1, "Productividad": 80, "Nivel": "Bueno", "UE_today_cost": 0.65, "Exceso_UE_vs_benchmark": 0.0, "OptB": 12, "Dif": 0}, {"Rank": 61, "WH_name": "Tlalpan", "City": "Ciudad de México", "Daily_Orders_Sept": 319, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 79.8, "Productividad": 80, "Nivel": "Bueno", "UE_today_cost": 0.68, "Exceso_UE_vs_benchmark": 0.03, "OptB": 5, "Dif": 0}, {"Rank": 62, "WH_name": "Interlomas", "City": "Ciudad de México", "Daily_Orders_Sept": 319, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 79.8, "Productividad": 80, "Nivel": "Bueno", "UE_today_cost": 0.68, "Exceso_UE_vs_benchmark": 0.03, "OptB": 5, "Dif": 0}, {"Rank": 63, "WH_name": "Parque Lira", "City": "Ciudad de México", "Daily_Orders_Sept": 1000, "TOTAL_HC": 15, "HC_productivo": 12, "Orders_per_HC_dia": 83.3, "Productividad": 83, "Nivel": "Bueno", "UE_today_cost": 0.65, "Exceso_UE_vs_benchmark": 0.0, "OptB": 15, "Dif": 0}, {"Rank": 64, "WH_name": "Florida", "City": "Ciudad de México", "Daily_Orders_Sept": 929, "TOTAL_HC": 13, "HC_productivo": 11, "Orders_per_HC_dia": 84.5, "Productividad": 84, "Nivel": "Bueno", "UE_today_cost": 0.6, "Exceso_UE_vs_benchmark": -0.05, "OptB": 13, "Dif": 0}, {"Rank": 65, "WH_name": "Narvarte", "City": "Ciudad de México", "Daily_Orders_Sept": 1280, "TOTAL_HC": 19, "HC_productivo": 15, "Orders_per_HC_dia": 85.3, "Productividad": 85, "Nivel": "Bueno", "UE_today_cost": 0.64, "Exceso_UE_vs_benchmark": -0.01, "OptB": 19, "Dif": 0}, {"Rank": 66, "WH_name": "Manitoba", "City": "Ciudad de México", "Daily_Orders_Sept": 1295, "TOTAL_HC": 19, "HC_productivo": 15, "Orders_per_HC_dia": 86.3, "Productividad": 86, "Nivel": "Bueno", "UE_today_cost": 0.63, "Exceso_UE_vs_benchmark": -0.02, "OptB": 19, "Dif": 0}, {"Rank": 67, "WH_name": "La raza", "City": "Ciudad de México", "Daily_Orders_Sept": 343, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 85.8, "Productividad": 86, "Nivel": "Bueno", "UE_today_cost": 0.63, "Exceso_UE_vs_benchmark": -0.02, "OptB": 5, "Dif": 0}, {"Rank": 68, "WH_name": "Solares", "City": "Guadalajara", "Daily_Orders_Sept": 347, "TOTAL_HC": 5, "HC_productivo": 4, "Orders_per_HC_dia": 86.8, "Productividad": 87, "Nivel": "Bueno", "UE_today_cost": 0.62, "Exceso_UE_vs_benchmark": -0.03, "OptB": 5, "Dif": 0}, {"Rank": 69, "WH_name": "Ángel de Independencia", "City": "Ciudad de México", "Daily_Orders_Sept": 1157, "TOTAL_HC": 17, "HC_productivo": 13, "Orders_per_HC_dia": 89.0, "Productividad": 89, "Nivel": "Bueno", "UE_today_cost": 0.63, "Exceso_UE_vs_benchmark": -0.02, "OptB": 17, "Dif": 0}];
+
+const nivelColor = {"Crítico":"var(--critico)","Bajo":"var(--bajo)","Medio":"var(--medio)","Bueno":"var(--bueno)"};
+
+// ---- Vista Mapa ----
+function renderMap(){
+  const grid = document.getElementById('gridMap');
+  grid.innerHTML = '';
+  const sorted = [...STORES].sort((a,b)=>b.Daily_Orders_Sept - a.Daily_Orders_Sept);
+  sorted.forEach(s=>{
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.innerHTML = `
+      <div class="name">${s.WH_name}</div>
+      <div class="city">${s.City}</div>
+      <div class="row"><span class="k">Órd/día</span><span class="v">${s.Daily_Orders_Sept}</span></div>
+      <div class="row"><span class="k">HC total</span><span class="v">${s.TOTAL_HC}</span></div>
+      <div class="row"><span class="k">Órd/HC</span><span class="v">${s.Orders_per_HC_dia}</span></div>
+      <div class="bar" style="background:${nivelColor[s.Nivel]}"></div>
+    `;
+    grid.appendChild(cell);
+  });
+}
+
+// ---- Vista Prioridad ----
+function renderStats(){
+  const counts = {"Crítico":0,"Bajo":0,"Medio":0,"Bueno":0};
+  STORES.forEach(s=>counts[s.Nivel]++);
+  const row = document.getElementById('statRow');
+  row.innerHTML = Object.entries(counts).map(([k,v])=>`
+    <div class="stat">
+      <div class="n" style="color:${nivelColor[k]}">${v}</div>
+      <div class="l">${k}</div>
+    </div>
+  `).join('');
+}
+
+function renderTable(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const nivel = document.getElementById('nivelFilter').value;
+  const body = document.getElementById('priorityBody');
+  const filtered = STORES.filter(s=>{
+    const matchSearch = s.WH_name.toLowerCase().includes(search) || s.City.toLowerCase().includes(search);
+    const matchNivel = !nivel || s.Nivel === nivel;
+    return matchSearch && matchNivel;
+  });
+  body.innerHTML = filtered.map(s=>`
+    <tr>
+      <td class="rank">${s.Rank}</td>
+      <td class="name-cell">${s.WH_name}</td>
+      <td class="city-cell">${s.City}</td>
+      <td>${s.Daily_Orders_Sept}</td>
+      <td>${s.TOTAL_HC}</td>
+      <td>${s.Orders_per_HC_dia}</td>
+      <td>${s.Productividad}%</td>
+      <td><span class="badge ${s.Nivel}">${s.Nivel}</span></td>
+      <td>$${s.UE_today_cost.toFixed(2)}</td>
+      <td>${s.Exceso_UE_vs_benchmark > 0 ? '+$'+s.Exceso_UE_vs_benchmark.toFixed(2) : '$'+s.Exceso_UE_vs_benchmark.toFixed(2)}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('searchInput').addEventListener('input', renderTable);
+document.getElementById('nivelFilter').addEventListener('change', renderTable);
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+renderMap();
+renderStats();
+renderTable();
+</script>
+</body>
+</html>
