@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Juliana Zárate Santander — Global Operations Senior Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-panel:#ffffff;
+    --bg-sub:#f6f5f2;
+    --line:#e3e0d8;
+    --text:#1b1f24;
+    --text-dim:#6b7280;
+    --accent:#e2431f;
+    --accent-soft:rgba(226,67,31,.08);
+    --good:#1f9d5c;
+    --warn:#b97300;
+    --blue:#2f6fed;
+    --purple:#7c5cff;
+    --mono:'IBM Plex Mono',monospace;
+    --display:'Space Grotesk',sans-serif;
+    --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:var(--body);line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);}
+  .wrap{max-width:980px;margin:0 auto;padding:0 28px;}
+
+  /* ---- status strip ---- */
+  .statusbar{border-bottom:1px solid var(--line);background:var(--bg-sub);overflow-x:auto;}
+  .statusbar .wrap{display:flex;gap:22px;padding:10px 28px;font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--text-dim);white-space:nowrap;}
+  .pill{display:inline-flex;align-items:center;gap:7px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex-shrink:0;animation:pulse 2.4s ease-in-out infinite;}
+  .dot.amber{background:var(--warn);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  @media (prefers-reduced-motion: reduce){.dot{animation:none;}}
+
+  /* ---- hero ---- */
+  header.hero{padding:72px 0 56px;border-bottom:1px solid var(--line);position:relative;overflow:hidden;}
+  header.hero::before{content:"";position:absolute;top:-120px;right:-120px;width:420px;height:420px;border-radius:50%;
+    background:radial-gradient(circle,var(--accent-soft),transparent 70%);pointer-events:none;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 14px;}
+  h1{font-family:var(--display);font-size:clamp(32px,5vw,52px);font-weight:700;margin:0 0 10px;letter-spacing:-.01em;}
+  .role{font-size:18px;color:var(--text-dim);margin:0 0 26px;max-width:640px;}
+  .scope{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{font-family:var(--mono);font-size:11.5px;padding:6px 11px;border:1px solid var(--line);border-radius:20px;color:var(--text-dim);background:var(--bg-sub);}
+
+  /* ---- sections ---- */
+  section{padding:56px 0;border-bottom:1px solid var(--line);}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:30px;}
+  .sec-num{font-family:var(--mono);color:var(--accent);font-size:13px;}
+  h2{font-family:var(--display);font-size:26px;margin:0;font-weight:600;}
+  .sec-sub{color:var(--text-dim);font-size:14.5px;margin:-18px 0 30px;max-width:620px;}
+
+  /* process cards */
+  .proc{border:1px solid var(--line);border-left:4px solid var(--line);background:var(--bg-sub);border-radius:10px;padding:24px 26px;margin-bottom:16px;}
+  .proc h3{font-family:var(--display);font-size:18px;margin:0 0 4px;font-weight:600;}
+  .proc .tag{font-family:var(--mono);font-size:10.5px;color:var(--good);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:block;}
+  .proc p{margin:8px 0;color:#3f454c;font-size:14.5px;}
+  .proc p b{color:var(--text);}
+  .proc .link{font-family:var(--mono);font-size:12.5px;margin-top:10px;display:block;word-break:break-all;}
+
+  /* code block */
+  .codebox{margin-top:14px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0e1116;}
+  .codebox summary{cursor:pointer;list-style:none;padding:10px 14px;font-family:var(--mono);font-size:12.5px;color:var(--text);background:var(--bg-sub);border-bottom:1px solid transparent;user-select:none;}
+  .codebox summary::-webkit-details-marker{display:none;}
+  .codebox[open] summary{border-bottom-color:var(--line);}
+  .codebox pre{margin:0;padding:16px;overflow-x:auto;max-height:420px;overflow-y:auto;position:relative;}
+  .codebox code{font-family:var(--mono);font-size:12px;line-height:1.6;color:#d7dde5;white-space:pre;}
+  .codebox .copy-btn{position:sticky;top:0;float:right;margin:-4px -4px 8px 8px;padding:5px 12px;font-family:var(--mono);font-size:11px;border-radius:6px;border:1px solid #333c46;background:#1b212a;color:#d7dde5;cursor:pointer;}
+  .codebox .copy-btn:hover{background:#232b35;}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg-sub);}
+  td{padding:13px 14px;border-bottom:1px solid var(--line);color:#3f454c;vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td b, td.strong{color:var(--text);}
+  .tbl-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg-panel);}
+  .tbl-wrap{overflow-x:auto;}
+
+  /* docs grid */
+  .docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+  .doc-card{border:1px solid var(--line);background:var(--bg-sub);border-radius:10px;padding:18px 20px;}
+  .doc-card .k{font-family:var(--mono);font-size:10.5px;color:var(--warn);text-transform:uppercase;letter-spacing:.06em;}
+  .doc-card h4{font-family:var(--display);font-size:15.5px;margin:6px 0 6px;font-weight:600;}
+  .doc-card p{font-size:13px;color:var(--text-dim);margin:0 0 8px;}
+  .doc-card a{font-family:var(--mono);font-size:12px;word-break:break-all;}
+
+  /* stakeholders */
+  .people-note{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px;}
+  .person{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--bg-sub);padding:10px 16px;border-radius:10px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:13px;flex-shrink:0;}
+  .person .name{font-size:13.5px;font-weight:600;}
+  .person .role{font-size:11.5px;color:var(--text-dim);margin:0;}
+
+  /* weekly agenda strip */
+  .week{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .day{border:1px solid var(--line);background:var(--bg-sub);border-radius:10px;padding:16px 14px;min-height:220px;}
+  .day .d-num{font-family:var(--mono);font-size:11px;color:var(--accent);}
+  .day .d-name{font-family:var(--display);font-weight:600;font-size:15px;margin:2px 0 12px;}
+  .day ul{list-style:none;margin:0;padding:0;}
+  .day li{font-size:12.5px;color:#3f454c;padding:7px 0;border-top:1px dashed var(--line);}
+  .day li:first-child{border-top:none;}
+  .cadence-note{margin-top:16px;font-size:13px;color:var(--text-dim);font-family:var(--mono);}
+  @media (max-width:800px){.week{grid-template-columns:1fr 1fr;}}
+  @media (max-width:520px){.week{grid-template-columns:1fr;}}
+
+  /* projects */
+  .project-hero{border:1px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),transparent 60%);border-radius:14px;padding:32px;margin-bottom:20px;}
+  .project-hero .k{font-family:var(--mono);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;}
+  .project-hero h3{font-family:var(--display);font-size:24px;margin:8px 0 12px;font-weight:700;}
+  .project-hero p{color:#3f454c;font-size:14.5px;max-width:640px;}
+  .metric-target{display:inline-flex;align-items:baseline;gap:8px;margin-top:14px;font-family:var(--mono);}
+  .metric-target .big{font-size:34px;font-weight:700;color:var(--accent);font-family:var(--display);}
+  .metric-target .small{font-size:12px;color:var(--text-dim);}
+  .proj-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:700px){.proj-row{grid-template-columns:1fr;}}
+
+  footer{padding:36px 0 60px;color:var(--text-dim);font-size:12.5px;font-family:var(--mono);}
+</style>
+</head>
+<body>
+
+<div class="statusbar"><div class="wrap">
+  <span class="pill"><span class="dot"></span>LA CALIDOSA · LUN 08:00</span>
+  <span class="pill"><span class="dot amber"></span>ALERTAS QA · MAR / JUE</span>
+  <span class="pill"><span class="dot"></span>WBR · SEMANAL</span>
+  <span class="pill"><span class="dot"></span>VISITAS ZL · 6 PAÍSES</span>
+  <span class="pill"><span class="dot amber"></span>PLAN PICKING&amp;PACKING · Q3–Q4</span>
+</div></div>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">Ficha de rol · Rappi Turbo · Global Operations</p>
+  <h1>Juliana Zárate Santander</h1>
+  <p class="role">Global Operations Senior Analyst — calidad operativa (defectos, SO, cancelaciones) sobre 200+ dark stores Turbo en seis países de LATAM.</p>
+  <div class="scope">
+    <span class="chip">🇨🇴 CO</span><span class="chip">🇦🇷 AR</span><span class="chip">🇲🇽 MX</span>
+    <span class="chip">🇧🇷 BR</span><span class="chip">🇵🇪 PE</span><span class="chip">🇨🇱 CL</span>
+    <span class="chip">Reporta a Andrés Henao</span>
+  </div>
+</div></header>
+
+<!-- ================= PROCESOS ================= -->
+<section id="procesos"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Procesos que lidera</h2></div>
+  <p class="sec-sub">Cada proceso está descrito con el nivel de detalle suficiente para que cualquier persona del equipo pueda tomarlo si es necesario.</p>
+
+  <div class="proc" style="border-left-color:var(--warn);">
+    <span class="tag" style="color:var(--warn);">Calidad · Anticipación</span>
+    <h3>Alertas QA — "La Calidosa"</h3>
+    <p><b>Qué es:</b> sistema de detección temprana. Su objetivo es <b>anticipar cualquier anomalía</b> en una tienda antes de que escale, no corregir algo que ya pasó.</p>
+    <p><b>Cómo se hace:</b> un Apps Script lee la hoja QA-WH Tracker (y cinco pestañas exportadas de Aleph: Defectos, Stockouts, Cancelaciones, Pickers, Tiempos), compara cada tienda contra metas fijas por país y envía automáticamente un reporte estructurado los lunes 8am por Slack ("La Calidosa"), más alertas puntuales <b>martes y jueves</b> apenas una tienda se empieza a salir de meta.</p>
+    <p><b>Fuente de datos:</b> QA-WH Tracker (Sheets) + exportes Aleph.</p>
+    <p>⚙️ <b>100% automatizado</b> — no requiere ningún ajuste manual. También corre el reporte de visitas a tienda cada miércoles 8am (mismo bot).</p>
+    <details class="codebox">
+      <summary>👀 Ver código (clic para desplegar y copiar)</summary>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copiar</button><code>// ============================================================
+// 📊 QA Weekly Report — La Calidosa
+// ============================================================
+
+const CONFIG = {
+  SPREADSHEET_ID: &quot;13bpIScBj2kZd4GspoNygFeSg3fh1f1vXkUNBVk6f9v4&quot;,
+  SHEET_NAME: &quot;QA-WH tracker&quot;,
+  WEBHOOK_URL: &quot;https://hooks.slack.com/services/TU_WEBHOOK_AQUI&quot;,
+  HEADER_ROWS: 2,
+  BOT_NAME: &quot;La Calidosa&quot;,
+  BOT_ICON: &quot;https://i.imgur.com/4Ki4Avy.jpeg&quot;,
+};
+
+const QUARTILE_LABELS = {
+  1: { emoji: &quot;🥇&quot;, label: &quot;Q1&quot;, range: &quot;≥ 94.2&quot; },
+  2: { emoji: &quot;🥈&quot;, label: &quot;Q2&quot;, range: &quot;&gt; 88&quot;   },
+  3: { emoji: &quot;🥉&quot;, label: &quot;Q3&quot;, range: &quot;&gt; 78&quot;   },
+  4: { emoji: &quot;⚠️&quot;, label: &quot;Q4&quot;, range: &quot;≤ 78&quot;   },
+};
+
+// SLACK_USERS: mapeo email-prefix → Slack user ID, para @mencionar
+// al ZL correspondiente en el reporte (omitido acá por longitud).
+const SLACK_USERS = { /* ...mapeo de ~40 ZLs... */ };
+
+// Menciones adicionales fijas por país (ej. CMs, leads regionales)
+const COUNTRY_EXTRA_MENTIONS = {
+  &quot;CO&quot;: [&quot;johanna.aranda&quot;, &quot;ricardo.velasco&quot;],
+  &quot;AR&quot;: [&quot;florencia.diaz&quot;, &quot;juan.romeroacosta&quot;],
+  &quot;PE&quot;: [&quot;michelle.simic&quot;, &quot;juan.delgadomorales&quot;],
+  &quot;CL&quot;: [&quot;gabriel.baptista&quot;],
+  &quot;MX&quot;: [&quot;olga.cardenas&quot;, &quot;sergio.p&quot;],
+  &quot;BR&quot;: [&quot;drielle.pena&quot;],
+};
+
+// Índices de columna del sheet QA-WH tracker
+const C = {
+  KEY:0,EMAIL_ZL:1,WEEK:2,PAIS:3,CITY:4,WH_ID:5,WH_NAME:6,QA_SCORE:7,
+  CLUSTER:8,QUARTILE:9,PICKING_VAL:10,PICKING_SC:11,HANDOFF_VAL:12,HANDOFF_SC:13,
+  CANCEL_VAL:14,CANCEL_SC:15,SO_OPS_VAL:16,SO_OPS_SC:17,SO_SYS_VAL:18,SO_SYS_SC:19,
+  STOCKOUT_VAL:20,STOCKOUT_SC:21,DEFECT_VAL:22,DEFECT_SC:23,ONA_VAL:24,ONA_SC:25,
+  TOTAL_DR_VAL:26,TOTAL_DR_SC:27,PICKING_CRIT:28,HANDOFF_CRIT:29,CANCEL_CRIT:30,
+  SO_OPS_CRIT:31,SO_SYS_CRIT:32,STOCKOUT_CRIT:33,DEFECT_CRIT:34,ONA_CRIT:35,TOTAL_DR_CRIT:36,
+};
+
+const METRICS = [
+  { label: &quot;Picking Time&quot;,        crit: C.PICKING_CRIT  },
+  { label: &quot;Handoff Post&quot;,        crit: C.HANDOFF_CRIT  },
+  { label: &quot;Cancel Rate Partner&quot;, crit: C.CANCEL_CRIT   },
+  { label: &quot;So ops&quot;,              crit: C.SO_OPS_CRIT   },
+  { label: &quot;Defect Rate&quot;,         crit: C.DEFECT_CRIT   },
+];
+
+const FLAGS = {
+  &quot;AR&quot;:&quot;🇦🇷&quot;,&quot;Argentina&quot;:&quot;🇦🇷&quot;,&quot;CO&quot;:&quot;🇨🇴&quot;,&quot;Colombia&quot;:&quot;🇨🇴&quot;,
+  &quot;MX&quot;:&quot;🇲🇽&quot;,&quot;Mexico&quot;:&quot;🇲🇽&quot;,&quot;México&quot;:&quot;🇲🇽&quot;,&quot;BR&quot;:&quot;🇧🇷&quot;,&quot;Brasil&quot;:&quot;🇧🇷&quot;,&quot;Brazil&quot;:&quot;🇧🇷&quot;,
+  &quot;CL&quot;:&quot;🇨🇱&quot;,&quot;Chile&quot;:&quot;🇨🇱&quot;,&quot;PE&quot;:&quot;🇵🇪&quot;,&quot;Peru&quot;:&quot;🇵🇪&quot;,&quot;Perú&quot;:&quot;🇵🇪&quot;,
+};
+
+// ─── ESTADO DEL TORNEO (fuera de alcance de este documento) ──
+// const TORNEO = { ...fase y tiendas clasificadas por país, se actualiza a mano... };
+
+// ─── HELPERS ─────────────────────────────────────────────────
+
+function toMidnight(raw) {
+  if (!raw) return null;
+  const d = (raw instanceof Date) ? new Date(raw) : new Date(raw);
+  if (isNaN(d.getTime())) return null;
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function sameDay(d1, d2) {
+  const a = toMidnight(d1), b = toMidnight(d2);
+  if (!a || !b) return false;
+  return a.getTime() === b.getTime();
+}
+
+function fmtDate(d) {
+  if (!d) return &quot;?&quot;;
+  const dt = toMidnight(d);
+  return `${String(dt.getDate()).padStart(2,&#x27;0&#x27;)}/${String(dt.getMonth()+1).padStart(2,&#x27;0&#x27;)}/${dt.getFullYear()}`;
+}
+
+function parseQ(val) {
+  if (!val) return 99;
+  return parseInt(val.toString().replace(/[^0-9]/g, &#x27;&#x27;)) || 99;
+}
+
+function fmtScore(val) {
+  if (!val &amp;&amp; val !== 0) return &quot;&quot;;
+  const n = parseFloat(val);
+  if (isNaN(n)) return &quot;&quot;;
+  return n.toFixed(1);
+}
+
+function mention(email) {
+  if (!email) return &quot;&quot;;
+  const prefix = email.toString().split(&quot;@&quot;)[0].toLowerCase().trim();
+  const id = SLACK_USERS[prefix];
+  if (!id) return `@${prefix}`;
+  if (id.startsWith(&quot;U&quot;)) return `&lt;@${id}&gt;`;
+  return `@${id}`;
+}
+
+function criticalMetrics(row) {
+  return METRICS
+    .filter(m =&gt; String(row[m.crit]).trim().toLowerCase() === &quot;critic&quot;)
+    .map(m =&gt; m.label);
+}
+
+function getTargetWeek() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dow = today.getDay();
+  const daysToThisMonday = dow === 0 ? 6 : dow - 1;
+  const thisMonday = new Date(today);
+  thisMonday.setDate(today.getDate() - daysToThisMonday);
+  const target = new Date(thisMonday);
+  target.setDate(thisMonday.getDate() - 7);
+  return target;
+}
+
+function deltaStr(curr, prev) {
+  const d = curr - prev;
+  if (d &gt; 0) return `▲+${d}`;
+  if (d &lt; 0) return `▼${d}`;
+  return `→0`;
+}
+
+function countByQuartile(rows) {
+  return {
+    q1: rows.filter(r =&gt; parseQ(r[C.QUARTILE]) === 1).length,
+    q2: rows.filter(r =&gt; parseQ(r[C.QUARTILE]) === 2).length,
+    q3: rows.filter(r =&gt; parseQ(r[C.QUARTILE]) === 3).length,
+    q4: rows.filter(r =&gt; parseQ(r[C.QUARTILE]) === 4).length,
+  };
+}
+
+function sendBlocks(blocks, fallbackText, dryRun) {
+  if (dryRun) {
+    Logger.log(&quot;=== PREVIEW DEL MENSAJE (no enviado a Slack) ===&quot;);
+    return;
+  }
+  const resp = UrlFetchApp.fetch(CONFIG.WEBHOOK_URL, {
+    method: &quot;post&quot;,
+    contentType: &quot;application/json&quot;,
+    payload: JSON.stringify({
+      text: fallbackText,
+      username: CONFIG.BOT_NAME,
+      icon_url: CONFIG.BOT_ICON,
+      blocks: blocks
+    }),
+    muteHttpExceptions: true
+  });
+  Logger.log(`Slack: ${resp.getResponseCode()} — ${resp.getContentText()}`);
+}
+
+// ─── REPORTE SEMANAL — construye y envía el reporte de QA ─────
+
+function sendWeeklyQAReport(dryRun) {
+  const ss    = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+  const data  = sheet.getDataRange().getValues();
+  const rows  = data.slice(CONFIG.HEADER_ROWS).filter(r =&gt; r[C.WEEK] &amp;&amp; r[C.PAIS]);
+
+  // ...toma la semana objetivo (o la más reciente disponible), compara
+  // cada tienda contra la semana anterior, arma bloques de Slack por país
+  // (Q1 destacadas, se mantienen, mejoraron de cuartil, bajaron de cuartil
+  // con sus métricas críticas), y envía todo con sendBlocks()...
+
+  sendBlocks(blocks, `📊 QA Weekly Report — ${fmtDate(finalDate)}`, dryRun);
+}
+
+function previewWeeklyQAReport() { sendWeeklyQAReport(true); }
+
+// ─── TRIGGER — reporte de QA cada lunes 8am ───────────────────
+
+function crearTriggerLunes() {
+  ScriptApp.getProjectTriggers().forEach(t =&gt; {
+    if (t.getHandlerFunction() === &quot;sendWeeklyQAReport&quot;) ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger(&quot;sendWeeklyQAReport&quot;)
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(8)
+    .create();
+}
+
+// ─── REPORTE DE VISITAS A TIENDA — cada miércoles 8am ─────────
+
+const VISITAS_CONFIG = {
+  SPREADSHEET_ID: &quot;1LIaSEsGHCXPHmgbi-f1gJxC5A7KchMnp8hE9x4edqAo&quot;,
+  SHEET_NAME: &quot;visitas_resumen_zl&quot;,
+};
+
+const COUNTRY_ORDER_VISITAS = [&quot;CO&quot;, &quot;MX&quot;, &quot;BR&quot;, &quot;AR&quot;, &quot;PE&quot;, &quot;CL&quot;];
+
+function sendVisitasReport(dryRun) {
+  const ss    = SpreadsheetApp.openById(VISITAS_CONFIG.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(VISITAS_CONFIG.SHEET_NAME);
+  const data  = sheet.getDataRange().getValues();
+
+  // ...lee la última columna S## (semana más reciente) del resumen de
+  // visitas ZL, agrupa por país, arma top 3 con más visitas y lista de
+  // ZL con 0-1 visitas, y envía el reporte a Slack por país...
+
+  sendBlocks(blocks, `🏪 Visitas a Tienda — ${semLabel}`, dryRun);
+}
+
+function previewVisitasReport() { sendVisitasReport(true); }
+
+function crearTriggerMiercoles() {
+  ScriptApp.getProjectTriggers().forEach(t =&gt; {
+    if (t.getHandlerFunction() === &quot;sendVisitasReport&quot;) ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger(&quot;sendVisitasReport&quot;)
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.WEDNESDAY)
+    .atHour(8)
+    .create();
+}
+</code></pre>
+    </details>
+  </div>
+
+  <div class="proc" style="border-left-color:var(--accent);">
+    <span class="tag" style="color:var(--accent);">Calidad · Display</span>
+    <h3>QA Tracker en pantallas de tienda</h3>
+    <p><b>Qué es:</b> vista del QA tracker proyectada en pantallas dentro de la tienda, para que el equipo vea sus métricas en tiempo real.</p>
+    <p><b>Cómo se hace:</b> página web publicada, con foco especial en Colombia.</p>
+    <p>⚙️ Automatizado, pero <b>a veces requiere mantenimiento</b> — especialmente en CO.</p>
+    <p class="link">🔗 julizarates.github.io/QA_CO/</p>
+  </div>
+
+  <div class="proc" style="border-left-color:var(--good);">
+    <span class="tag" style="color:var(--good);">Ops review · Refuerzo semanal</span>
+    <h3>WBR y planes de acción</h3>
+    <p><b>Qué es:</b> el review semanal de operación de Turbo (cancelaciones de partner, SO Ops, defect rate, compensaciones y disponibilidad, país por país), del que salen los planes de acción. A diferencia de las alertas, el plan de acción <b>no anticipa</b>: existe para <b>reforzar y corregir puntualmente las métricas que ya cayeron</b> la semana anterior.</p>
+    <p><b>Cómo se hace:</b> se cargan los CSV de la semana → se analizan en Python/pandas → se genera un documento Word (.docx) con los hallazgos → se construye el plan de acción por país (tabla horizontal, listados de packing por tienda con EAN y acción por producto, historial de pickers reincidentes). Antes de armar el plan de la semana siguiente, siempre se valida primero si se cumplió el plan de la semana anterior cruzándolo contra la data nueva.</p>
+    <p><b>Flujo de publicación y seguimiento:</b> con el documento ya armado, se pegan los planes de la semana en curso (formato estandarizado) en la pestaña <b>"Planes"</b> del sheet de TurboOps — no tiene trigger, así que se puede hacer a cualquier hora, preferiblemente en la mañana. Luego se corre el Apps Script <b>SendPlanesDeAccion</b>, que envía el plan a todos los grupos de Slack. El seguimiento (evidencia de los planes ejecutados) migra automáticamente a la pestaña <b>"Form Responses 1"</b> del mismo sheet. A fin de semana se valida qué se cumplió y qué no, se hace un push final por Slack, y a quienes cumplieron con evidencia se les suma <b>+0.2pp al QA Score</b> semanal — ese consolidado se lleva en la pestaña <b>"QA Ajustado"</b>, acumulando puntos a favor para ajustar a fin de mes lo reportado en <b>Instore Weekly FUP</b> del tracker.</p>
+    <p class="link">🔗 docs.google.com/spreadsheets/d/1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U</p>
+  </div>
+
+  <div class="proc" style="border-left-color:var(--blue);">
+    <span class="tag" style="color:var(--blue);">Dashboards · Continuo</span>
+    <h3>Suite de dashboards TurboOps</h3>
+    <p><b>Qué es:</b> el hub central de dashboards para Store Leads y Zone Leads de los seis países: disciplina operativa, métricas por país y visitas de ZL a tienda.</p>
+    <p><b>Cómo se hace:</b> páginas HTML conectadas a un Google Sheet central, publicadas en GitHub Pages con carga diferida (lazy load) para evitar sobrecargas.</p>
+    <p>⚙️ <b>100% automatizado</b> — no requiere ningún ajuste manual.</p>
+    <p class="link">🔗 julizarates.github.io/ops_dash_ZL_ALL/hub_turboops.html</p>
+  </div>
+
+  <div class="proc" style="border-left-color:var(--purple);">
+    <span class="tag" style="color:var(--purple);">Campo · Manual</span>
+    <h3>Seguimiento de visitas de Zone Leads a tienda</h3>
+    <p><b>Qué es:</b> control de qué tan seguido cada Zone Lead visita físicamente sus tiendas, y su relación con los resultados de QA.</p>
+    <p><b>Cómo se hace:</b> un script en Python consulta la API de ChecklistFácil, cruza cada evaluación con el país correspondiente (hoja propia de Zone Leads) y genera un dashboard HTML tipo semáforo (0 / 1 / 2-3 / 4+ visitas por semana) más un CSV descargable.</p>
+    <p>🖐️ <b>Requiere actualización manual</b> (a diferencia de los demás procesos): se abre en Jupyter Lab (vía Anaconda), se abre el código compartido y en el menú Kernel se elige "Restart Kernel and Run All Cells"; se espera ~5 minutos a que cargue; luego se ajusta para que quede en una carpeta del servidor y, una vez generado, se descarga y se sube a GitHub.</p>
+    <details class="codebox">
+      <summary>👀 Ver código (clic para desplegar y copiar)</summary>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copiar</button><code>import requests
+import pandas as pd
+import time
+from datetime import datetime, timedelta
+from collections import Counter
+
+API_KEY = &quot;TU_API_KEY_AQUI&quot;   # &lt;-- pegá tu key acá localmente, no la compartas en chat
+H = {&quot;Authorization&quot;: f&quot;Bearer {API_KEY}&quot;, &quot;Accept-Language&quot;: &quot;es-es&quot;}
+
+# Ruta local al CSV de tu hoja (descargala de Drive: Archivo → Descargar → CSV
+# y guardala siempre con este mismo nombre para no tener que cambiar la ruta)
+SHEET_CSV_PATH = r&quot;C:\Users\juliana.zarate\Desktop\REPORP\ops_dash_ZL_ALL\zl_paises_mapeo.csv&quot;
+
+# Filtro opcional de país. Dejalo en None para traer todos.
+PAIS_FILTER = None  # ej: &quot;CO&quot;, &quot;AR&quot;, &quot;MX&quot;, &quot;PE&quot;, &quot;CL&quot;, &quot;BR&quot;
+
+# Alias manuales: cuando la API de ChecklistFácil no devuelve email para
+# un ZL (le pasa a varios) Y su nombre viene distinto al de tu hoja, no hay
+# forma automática de cruzarlo. Estos son los que ya identificamos comparando
+# a mano — si aparece alguien nuevo sin match, agregalo acá con el mismo
+# formato: &quot;nombre en tu hoja (en minúsculas)&quot;: &quot;nombre que devuelve la API (en minúsculas)&quot;
+MANUAL_ALIASES = {
+    &quot;alejandro tirado&quot;: &quot;alejandro jose tirado rodriguez&quot;,
+    &quot;lauren vitola&quot;: &quot;lauren patricia vitola jaramillo&quot;,
+    &quot;cesar alejandro salcedo ballestas&quot;: &quot;cesar alejandro salcedo balletas&quot;,
+    &quot;alberto  del moral&quot;: &quot;alberto moral&quot;,
+    &quot;lisset alejandra reza&quot;: &quot;alejandra reza&quot;,
+    &quot;angel francisco peña ramos&quot;: &quot;angel peña&quot;,
+    &quot;dan bryan torres&quot;: &quot;dan torres&quot;,
+    &quot;diego arturo perez&quot;: &quot;diego perez&quot;,
+    &quot;efrain pérez sandoval&quot;: &quot;efraín perez&quot;,
+    &quot;fernando aguila custodio&quot;: &quot;fernando águila&quot;,
+    &quot;francisco felipe abreu soares&quot;: &quot;francisco felipe abreu&quot;,
+    &quot;gisele noriega&quot;: &quot;gisela noriega&quot;,
+    &quot;jose alcazar&quot;: &quot;jose carlos del alcazar&quot;,
+    &quot;julio enrique paredes&quot;: &quot;julio paredes&quot;,
+    &quot;miriam hernadez&quot;: &quot;miriam balderas&quot;,
+}
+# Estos aparecieron en ChecklistFácil pero NO los encontramos en tu hoja de
+# 240 filas de ningún modo — probablemente ZL nuevos que falta agregar:
+# Brian Guerrero, JAIRO HOVER ZAPATA GUZMAN, Maria Jose Fernandez,
+# Michelle Simic, Saida Lomeli
+
+import re
+import unicodedata
+
+def normalize_name(s):
+    &quot;&quot;&quot;minúsculas + espacios colapsados + sin tildes, para que &#x27;Efraín&#x27; y
+    &#x27;Efrain&#x27;, o &#x27;Alberto  Del Moral&#x27; (doble espacio) y &#x27;Alberto Del Moral&#x27;
+    matcheen solos sin necesitar un alias manual para cada variante.&quot;&quot;&quot;
+    s = str(s).strip().lower()
+    s = re.sub(r&quot;\s+&quot;, &quot; &quot;, s)
+    s = &quot;&quot;.join(c for c in unicodedata.normalize(&quot;NFD&quot;, s) if unicodedata.category(c) != &quot;Mn&quot;)
+    return s
+
+MANUAL_ALIASES_NORM = {normalize_name(k): normalize_name(v) for k, v in MANUAL_ALIASES.items()}
+
+# ── CALCULAR ÚLTIMAS 4 SEMANAS DINÁMICAMENTE ──────────────────────────────────
+hoy = datetime.now()
+semana_actual = hoy.isocalendar()[1]
+anio_actual   = hoy.isocalendar()[0]
+semana_fin   = semana_actual - 1
+semana_ini   = semana_fin - 3
+WEEKS        = list(range(semana_ini, semana_fin + 1))
+
+def inicio_semana_iso(anio, semana):
+    return datetime.fromisocalendar(anio, semana, 1)
+
+fecha_ini = inicio_semana_iso(anio_actual, semana_ini)
+fecha_fin = inicio_semana_iso(anio_actual, semana_fin + 1) - timedelta(seconds=1)
+fecha_ini_str = fecha_ini.strftime(&quot;%Y-%m-%dT00:00:00-05:00&quot;)
+fecha_fin_str = fecha_fin.strftime(&quot;%Y-%m-%dT23:59:59-05:00&quot;)
+rango_label   = f&quot;S{semana_ini}–S{semana_fin} ({fecha_ini.strftime(&#x27;%d %b&#x27;)} → {fecha_fin.strftime(&#x27;%d %b %Y&#x27;)})&quot;
+
+print(f&quot;📅 Rango: {rango_label}&quot;)
+
+# ── PASO 1: Traer evaluaciones del rango ──────────────────────────────────────
+all_items = []
+page = 1
+while True:
+    r = requests.get(
+        &quot;https://api-analytics.checklistfacil.com.br/v1/evaluations&quot;,
+        headers=H,
+        params={
+            &quot;startedAt[gte]&quot;: fecha_ini_str,
+            &quot;startedAt[lte]&quot;: fecha_fin_str,
+            &quot;limit&quot;: 100, &quot;page&quot;: page
+        }, timeout=10
+    )
+    data = r.json()
+    if r.status_code != 200 or &quot;data&quot; not in data:
+        print(f&quot;⚠️ Status: {r.status_code}&quot;)
+        break
+    all_items.extend(data[&quot;data&quot;])
+    if not data[&quot;meta&quot;][&quot;hasMore&quot;]:
+        break
+    page += 1
+    time.sleep(1)
+
+if not all_items:
+    print(&quot;❌ No se trajo ninguna evaluación — revisá la API_KEY antes de seguir.&quot;)
+    raise SystemExit(1)
+
+# ── PASO 1.5: Cargar el mapeo tienda/ZL → país desde tu CSV local ─────────────
+df_map = pd.read_csv(SHEET_CSV_PATH, dtype=str)
+df_map.columns = [c.strip() for c in df_map.columns]
+for col in [&quot;Zone Lead&quot;, &quot;Email ZL&quot;, &quot;PAÍS&quot;, &quot;WAREHOUSE_NAME&quot;]:
+    df_map[col] = df_map[col].astype(str).str.strip()
+
+zl_to_country = dict(zip(df_map[&quot;Zone Lead&quot;].apply(normalize_name), df_map[&quot;PAÍS&quot;].str.upper()))
+zl_email_to_country = dict(zip(df_map[&quot;Email ZL&quot;].str.lower(), df_map[&quot;PAÍS&quot;].str.upper()))
+store_to_country = dict(zip(df_map[&quot;WAREHOUSE_NAME&quot;].apply(normalize_name), df_map[&quot;PAÍS&quot;].str.upper()))
+
+# ── PASO 2: Obtener nombres + email via v4 ────────────────────────────────────
+user_names = {}
+user_emails = {}
+unit_names = {}
+
+for item in all_items:
+    uid  = item[&quot;userId&quot;]
+    unit = item[&quot;unitId&quot;]
+    if uid in user_names and unit in unit_names:
+        continue
+    r2 = requests.get(
+        f&quot;https://integration.checklistfacil.com.br/v4/evaluations/{item[&#x27;evaluationId&#x27;]}&quot;,
+        headers=H, timeout=10
+    )
+    if r2.status_code == 200:
+        d = r2.json()
+        user_names[uid]  = d.get(&quot;user&quot;, {}).get(&quot;name&quot;, f&quot;User {uid}&quot;)
+        user_emails[uid] = d.get(&quot;user&quot;, {}).get(&quot;email&quot;, &quot;&quot;)
+        unit_names[unit] = d.get(&quot;unit&quot;, {}).get(&quot;name&quot;, f&quot;Unit {unit}&quot;)
+    time.sleep(0.3)
+
+# ── PASO 3: País por Zone Lead (email → nombre → alias → tienda como fallback) ─
+unit_countries = {}
+for uid, uname in user_names.items():
+    email = (user_emails.get(uid) or &quot;&quot;).strip().lower()
+    pais = zl_email_to_country.get(email) if email else None
+    if pais is None:
+        pais = zl_to_country.get(normalize_name(uname))
+    if pais is None:
+        alias = MANUAL_ALIASES_NORM.get(normalize_name(uname))
+        if alias:
+            pais = zl_to_country.get(alias)
+    if pais is None:
+        units_de_este_user = [item[&quot;unitId&quot;] for item in all_items if item[&quot;userId&quot;] == uid]
+        for u in units_de_este_user:
+            pais_fallback = store_to_country.get(normalize_name(unit_names.get(u, &quot;&quot;)))
+            if pais_fallback:
+                pais = pais_fallback
+                break
+    if pais is None:
+        pais = &quot;Sin dato&quot;
+    for u in [item[&quot;unitId&quot;] for item in all_items if item[&quot;userId&quot;] == uid]:
+        unit_countries[u] = pais
+
+# ── PASO 4: DataFrame + métricas por ZL (roster completo, no solo quien evaluó) ─
+rows = []
+for i in all_items:
+    rows.append({
+        &quot;evaluationId&quot;: i[&quot;evaluationId&quot;], &quot;userId&quot;: i[&quot;userId&quot;], &quot;unitId&quot;: i[&quot;unitId&quot;],
+        &quot;userName&quot;: user_names.get(i[&quot;userId&quot;], f&quot;User {i[&#x27;userId&#x27;]}&quot;),
+        &quot;unitName&quot;: unit_names.get(i[&quot;unitId&quot;], f&quot;Unit {i[&#x27;unitId&#x27;]}&quot;),
+        &quot;country&quot;: unit_countries.get(i[&quot;unitId&quot;], &quot;Sin dato&quot;),
+        &quot;status&quot;: i[&quot;status&quot;], &quot;score&quot;: i[&quot;score&quot;],
+        &quot;startedAt&quot;: pd.to_datetime(i[&quot;startedAt&quot;], utc=True) if i[&quot;startedAt&quot;] else None,
+    })
+df = pd.DataFrame(rows)
+df[&quot;week&quot;] = df[&quot;startedAt&quot;].dt.isocalendar().week.astype(int)
+
+roster = df_map[[&quot;Zone Lead&quot;, &quot;Email ZL&quot;, &quot;PAÍS&quot;]].dropna(subset=[&quot;Zone Lead&quot;]).drop_duplicates()
+email_to_uid = {email.strip().lower(): uid for uid, email in user_emails.items() if email}
+name_to_uid = {normalize_name(name): uid for uid, name in user_names.items()}
+
+summary = []
+for _, row_r in roster.iterrows():
+    nombre_hoja = row_r[&quot;Zone Lead&quot;]
+    email_hoja = (row_r[&quot;Email ZL&quot;] or &quot;&quot;).strip().lower()
+    pais_hoja = row_r[&quot;PAÍS&quot;]
+    uid = email_to_uid.get(email_hoja) if email_hoja and email_hoja != &quot;nan&quot; else None
+    if uid is None:
+        uid = name_to_uid.get(normalize_name(nombre_hoja))
+    if uid is None:
+        alias = MANUAL_ALIASES_NORM.get(normalize_name(nombre_hoja))
+        if alias:
+            uid = name_to_uid.get(alias)
+    sub = df[df[&quot;userId&quot;] == uid] if uid is not None else df.iloc[0:0]
+    by_week = sub.groupby(&quot;week&quot;).size().to_dict() if not sub.empty else {}
+    semanas_sin = sum(1 for w in WEEKS if by_week.get(w, 0) == 0)
+    summary.append({
+        &quot;nombre&quot;: nombre_hoja, &quot;country&quot;: pais_hoja, &quot;totalVisitas&quot;: len(sub),
+        &quot;tiendasVisitadas&quot;: sub[&quot;unitId&quot;].nunique() if not sub.empty else 0,
+        &quot;semanasSinVisita&quot;: semanas_sin, &quot;byWeek&quot;: by_week,
+    })
+
+df_sum = pd.DataFrame(summary)
+max_visitas = df_sum[&quot;totalVisitas&quot;].max() if not df_sum.empty else 0
+df_sum[&quot;scoreVisitas&quot;] = df_sum[&quot;totalVisitas&quot;].apply(
+    lambda v: round(v / max_visitas * 100, 1) if max_visitas &gt; 0 else 0
+)
+
+# ── PASO 5: Generar HTML con semáforo por semana + filtros por país (JS) ──────
+# ...arma el dashboard HTML (semáforo 0/1/2-3/4+ visitas), calcula tarjetas
+# resumen, y arma botones de filtro por país client-side...
+
+# ── GUARDAR HTML + CSV ─────────────────────────────────────────────────────────
+output_path = r&quot;C:\Users\juliana.zarate\Desktop\REPORP\ops_dash_ZL_ALL\dashboard_visitas.html&quot;
+csv_detalle_path = r&quot;C:\Users\juliana.zarate\Desktop\REPORP\ops_dash_ZL_ALL\visitas_detalle.csv&quot;
+csv_resumen_path = r&quot;C:\Users\juliana.zarate\Desktop\REPORP\ops_dash_ZL_ALL\visitas_resumen_zl.csv&quot;
+# ...write html, then df.to_csv(csv_detalle_path) y df_sum.to_csv(csv_resumen_path)...
+print(&quot;✅ Dashboard y CSVs generados.&quot;)
+</code></pre>
+    </details>
+  </div>
+
+  <div class="proc" style="border-left-color:var(--blue);">
+    <span class="tag" style="color:var(--blue);">Analítica · Ad hoc</span>
+    <h3>Análisis puntuales de calidad y operación</h3>
+    <p><b>Qué es:</b> consultas y análisis a la medida sobre Snowflake y Sheets para responder preguntas operativas específicas relacionadas con calidad: dimensionamiento de headcount, timeline de una orden, fraude en compensaciones, forecasting de demanda, entre otros.</p>
+    <p><b>Cómo se hace:</b> queries SQL en Snowflake sobre las tablas core de Turbo, cruzadas cuando aplica con exportes operativos; se entregan como hallazgo, dashboard puntual o insumo para un plan de acción.</p>
+  </div>
+</div></section>
+
+<!-- ================= MÉTRICAS ================= -->
+<section id="metricas"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Métricas que controla</h2></div>
+  <div class="tbl-wrap"><table>
+    <tr><th>Métrica</th><th>Qué mide</th><th>Cómo se mide</th><th>Fuente</th></tr>
+    <tr><td class="strong">QA Score</td><td>Nivel de cumplimiento de calidad de una tienda</td><td>Checklist ponderado por categoría</td><td>QA-WH Tracker / Aleph</td></tr>
+    <tr><td class="strong">Defect Rate</td><td>% de órdenes con defecto</td><td>Órdenes con defecto vs. total de órdenes</td><td>Aleph — pestaña Defectos</td></tr>
+    <tr><td class="strong">Stockouts (Total/Parcial)</td><td>Quiebres que afectan el cumplimiento de la orden</td><td>Clasificado como Total Ops o Partial Ops</td><td>Aleph — pestaña Stockouts</td></tr>
+    <tr><td class="strong">Cancel Rate (Partner)</td><td>% de órdenes canceladas por responsabilidad del partner</td><td>Cancelaciones partner vs. total de órdenes</td><td>Aleph — pestaña Cancelaciones</td></tr>
+    <tr><td class="strong">SO Ops / SO System</td><td>Disponibilidad de producto operativa vs. registrada en sistema</td><td>Comparación stock real vs. stock en sistema</td><td>WBR / Snowflake</td></tr>
+    <tr><td class="strong">Tiempos (ciclo, picking)</td><td>Duración de las etapas de una orden</td><td>Timestamps de creación, picking y entrega</td><td>Aleph — Tiempos / Snowflake</td></tr>
+    <tr><td class="strong">Compensaciones</td><td>USD compensado por categoría de defecto</td><td>Incomplete order, Poor condition, Different product, Never arrived — por semana</td><td>Power BI</td></tr>
+    <tr><td class="strong">Visitas ZL / tienda</td><td>Frecuencia con la que un Zone Lead visita sus tiendas</td><td>Conteo de evaluaciones por ZL en periodo de 4 semanas, con score relativo al ZL con más visitas</td><td>API ChecklistFácil</td></tr>
+    <tr><td class="strong">IS_TRUSTED</td><td>% de tiendas/órdenes que cumplen el estándar de confianza operativa</td><td>% global y por país</td><td>QA / Snowflake</td></tr>
+    <tr><td class="strong">Disciplina Operativa</td><td>Cumplimiento general de procesos operativos en tienda</td><td>Checklist ponderado (orden, procesos, limpieza)</td><td>TurboOps — Disciplina</td></tr>
+    <tr><td class="strong">Misiones de Surtido</td><td>Cumplimiento de misiones de reposición asignadas a tienda</td><td>Misiones completadas vs. asignadas</td><td>TurboOps</td></tr>
+    <tr><td class="strong">Cíclicos</td><td>Exactitud y cobertura de los conteos cíclicos de inventario</td><td>% tiempo de ciclo vs. meta, SKUs contados por minuto</td><td>Snowflake — GLOBAL_CYCLIC_COUNTS</td></tr>
+    <tr><td class="strong">Saneo Fruver</td><td>Cumplimiento del saneo (descarte de producto vencido/dañado) en frutas y verduras</td><td>% de saneo realizado vs. esperado</td><td>TurboOps / Aleph</td></tr>
+    <tr><td class="strong">Productos Apagados</td><td>SKUs desactivados en la app por tienda</td><td>Conteo de SKUs apagados vs. catálogo total</td><td>TurboOps / Snowflake</td></tr>
+    <tr><td class="strong">Recepción</td><td>Cumplimiento del proceso de recepción de mercancía en tienda</td><td>% de recepciones correctas vs. total</td><td>TurboOps / Aleph</td></tr>
+  </table></div>
+</div></section>
+
+<!-- ================= DOCUMENTOS ================= -->
+<section id="documentos"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Documentos de soporte</h2></div>
+  <div class="docs-grid">
+    <div class="doc-card"><span class="k">Sheet</span><h4>QA-WH Tracker</h4><p>Base de "La Calidosa" y alertas de QA.</p><a href="https://docs.google.com/spreadsheets/d/1LIaSEsGHCXPHmgbi-f1gJxC5A7KchMnp8hE9x4edqAo/edit?gid=1947598243#gid=1947598243">docs.google.com/spreadsheets/d/1LIaSEsGHCXPHmgbi-f1gJxC5A7KchMnp8hE9x4edqAo</a></div>
+    <div class="doc-card"><span class="k">Sheet</span><h4>TurboOps — hoja central</h4><p>Alimenta la suite de dashboards de Store/Zone Leads.</p><a href="https://julizarates.github.io/ops_dash_ZL_ALL/hub_turboops.html">julizarates.github.io/ops_dash_ZL_ALL/hub_turboops.html</a></div>
+    <div class="doc-card"><span class="k">Sheet</span><h4>Seguimiento QA semanal</h4><p>Top-offenders semanal por país, seis países.</p></div>
+    <div class="doc-card"><span class="k">Docx</span><h4>WBR semanal + planes de acción</h4><p>Reporte de hallazgos y plan de acción por país, formato horizontal imprimible.</p><a href="https://docs.google.com/spreadsheets/d/1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U/edit?gid=1235650352#gid=1235650352">docs.google.com/spreadsheets/d/1ieRuWkk5BxJKRFEJSHeSJuyHcnzjOyOP6l0xzOMqD8U</a></div>
+    <div class="doc-card"><span class="k">HTML</span><h4>Hub TurboOps</h4><p>Disciplina, Métricas por país, Visitas ZL.</p><a href="https://julizarates.github.io/ops_dash_ZL_ALL/hub_turboops.html">julizarates.github.io/ops_dash_ZL_ALL/hub_turboops.html</a></div>
+    <div class="doc-card"><span class="k">Apps Script</span><h4>alertas_qa.gs</h4><p>Motor de alertas de QA (Slack, martes y jueves).</p></div>
+    <div class="doc-card"><span class="k">Apps Script</span><h4>SendPlanesDeAccion</h4><p>Envía los planes de acción de la semana a todos los grupos de Slack.</p></div>
+    <div class="doc-card"><span class="k">Power BI</span><h4>Compensaciones</h4><p>Uso secundario — referencia puntual, no fuente principal.</p></div>
+    <div class="doc-card"><span class="k">Snowflake</span><h4>Gestión de queries y actualización de tablas</h4><p>Mantenimiento de queries core de calidad (defect rate, delivery times) y actualización de tablas cuando el esquema cambia.</p></div>
+  </div>
+</div></section>
+
+<!-- ================= REUNIONES ================= -->
+<section id="reuniones"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Reuniones</h2></div>
+  <div class="tbl-wrap"><table>
+    <tr><th>Reunión</th><th>Frecuencia</th><th>Con quién</th><th>Objetivo</th></tr>
+    <tr><td class="strong">Seguimiento por país</td><td>Bi-semanal</td><td>City Managers / Zone Leads por país</td><td>Dar seguimiento a la operación, resolver dudas y necesidades</td></tr>
+    <tr><td class="strong">WBR</td><td>Semanal</td><td>Andrés Henao (+ equipo Turbo)</td><td>Revisar cancelaciones, SO Ops, defect rate, compensaciones y disponibilidad; validar cumplimiento de planes de acción</td></tr>
+    <tr><td class="strong">Comité Turbo</td><td>Semanal (miércoles)</td><td>Zone Leads</td><td>Exponer paneles y visuales consolidados de la semana</td></tr>
+    <tr><td class="strong">Biweekly Adoption Métricas</td><td>Bi-semanal (jueves/viernes)</td><td>Equipo Turbo</td><td>Evaluar nuevas implementaciones y comenzar a medir su impacto</td></tr>
+    <tr><td class="strong">Proyectos / experimentos</td><td>Variable</td><td>Según iniciativa en curso</td><td>Seguimiento puntual de pilotos y experimentos activos</td></tr>
+  </table></div>
+</div></section>
+
+<!-- ================= STAKEHOLDERS ================= -->
+<section id="stakeholders"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Stakeholders</h2></div>
+  <p class="sec-sub">Colaboradores directos, más los roles con los que se coordina la operación en cada país.</p>
+
+  <div class="people-note">
+    <div class="person"><div class="avatar">AH</div><div><p class="name">Andrés Henao</p><p class="role">Manager — Global Operations · colabora directo en el sistema WBR</p></div></div>
+    <div class="person"><div class="avatar">Y</div><div><p class="name">Yeferson Alba</p><p class="role">Instructional Designer</p></div></div>
+    <div class="person"><div class="avatar">OO</div><div><p class="name">Oscar Ochoa</p><p class="role">Operations Specialist</p></div></div>
+  </div>
+
+  <div class="tbl-wrap"><table>
+    <tr><th>Rol</th><th>Alcance</th><th>Para qué se coordina</th></tr>
+    <tr><td class="strong">City Manager (CM)</td><td>Uno por ciudad (dentro de CO · AR · MX · BR · PE · CL)</td><td>Seguimiento bi-semanal de operación, decisiones de ciudad</td></tr>
+    <tr><td class="strong">Zone Leads (ZL)</td><td>Número variable por país (ver hoja de roster completa)</td><td>Ejecución de planes de acción, visitas a tienda, Comité Turbo</td></tr>
+  </table></div>
+</div></section>
+
+<!-- ================= AGENDA ================= -->
+<section id="agenda"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Agenda semanal típica</h2></div>
+  <div class="week">
+    <div class="day"><span class="d-num">LUN</span><div class="d-name">Lunes</div>
+      <ul>
+        <li>Revisión de la semana anterior y del panorama general</li>
+        <li>Revisión de planes de acción</li>
+        <li>Análisis de métricas y tendencias</li>
+        <li>Mantenimiento de data y reportes</li>
+      </ul>
+    </div>
+    <div class="day"><span class="d-num">MAR</span><div class="d-name">Martes</div>
+      <ul>
+        <li>Preparación WBR (análisis a fondo)</li>
+        <li>Alertas QA</li>
+        <li>Análisis de métricas y tendencias</li>
+        <li>Mantenimiento de data y reportes</li>
+      </ul>
+    </div>
+    <div class="day"><span class="d-num">MIÉ</span><div class="d-name">Miércoles</div>
+      <ul>
+        <li>Preparación Comité Turbo</li>
+        <li>Consolidación de paneles y nuevos visuales</li>
+        <li>Exposición a Zone Leads</li>
+        <li>Mantenimiento de data y reportes</li>
+      </ul>
+    </div>
+    <div class="day"><span class="d-num">JUE</span><div class="d-name">Jueves</div>
+      <ul>
+        <li>Alertas QA</li>
+        <li>Biweekly Adoption Métricas (según calendario)</li>
+        <li>Seguimiento por país (según calendario bi-semanal)</li>
+        <li>Análisis de métricas y tendencias</li>
+        <li>Mantenimiento de data y reportes</li>
+      </ul>
+    </div>
+    <div class="day"><span class="d-num">VIE</span><div class="d-name">Viernes</div>
+      <ul>
+        <li>Biweekly Adoption Métricas (según calendario)</li>
+        <li>Seguimiento de proyectos y experimentos activos</li>
+        <li>Seguimiento por país (según calendario bi-semanal)</li>
+        <li>Análisis de métricas y tendencias</li>
+        <li>Mantenimiento de data y reportes</li>
+      </ul>
+    </div>
+  </div>
+  <p class="cadence-note">+ visita a tienda en campo cada 8–15 días</p>
+</div></section>
+
+<!-- ================= PROYECTOS ================= -->
+<section id="proyectos"><div class="wrap">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Proyectos Q3 / Q4 y largo plazo</h2></div>
+
+  <div class="proc" style="border-left-color:var(--good);margin-bottom:20px;">
+    <span class="tag" style="color:var(--good);">Activo</span>
+    <h3>Plan tiendas 85%+ de calidad global</h3>
+    <p>Llevar todas las tiendas por encima del 85% de calidad a nivel global, priorizando primero las tiendas críticas. El análisis general ahora incluye cuartiles para cada métrica, para ir evaluando la migración de cuartil de cada tienda a medida que mejora.</p>
+    <p>⚙️ El seguimiento del QA Score &gt;85 está <b>automatizado</b>: cada lunes se actualizan los cuartiles de las tiendas críticas y el detalle general de cuartiles.</p>
+    <p class="link">🔗 docs.google.com/spreadsheets/d/1-AgdOsK3C4WES6EdVOql3S58oTEUUS0L0GWsWCFYlI4<br>🔗 julizarates.github.io/ops_dash_ZL_ALL/segmentacion_cuartiles.html</p>
+  </div>
+
+  <div class="project-hero">
+    <span class="k">Q3 – Q4 2026 · Iniciativa nueva</span>
+    <h3>Operación Cero Fricción — rediseño de picking &amp; packing</h3>
+    <p>Diseñar y validar una nueva estrategia de picking y packing en tienda que ataque de raíz el origen de los incumplimientos de calidad, en lugar de seguir corrigiéndolos después de que ocurren.</p>
+    <div class="metric-target"><span class="big">-40%</span><span class="small">de incumplimientos<br>objetivo del piloto</span></div>
+  </div>
+
+  <div class="proj-row">
+    <div class="proc" style="margin-bottom:0;border-left-color:var(--blue);">
+      <span class="tag" style="color:var(--blue);">Largo plazo</span>
+      <h3>Todo el seguimiento, dentro de KNOW</h3>
+      <p>Integrar todo el seguimiento de calidad (alertas, planes de acción) en KNOW, generando checklists automáticos según la necesidad puntual de cada tienda — esos checklists reemplazarían al plan de acción manual de hoy.</p>
+    </div>
+    <div class="proc" style="margin-bottom:0;border-left-color:var(--purple);">
+      <span class="tag" style="color:var(--purple);">Recurrente</span>
+      <h3>Desarrollos de temporada</h3>
+      <p>Además de la operación regular, se arman desarrollos puntuales para momentos de temporada alta (por ejemplo, un torneo o lanzamiento grande), con su propio seguimiento y dashboards mientras dura el evento.</p>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  Ficha de rol · Juliana Zárate Santander · Global Operations Senior Analyst · Rappi Turbo
+</div></footer>
+
+<script>
+function copyCode(btn){
+  const code = btn.nextElementSibling.innerText;
+  navigator.clipboard.writeText(code).then(()=>{
+    const original = btn.textContent;
+    btn.textContent = "¡Copiado!";
+    setTimeout(()=>{btn.textContent = original;}, 1500);
+  });
+}
+</script>
+</body>
+</html>
