@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TurboOps | Top Tiempo de Búsqueda</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #E24B4A;
+  --red-bg: #FEF2F2;
+  --green: #10B981;
+  --green-bg: #ECFDF5;
+  --yellow: #F59E0B;
+  --yellow-bg: #FFFBEB;
+  --blue: #3B82F6;
+  --gray: #6B7280;
+  --border: #E5E7EB;
+  --surface: #F9FAFB;
+  --text: #111827;
+  --text-sm: #6B7280;
+  --gold-bg: #FEF3C7; --gold-text: #92400E;
+  --silver-bg: #F1F5F9; --silver-text: #475569;
+  --bronze-bg: #FFF7ED; --bronze-text: #9A3412;
+  --radius: 12px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Figtree', sans-serif; background: #F5F5F5; color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* HEADER */
+.header {
+  background: #fff;
+  border-bottom: 2.5px solid var(--red);
+  padding: 12px 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+.logo em { font-style: normal; color: var(--red); }
+.header-info { flex: 1; }
+.header-title { font-size: 11px; font-weight: 600; color: var(--text-sm); letter-spacing: 0.3px; text-transform: uppercase; }
+.header-week { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+/* TABS */
+.tabs {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 8px 10px 0;
+  gap: 6px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 9px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.tab-btn.active { color: var(--red); background: #fff; border-color: var(--border); position: relative; }
+.tab-btn.active::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: #fff;
+}
+
+/* FILTERS */
+.filters {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.filter-wrap { flex: 1; position: relative; min-width: calc(50% - 4px); }
+.filter-wrap::after {
+  content: '▾';
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; color: var(--gray); pointer-events: none;
+}
+select {
+  width: 100%; padding: 7px 22px 7px 9px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); font-family: inherit; font-size: 12px;
+  color: var(--text); appearance: none; cursor: pointer; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+select:focus { outline: none; border-color: var(--red); }
+select:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* LOADING */
+#loading {
+  text-align: center; padding: 48px 24px; color: var(--gray);
+  font-size: 13px; display: none;
+}
+.spinner {
+  width: 28px; height: 28px; border: 3px solid var(--border);
+  border-top-color: var(--red); border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* MAIN CONTENT */
+.content-area { padding: 10px; max-width: 540px; margin: 0 auto; }
+
+/* TOTALS STRIP */
+.totals-strip {
+  background: #111; color: #fff; padding: 8px 12px;
+  display: flex; gap: 12px; overflow-x: auto; font-size: 11px;
+  align-items: center; margin-bottom: 10px; border-radius: 10px;
+  scrollbar-width: none;
+}
+.totals-strip::-webkit-scrollbar { display: none; }
+.t-item { display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; flex-shrink: 0; }
+.t-num { font-size: 16px; font-weight: 800; }
+.t-label { font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: 0.3px; }
+.t-sep { width: 1px; background: #333; height: 28px; flex-shrink: 0; }
+
+/* SECTION HEADER (context banner) */
+.ctx-banner {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 11px 14px; margin-bottom: 10px; box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.ctx-title { font-size: 14px; font-weight: 800; line-height: 1.25; }
+.ctx-sub { font-size: 11px; color: var(--text-sm); margin-top: 2px; }
+.ctx-icon { font-size: 22px; flex-shrink: 0; }
+
+/* RANK CARDS */
+.rank-card {
+  background: #fff; border-radius: var(--radius); padding: 12px 14px;
+  margin-bottom: 8px; box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex; gap: 11px; align-items: flex-start;
+}
+.rank-badge {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800;
+}
+.rank-badge.r1 { background: var(--gold-bg); color: var(--gold-text); }
+.rank-badge.r2 { background: var(--silver-bg); color: var(--silver-text); }
+.rank-badge.r3 { background: var(--bronze-bg); color: var(--bronze-text); }
+.rank-badge.r4, .rank-badge.r5 { background: var(--surface); color: var(--gray); }
+
+.rank-body { flex: 1; min-width: 0; }
+.rank-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.rank-name { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.rank-cat { font-size: 10.5px; color: var(--gray); margin-top: 2px; }
+.rank-meta { font-size: 10px; color: #9CA3AF; margin-top: 3px; }
+
+.rank-time-block { text-align: right; flex-shrink: 0; }
+.rank-time-num { font-size: 16px; font-weight: 800; color: var(--red); line-height: 1; }
+.rank-time-lbl { font-size: 9px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 2px; }
+
+.rank-bar-track { margin-top: 8px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.rank-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--red), #F87171); }
+
+.rank-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+.rank-tag {
+  font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+  background: var(--surface); color: var(--gray); border: 1px solid var(--border);
+}
+
+/* EMPTY */
+.empty { text-align: center; padding: 40px 24px; color: var(--gray); font-size: 13px; }
+
+@media (max-width: 360px) {
+  .rank-name { font-size: 12.5px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Turbo<em>Ops</em></div>
+  <div class="header-info">
+    <div class="header-title">Top Tiempo de Búsqueda / Picking</div>
+    <div class="header-week" id="header-week">Cargando datos...</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-pais" onclick="switchTab('pais')">🌎 Por País</button>
+  <button class="tab-btn" id="tab-tienda" onclick="switchTab('tienda')">🏪 Por Tienda</button>
+</div>
+
+<div class="filters">
+  <div class="filter-wrap">
+    <select id="sel-pais"><option value="">🌎 País</option></select>
+  </div>
+  <div class="filter-wrap" id="wrap-tienda" style="display:none">
+    <select id="sel-tienda"><option value="">🏪 Tienda</option></select>
+  </div>
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  Cargando datos...
+</div>
+
+<div class="content-area">
+  <div id="results"></div>
+</div>
+
+<script>
+// ===================== CONSTANTS =====================
+const PUB_ID = '2PACX-1vQnT4uViGiikmSNyKqTYcaQDcW5UUsxipbLFpETotIJm46MVdk8AwgQ0-M5IBE4sRZ6h8KJ0QGy3iXE';
+const GID = {
+  pais:    '1365998363',
+  detalle: '554561945'
+};
+const csvUrl = g => `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?gid=${g}&single=true&output=csv`;
+
+const RANK_EMOJI = { 1:'🥇', 2:'🥈', 3:'🥉', 4:'4', 5:'5' };
+const COUNTRY_NAMES = {
+  CO:'Colombia', AR:'Argentina', MX:'México', BR:'Brasil', PE:'Perú', CL:'Chile'
+};
+
+// ===================== STATE =====================
+let currentTab = 'pais';
+let paisRows = [];     // array of TB_PAIS rows
+let detalleRows = [];  // array of TB_DETALLE rows
+let state = { pais: '', tienda: '' };
+
+// ===================== CSV PARSER =====================
+function parseCSV(text) {
+  const lines = text.replace(/\r/g,'').split('\n');
+  return lines.map(line => {
+    const row = []; let cur = '', inQ = false;
+    for (let i = 0; i <= line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if ((c === ',' || c === undefined) && !inQ) { row.push(cur); cur = ''; }
+      else { cur += (c||''); }
+    }
+    return row;
+  }).filter(r => r.some(c => c !== ''));
+}
+
+function findHdr(rows, mustHave) {
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+    const cells = rows[i].map(c => (c||'').trim().toUpperCase());
+    if (mustHave.every(m => cells.includes(m))) return i;
+  }
+  return -1;
+}
+
+function toObjs(rows, hIdx) {
+  const h = rows[hIdx].map(x => (x||'').trim().toUpperCase());
+  return rows.slice(hIdx+1)
+    .filter(r => r.some(c => c))
+    .map(r => Object.fromEntries(h.map((k,i) => [k, (r[i]||'').trim()])));
+}
+
+function normCC(cc) { return (cc||'').trim().toUpperCase(); }
+
+// ===================== DATA PROCESSORS =====================
+function processPais(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows, ['COUNTRY_CODE','RANKING','PRODUCT_NAME']);
+  if (hIdx < 0) { paisRows = []; return; }
+  paisRows = toObjs(rows, hIdx)
+    .map(r => ({
+      cc: normCC(r.COUNTRY_CODE),
+      ranking: parseInt(r.RANKING) || 0,
+      productId: r.PRODUCT_ID || '',
+      ean: r.EAN || '',
+      name: r.PRODUCT_NAME || '(sin nombre)',
+      category: r.CATEGORY_NAME || '',
+      orders: parseInt(r.ORDERS) || 0,
+      avgMin: parseFloat(r.AVG_PICKING_TIME_MIN) || 0,
+      totalMin: parseFloat(r.TOTAL_PICKING_TIME_MIN) || 0
+    }))
+    .filter(r => r.cc)
+    .sort((a,b) => a.ranking - b.ranking);
+}
+
+function processDetalle(text) {
+  const rows = parseCSV(text);
+  const hIdx = findHdr(rows, ['COUNTRY_CODE','WAREHOUSE_ID','RANKING']);
+  if (hIdx < 0) { detalleRows = []; return; }
+  detalleRows = toObjs(rows, hIdx)
+    .map(r => ({
+      cc: normCC(r.COUNTRY_CODE),
+      whId: (r.WAREHOUSE_ID || '').trim(),
+      whName: r.WAREHOUSENAME || '',
+      ranking: parseInt(r.RANKING) || 0,
+      productId: r.PRODUCT_ID || '',
+      ean: r.EAN || '',
+      name: r.PRODUCT_NAME || '(sin nombre)',
+      category: r.CATEGORY_NAME || '',
+      orders: parseInt(r.ORDERS) || 0,
+      avgMin: parseFloat(r.AVG_PICKING_TIME_MIN) || 0,
+      totalMin: parseFloat(r.TOTAL_PICKING_TIME_MIN) || 0
+    }))
+    .filter(r => r.cc && r.whId)
+    .sort((a,b) => a.ranking - b.ranking);
+}
+
+// ===================== FILTERS BUILD =====================
+function buildFilters() {
+  const countries = [...new Set([
+    ...paisRows.map(r => r.cc),
+    ...detalleRows.map(r => r.cc)
+  ])].sort();
+
+  const pSel = document.getElementById('sel-pais');
+  pSel.innerHTML = '<option value="">🌎 País</option>' +
+    countries.map(c => `<option value="${c}">${COUNTRY_NAMES[c] || c} (${c})</option>`).join('');
+
+  rebuildTiendaOptions();
+}
+
+function rebuildTiendaOptions() {
+  const cc = state.pais;
+  const tSel = document.getElementById('sel-tienda');
+  if (!cc) {
+    tSel.innerHTML = '<option value="">Selecciona un país primero</option>';
+    tSel.disabled = true;
+    return;
+  }
+  tSel.disabled = false;
+  const stores = [...new Map(
+    detalleRows.filter(r => r.cc === cc).map(r => [r.whId, r])
+  ).values()].sort((a,b) => (a.whName||'').localeCompare(b.whName||''));
+
+  tSel.innerHTML = '<option value="">🏪 Tienda</option>' +
+    stores.map(s => `<option value="${s.whId}">${s.whName || 'WH '+s.whId}</option>`).join('');
+
+  if (!stores.find(s => s.whId === state.tienda)) state.tienda = '';
+  tSel.value = state.tienda;
+}
+
+// ===================== TAB SWITCH =====================
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-pais').classList.toggle('active', tab === 'pais');
+  document.getElementById('tab-tienda').classList.toggle('active', tab === 'tienda');
+  document.getElementById('wrap-tienda').style.display = tab === 'tienda' ? '' : 'none';
+  if (tab === 'pais') { state.tienda = ''; document.getElementById('sel-tienda').value = ''; }
+  renderView();
+}
+
+// ===================== RENDER =====================
+function showLoading(v) { document.getElementById('loading').style.display = v ? 'block' : 'none'; }
+
+function renderView() {
+  showLoading(false);
+  const results = document.getElementById('results');
+
+  if (currentTab === 'pais') {
+    renderPaisView(results);
+  } else {
+    renderTiendaView(results);
+  }
+}
+
+function renderRankCards(items) {
+  if (!items.length) return '<div class="empty">No hay datos para este filtro.</div>';
+  const maxTime = Math.max(...items.map(i => i.avgMin), 0.01);
+  return items.map(it => {
+    const rk = it.ranking;
+    const badgeCls = rk <= 3 ? 'r'+rk : 'r4';
+    const badgeLabel = RANK_EMOJI[rk] || rk;
+    const pct = Math.min((it.avgMin / maxTime) * 100, 100);
+    return `<div class="rank-card">
+      <div class="rank-badge ${badgeCls}">${badgeLabel}</div>
+      <div class="rank-body">
+        <div class="rank-top">
+          <div>
+            <div class="rank-name">${escapeHtml(it.name)}</div>
+            ${it.category ? `<div class="rank-cat">${escapeHtml(it.category)}</div>` : ''}
+          </div>
+          <div class="rank-time-block">
+            <div class="rank-time-num">${it.avgMin.toFixed(2)}<span style="font-size:10px;font-weight:700"> min</span></div>
+            <div class="rank-time-lbl">Prom. búsqueda</div>
+          </div>
+        </div>
+        <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${pct}%"></div></div>
+        <div class="rank-tags">
+          <span class="rank-tag">📦 ${it.orders} pedido${it.orders!==1?'s':''}</span>
+          <span class="rank-tag">⏱ ${it.totalMin.toFixed(2)} min total</span>
+          ${it.ean ? `<span class="rank-tag">EAN ${escapeHtml(it.ean)}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderPaisView(container) {
+  if (!state.pais) {
+    const countries = [...new Set(paisRows.map(r => r.cc))].sort();
+    container.innerHTML = `<div class="ctx-banner">
+      <div>
+        <div class="ctx-title">Selecciona un país</div>
+        <div class="ctx-sub">${countries.length} países con datos disponibles</div>
+      </div>
+      <div class="ctx-icon">🌎</div>
+    </div>` + '<div class="empty">Usa el filtro de arriba para ver el Top 5 de productos con mayor tiempo de búsqueda en ese país.</div>';
+    return;
+  }
+
+  const items = paisRows.filter(r => r.cc === state.pais).sort((a,b) => a.ranking - b.ranking);
+  const avgOfTop = items.length ? (items.reduce((s,i)=>s+i.avgMin,0)/items.length) : 0;
+  const totalOrders = items.reduce((s,i)=>s+i.orders,0);
+
+  const strip = `<div class="totals-strip">
+    <div class="t-item"><div class="t-num">${items.length}</div><div class="t-label">Productos</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num">${avgOfTop.toFixed(1)}</div><div class="t-label">Prom Top5 (min)</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num">${totalOrders}</div><div class="t-label">Pedidos</div></div>
+  </div>`;
+
+  const banner = `<div class="ctx-banner">
+    <div>
+      <div class="ctx-title">${COUNTRY_NAMES[state.pais] || state.pais}</div>
+      <div class="ctx-sub">Top 5 productos — mayor tiempo prom. de búsqueda, todas las tiendas</div>
+    </div>
+    <div class="ctx-icon">🌎</div>
+  </div>`;
+
+  container.innerHTML = strip + banner + renderRankCards(items);
+}
+
+function renderTiendaView(container) {
+  if (!state.pais) {
+    container.innerHTML = `<div class="empty">Selecciona un país para ver sus tiendas.</div>`;
+    return;
+  }
+  if (!state.tienda) {
+    const stores = [...new Map(
+      detalleRows.filter(r => r.cc === state.pais).map(r => [r.whId, r])
+    ).values()];
+    container.innerHTML = `<div class="ctx-banner">
+      <div>
+        <div class="ctx-title">Selecciona una tienda</div>
+        <div class="ctx-sub">${stores.length} tiendas en ${COUNTRY_NAMES[state.pais] || state.pais}</div>
+      </div>
+      <div class="ctx-icon">🏪</div>
+    </div>` + '<div class="empty">Usa el filtro de arriba para ver el Top 5 de productos con mayor tiempo de búsqueda en esa tienda.</div>';
+    return;
+  }
+
+  const items = detalleRows
+    .filter(r => r.cc === state.pais && r.whId === state.tienda)
+    .sort((a,b) => a.ranking - b.ranking);
+  const whName = items[0]?.whName || 'WH '+state.tienda;
+  const avgOfTop = items.length ? (items.reduce((s,i)=>s+i.avgMin,0)/items.length) : 0;
+  const totalOrders = items.reduce((s,i)=>s+i.orders,0);
+
+  const strip = `<div class="totals-strip">
+    <div class="t-item"><div class="t-num">${items.length}</div><div class="t-label">Productos</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num">${avgOfTop.toFixed(1)}</div><div class="t-label">Prom Top5 (min)</div></div>
+    <div class="t-sep"></div>
+    <div class="t-item"><div class="t-num">${totalOrders}</div><div class="t-label">Pedidos</div></div>
+  </div>`;
+
+  const banner = `<div class="ctx-banner">
+    <div>
+      <div class="ctx-title">${escapeHtml(whName)}</div>
+      <div class="ctx-sub">${COUNTRY_NAMES[state.pais] || state.pais} · WH ${state.tienda} · Top 5 productos con mayor tiempo prom. de búsqueda</div>
+    </div>
+    <div class="ctx-icon">🏪</div>
+  </div>`;
+
+  container.innerHTML = strip + banner + renderRankCards(items);
+}
+
+// ===================== EVENTS =====================
+document.getElementById('sel-pais').addEventListener('change', e => {
+  state.pais = e.target.value;
+  state.tienda = '';
+  rebuildTiendaOptions();
+  renderView();
+});
+document.getElementById('sel-tienda').addEventListener('change', e => {
+  state.tienda = e.target.value;
+  renderView();
+});
+
+// ===================== LOAD =====================
+const safeFetch = url =>
+  fetch(url)
+    .then(r => r.ok ? r.text() : '')
+    .catch(() => '');
+
+async function loadAll() {
+  showLoading(true);
+  document.getElementById('results').innerHTML = '';
+  try {
+    const [paisTxt, detTxt] = await Promise.all([
+      safeFetch(csvUrl(GID.pais)),
+      safeFetch(csvUrl(GID.detalle)),
+    ]);
+
+    if (!paisTxt && !detTxt) throw new Error('No se pudo cargar ninguna de las dos hojas. Verifica que estén publicadas.');
+
+    if (paisTxt) processPais(paisTxt);
+    if (detTxt)  processDetalle(detTxt);
+
+    document.getElementById('header-week').textContent =
+      `Últimos 7 días · ${detalleRows.length ? 'tiendas y países cargados' : 'sin datos de tienda'}`;
+
+    buildFilters();
+    renderView();
+  } catch(e) {
+    showLoading(false);
+    const el = document.getElementById('loading');
+    el.style.display = 'block';
+    el.innerHTML = `<div style="font-size:24px;margin-bottom:8px">⚠️</div>Error al cargar los datos.<br><span style="font-size:11px;color:#aaa">${e.message}</span>`;
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
