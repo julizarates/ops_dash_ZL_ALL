@@ -172,6 +172,9 @@ select:disabled { opacity: 0.45; cursor: not-allowed; }
   font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
   background: var(--surface); color: var(--gray); border: 1px solid var(--border);
 }
+.rank-tag.good {
+  background: var(--green-bg); color: #047857; border-color: #A7F3D0;
+}
 
 /* EMPTY */
 .empty { text-align: center; padding: 40px 24px; color: var(--gray); font-size: 13px; }
@@ -267,6 +270,11 @@ function toObjs(rows, hIdx) {
 function normCC(cc) { return (cc||'').trim().toUpperCase(); }
 
 // ===================== DATA PROCESSORS =====================
+// NOTA: las queries ya no traen TOTAL_PICKING_TIME_MIN (tiempo acumulado).
+// Ahora el ranking viene filtrado por productos con ORDERS por encima de
+// la mediana de su warehouse/país (buen volumen), y ordenado por
+// AVG_PICKING_TIME_MIN (tiempo real de picking). Se agrega
+// MEDIAN_ORDERS_REFERENCIA para poder mostrar el contraste.
 function processPais(text) {
   const rows = parseCSV(text);
   const hIdx = findHdr(rows, ['COUNTRY_CODE','RANKING','PRODUCT_NAME']);
@@ -280,8 +288,8 @@ function processPais(text) {
       name: r.PRODUCT_NAME || '(sin nombre)',
       category: r.CATEGORY_NAME || '',
       orders: parseInt(r.ORDERS) || 0,
-      avgMin: parseFloat(r.AVG_PICKING_TIME_MIN) || 0,
-      totalMin: parseFloat(r.TOTAL_PICKING_TIME_MIN) || 0
+      medianOrders: parseFloat(r.MEDIAN_ORDERS_REFERENCIA) || 0,
+      avgMin: parseFloat(r.AVG_PICKING_TIME_MIN) || 0
     }))
     .filter(r => r.cc)
     .sort((a,b) => a.ranking - b.ranking);
@@ -302,8 +310,8 @@ function processDetalle(text) {
       name: r.PRODUCT_NAME || '(sin nombre)',
       category: r.CATEGORY_NAME || '',
       orders: parseInt(r.ORDERS) || 0,
-      avgMin: parseFloat(r.AVG_PICKING_TIME_MIN) || 0,
-      totalMin: parseFloat(r.TOTAL_PICKING_TIME_MIN) || 0
+      medianOrders: parseFloat(r.MEDIAN_ORDERS_REFERENCIA) || 0,
+      avgMin: parseFloat(r.AVG_PICKING_TIME_MIN) || 0
     }))
     .filter(r => r.cc && r.whId)
     .sort((a,b) => a.ranking - b.ranking);
@@ -375,6 +383,7 @@ function renderRankCards(items) {
     const badgeCls = rk <= 3 ? 'r'+rk : 'r4';
     const badgeLabel = RANK_EMOJI[rk] || rk;
     const pct = Math.min((it.avgMin / maxTime) * 100, 100);
+    const medianTxt = it.medianOrders ? it.medianOrders.toFixed(0) : '—';
     return `<div class="rank-card">
       <div class="rank-badge ${badgeCls}">${badgeLabel}</div>
       <div class="rank-body">
@@ -390,8 +399,8 @@ function renderRankCards(items) {
         </div>
         <div class="rank-bar-track"><div class="rank-bar-fill" style="width:${pct}%"></div></div>
         <div class="rank-tags">
-          <span class="rank-tag">📦 ${it.orders} pedido${it.orders!==1?'s':''}</span>
-          <span class="rank-tag">⏱ ${it.totalMin.toFixed(2)} min total</span>
+          <span class="rank-tag good">📦 ${it.orders} pedido${it.orders!==1?'s':''}</span>
+          <span class="rank-tag">📊 Mediana: ${medianTxt}</span>
           ${it.ean ? `<span class="rank-tag">EAN ${escapeHtml(it.ean)}</span>` : ''}
         </div>
       </div>
@@ -412,7 +421,7 @@ function renderPaisView(container) {
         <div class="ctx-sub">${countries.length} países con datos disponibles</div>
       </div>
       <div class="ctx-icon">🌎</div>
-    </div>` + '<div class="empty">Usa el filtro de arriba para ver el Top 5 de productos con mayor tiempo de búsqueda en ese país.</div>';
+    </div>` + '<div class="empty">Usa el filtro de arriba para ver el Top 5 de productos con buen volumen de pedidos y mayor tiempo prom. de búsqueda en ese país.</div>';
     return;
   }
 
@@ -431,7 +440,7 @@ function renderPaisView(container) {
   const banner = `<div class="ctx-banner">
     <div>
       <div class="ctx-title">${COUNTRY_NAMES[state.pais] || state.pais}</div>
-      <div class="ctx-sub">Top 5 productos — mayor tiempo prom. de búsqueda, todas las tiendas</div>
+      <div class="ctx-sub">Top 5 — buen volumen de pedidos y mayor tiempo prom. de búsqueda, todas las tiendas</div>
     </div>
     <div class="ctx-icon">🌎</div>
   </div>`;
@@ -454,7 +463,7 @@ function renderTiendaView(container) {
         <div class="ctx-sub">${stores.length} tiendas en ${COUNTRY_NAMES[state.pais] || state.pais}</div>
       </div>
       <div class="ctx-icon">🏪</div>
-    </div>` + '<div class="empty">Usa el filtro de arriba para ver el Top 5 de productos con mayor tiempo de búsqueda en esa tienda.</div>';
+    </div>` + '<div class="empty">Usa el filtro de arriba para ver el Top 5 de productos con buen volumen de pedidos y mayor tiempo prom. de búsqueda en esa tienda.</div>';
     return;
   }
 
@@ -476,7 +485,7 @@ function renderTiendaView(container) {
   const banner = `<div class="ctx-banner">
     <div>
       <div class="ctx-title">${escapeHtml(whName)}</div>
-      <div class="ctx-sub">${COUNTRY_NAMES[state.pais] || state.pais} · WH ${state.tienda} · Top 5 productos con mayor tiempo prom. de búsqueda</div>
+      <div class="ctx-sub">${COUNTRY_NAMES[state.pais] || state.pais} · WH ${state.tienda} · Top 5 — buen volumen de pedidos y mayor tiempo prom. de búsqueda</div>
     </div>
     <div class="ctx-icon">🏪</div>
   </div>`;
